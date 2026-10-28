@@ -50,7 +50,7 @@ def main():
             raise RuntimeError(f'{name} failed')
 
     run(['--editor', '--import', '--quit'], 'import')
-    for name in ('art', 'sector', 'feature'):
+    for name in ('art', 'sector', 'feature', 'update'):
         run(['--', f'--{name}-check'], name, name.upper() + '_PASS')
     subprocess.run([sys.executable, 'tools/run_smoke.py', '--players', '2'], cwd=ROOT, check=True)
 

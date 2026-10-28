@@ -1,0 +1,15 @@
+{
+  "author": "City Building Game Art / HorrorGameMaker.com",
+  "source": "https://opengameart.org/content/3d-horror-game-monster",
+  "download": "https://opengameart.org/sites/default/files/Poses.zip",
+  "license": "CC0-1.0",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrieved": "2026-10-28",
+  "files": {
+    "Idle.fbx": "de52b941baf984e367c6cb3e0f821127c7eb8034cff108fb52770d4bb4cc4959",
+    "README.txt": "8796160e55983daa282a1b54388ac25faccb8b7103073cc6c5f23df11a51f3e7",
+    "test_StingrayPBS1SG_AlbedoTransparency.png": "534484c07d9af54f37ef347f35002078636d14721c066b436977905fd66eee04",
+    "test_StingrayPBS1SG_MetallicSmoothness.png": "0b008a80cd8af66f4c664be6ac1404a9b7eb82ee2ad723ecd52310172a01ee90",
+    "test_StingrayPBS1SG_Normal.png": "6faa8f324901a4be61bfd5dd8c2ee182751054b7b9f19df169a5fcf926de8701"
+  }
+}

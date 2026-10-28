@@ -8,13 +8,14 @@ var quality: int = 0
 var resolution_scale: float = 0.75
 var sensitivity: float = 0.0024
 var volume: float = 0.65
-var fullscreen: bool = false
+var fullscreen: bool = true
+var applied_fullscreen: int = -1
 var music_volume: float = .45
 var effects_volume: float = .85
 var ambience_volume: float = .65
 var bindings: Dictionary = {}
-const DEFAULT_KEYS := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "sprint": KEY_SHIFT, "crouch": KEY_CTRL, "interact": KEY_E, "flashlight": KEY_F, "shout": KEY_V, "drop": KEY_G, "use_item": KEY_R, "slot": KEY_Q, "reload": KEY_T, "sos": KEY_H, "pause": KEY_ESCAPE, "map":KEY_M}
-const ACTION_LABELS := {"forward": "Вперёд", "back": "Назад", "left": "Влево", "right": "Вправо", "sprint": "Бег", "crouch": "Присесть", "interact": "Взаимодействие", "flashlight": "Фонарь", "shout": "Отвлечь шумом", "drop": "Положить предмет", "use_item": "Использовать предмет", "slot": "Следующая ячейка", "reload": "Перезарядить", "shoot": "Выстрел", "sos": "Позвать на помощь", "map":"Схема станции"}
+const DEFAULT_KEYS := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "sprint": KEY_SHIFT, "crouch": KEY_CTRL, "interact": KEY_E, "flashlight": KEY_F, "shout": KEY_V, "drop": KEY_G, "use_item": KEY_R, "slot": KEY_Q, "reload": KEY_T, "sos": KEY_H, "pause": KEY_ESCAPE, "map":KEY_M,"slot_1":KEY_1,"slot_2":KEY_2,"slot_3":KEY_3,"slot_4":KEY_4}
+const ACTION_LABELS := {"forward": "Вперёд", "back": "Назад", "left": "Влево", "right": "Вправо", "sprint": "Бег", "crouch": "Присесть", "interact": "Взаимодействие", "flashlight": "Фонарь", "shout": "Отвлечь шумом", "drop": "Положить предмет", "use_item": "Использовать предмет", "slot": "Следующая ячейка", "reload": "Перезарядить", "shoot": "Выстрел", "sos": "Позвать на помощь", "map":"Схема станции (удерживать)","slot_1":"Ячейка 1","slot_2":"Ячейка 2","slot_3":"Ячейка 3","slot_4":"Ячейка 4"}
 
 func _ready() -> void:
 	# CI/LAN processes get separate local files on every OS, including macOS.
@@ -28,7 +29,7 @@ func _ready() -> void:
 		resolution_scale = clampf(float(cfg.get_value("video", "scale", 0.75)), 0.5, 1.0)
 		sensitivity = clampf(float(cfg.get_value("input", "sensitivity", 0.0024)), 0.0005, 0.006)
 		volume = clampf(float(cfg.get_value("audio", "volume", 0.65)), 0.0, 1.0)
-		fullscreen = bool(cfg.get_value("video", "fullscreen", false))
+		fullscreen = bool(cfg.get_value("video", "fullscreen", true))
 		music_volume = clampf(float(cfg.get_value("audio", "music", .45)), 0, 1)
 		effects_volume = clampf(float(cfg.get_value("audio", "effects", .85)), 0, 1)
 		ambience_volume = clampf(float(cfg.get_value("audio", "ambience", .65)), 0, 1)
@@ -82,8 +83,10 @@ func apply() -> void:
 		if index >= 0:
 			AudioServer.set_bus_volume_db(index, linear_to_db(maxf(entry[1], .001)))
 			AudioServer.set_bus_mute(index, entry[1] <= 0)
-	if DisplayServer.get_name() != "headless":
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+	if DisplayServer.get_name() != "headless" and applied_fullscreen != int(fullscreen):
+		# Audio/quality changes must not restore a maximized window to a small one.
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_MAXIMIZED)
+		applied_fullscreen = int(fullscreen)
 	changed.emit()
 
 func save() -> void:

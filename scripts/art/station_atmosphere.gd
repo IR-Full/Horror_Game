@@ -58,7 +58,7 @@ func _build_details() -> void:
 		prop("locker", Vector3(x, 0, -2.4), PI)
 	prop("desk", Vector3(9.5, 0, -10.3), PI)
 	prop("desk", Vector3(12, 0, -10.3), PI)
-	prop("recorder", Vector3(11.5, 1.17, -10.3))
+	prop("recorder", Vector3(11.5, 1.145, -10.3))
 	for pos: Vector3 in [Vector3(13.6, 0, -11.3), Vector3(7.2, 0, -11.3)]:
 		prop("radio_rack", pos, PI)
 		_collision_box(pos + Vector3(0, 1, 0), Vector3(.8, 2, .65))
@@ -234,7 +234,7 @@ func _quality_changed() -> void:
 	dust.multimesh.visible_instance_count = 32 if SettingsManager.quality == 1 else 64
 
 func trigger(kind: int, pos: Vector3) -> void:
-	if kind == 2:
+	if kind == 2 and bool(station.rules.monster):
 		apparition.position = pos
 		var player := GameManager.local_player()
 		if player and pos.distance_to(player.position) > 5:
@@ -258,7 +258,7 @@ func _process(delta: float) -> void:
 			var pos: Vector3 = dust_seeds[i] + Vector3(sin(time * .13 + i) * .12, sin(time * .21 + i) * .1, 0)
 			dust.multimesh.set_instance_transform(i, Transform3D(Basis(), pos))
 	for light: OmniLight3D in emergency_lights:
-		light.light_energy = .4 + sin(time * 1.4) * .08
+		light.light_energy = (.24 + sin(time * 1.4) * .04)*float(station.rules.lighting)
 	var player := GameManager.local_player()
 	if not player:
 		return

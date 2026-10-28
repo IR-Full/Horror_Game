@@ -12,8 +12,8 @@ var purified: bool = false
 var tuned: bool = false
 var purge_holders: Array[int] = []
 var hazard_clock: float = 2.0
-const VALVES := [2, 1, 3]
-const FREQUENCY := [4, 7, 2]
+var valve_solution: Array = [2, 1, 3]
+var frequency_solution: Array = [4, 7, 2]
 
 func begin_frame() -> void:
 	purge_holders.clear()
@@ -34,7 +34,7 @@ func handle_object(player: Node3D, object: Node3D) -> void:
 			if pressure_ready: return
 			var index: int = int(object.object_id.trim_prefix("valve_"))
 			valves[index] = (int(valves[index])+1)%4
-			if valves == VALVES:
+			if valves == valve_solution:
 				pressure_ready = true
 				station.announce.rpc("Контур B: давление выровнено. Нужна фильтрация C для открытия шлюза D.")
 			station.sound_event.rpc("mechanism", object.position)
@@ -42,9 +42,9 @@ func handle_object(player: Node3D, object: Node3D) -> void:
 			if tuned: return
 			var index: int = int(object.object_id.trim_prefix("tuner_"))
 			frequency[index] = (int(frequency[index])+1)%10
-			if frequency == FREQUENCY:
+			if frequency == frequency_solution:
 				tuned = true
-				station.announce.rpc("Несущая 47.2 установлена. Передатчик D готов к работе.")
+				station.announce.rpc("Несущая установлена. Передатчик D готов к работе.")
 			station.sound_event.rpc("switch", object.position)
 		"circuit": station.circuit_prompt.rpc_id(player.peer_id)
 	_update_access()

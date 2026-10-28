@@ -339,6 +339,10 @@ def avatar():
 
 
 def entity():
+    if (SOURCE / 'third_party' / 'horror_game_maker' / 'Idle.fbx').exists() and '--procedural-creature' not in sys.argv and '--bento-creature' not in sys.argv:
+        from adapt_horror_maker import build_external
+        build_external(globals())
+        return
     source = SOURCE / 'third_party' / 'bento_smily' / 'source.glb'
     if source.exists() and '--procedural-creature' not in sys.argv:
         from adapt_monster import build_external

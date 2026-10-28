@@ -18,7 +18,7 @@ var emergency_left: float = 0.0
 var emergency_repair: float = 0.0
 var emergency_holders: Array[int] = []
 var relay_values: Array = [0, 0, 0]
-const RELAY_SOLUTION := [1, 3, 2]
+var relay_solution: Array = [1, 3, 2]
 
 func begin_frame() -> void:
 	station.sectors.begin_frame()
@@ -54,7 +54,7 @@ func interact(player: Node3D, object: Node3D) -> void:
 		"transmitter":
 			if not cassette_loaded and station.items.consume(player, "cassette"):
 				cassette_loaded = true
-			if generator_on and cassette_loaded and relay_values == RELAY_SOLUTION and emergency.is_empty() and station.sectors.ready_to_transmit():
+			if generator_on and cassette_loaded and relay_values == relay_solution and emergency.is_empty() and station.sectors.ready_to_transmit():
 				operators.append(player.peer_id)
 
 func tick(delta: float) -> void:
@@ -69,8 +69,8 @@ func tick(delta: float) -> void:
 			living += 1
 		if not player.dead:
 			recoverable += 1
-	if station.players.get_child_count() > 0 and recoverable == 0:
-		finish("Все техники потеряны. Сигнал оборвался.")
+	if station.players.get_child_count() > 0 and living == 0:
+		finish("Все участники ранены. Сигнал оборвался.")
 		return
 	if seconds_left <= 0.0:
 		finish("Время вышло. Станция замолчала.")
@@ -138,7 +138,7 @@ func sabotage(kind: String) -> bool:
 	return true
 
 func snapshot() -> Dictionary:
-	return {"fuel": fuel_loaded, "fuse": fuse_loaded, "generator": generator_on, "cassette": cassette_loaded, "repair": repair_progress, "transmit": transmit_progress, "time": seconds_left, "result": result, "emergency": emergency, "emergency_left": emergency_left, "emergency_repair": emergency_repair, "relays": relay_values, "sectors":station.sectors.snapshot()}
+	return {"fuel": fuel_loaded, "fuse": fuse_loaded, "generator": generator_on, "cassette": cassette_loaded, "repair": repair_progress, "transmit": transmit_progress, "time": seconds_left, "result": result, "emergency": emergency, "emergency_left": emergency_left, "emergency_repair": emergency_repair, "relays": relay_values, "relay_solution":relay_solution, "sectors":station.sectors.snapshot()}
 
 func apply_snapshot(state: Dictionary) -> void:
 	fuel_loaded = bool(state.fuel)
@@ -153,6 +153,7 @@ func apply_snapshot(state: Dictionary) -> void:
 	emergency_left = float(state.emergency_left)
 	emergency_repair = float(state.emergency_repair)
 	relay_values = state.relays.duplicate()
+	relay_solution = state.relay_solution.duplicate()
 	station.sectors.apply_snapshot(state.sectors)
 
 func task_text() -> String:
@@ -163,7 +164,7 @@ func task_text() -> String:
 		return "ВОССТАНОВИТЕ ПИТАНИЕ\nПредохранитель: %s  /  Бензин: %s\nУ генератора удерживайте E: %d%%" % ["✓" if fuse_loaded else "—", "✓" if fuel_loaded else "—", int(repair_progress / 4.0 * 100)]
 	if not cassette_loaded and not station.objects.cassette.taken:
 		return "НАЙДИТЕ ЗАПИСЬ В АРХИВЕ A\nКлюч — в шкафчике жилого блока A—05.\nЗатем откройте секторы B, C и D."
-	if relay_values != RELAY_SOLUTION:
+	if relay_values != relay_solution:
 		return "НАСТРОЙТЕ РЕЛЕ • СЕКТОР 09\nA: %d / B: %d / C: %d\nСхема настройки — в лаборатории, сектор 10." % relay_values
 	if not station.sectors.ready_to_transmit(): return station.sectors.task_text()
 	if not cassette_loaded: return "ДОСТАВЬТЕ КАССЕТУ В СЕКТОР D\nУ передатчика удерживайте E.\nЗапись берётся в архиве A—04."

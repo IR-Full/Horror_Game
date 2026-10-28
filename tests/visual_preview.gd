@@ -8,12 +8,27 @@ func shot(filename: String) -> void:
 	get_viewport().get_texture().get_image().save_png("res://test-results/" + filename)
 
 func _run() -> void:
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	DisplayServer.window_set_size(Vector2i(1152,648))
 	await get_tree().create_timer(0.8).timeout
 	await shot("menu.png")
 	NetworkManager.host_room("Техник", 27948)
 	NetworkManager.choose_role(2)
+	var roster: Dictionary = NetworkManager.members.duplicate(true)
+	for id: int in [2,3,4]: NetworkManager.members[id] = {"name":"Участник %d" % id,"role":(id-1)%3}
+	GameManager.interface._show_lobby()
+	await get_tree().create_timer(.25).timeout
+	await shot("lobby.png")
+	NetworkManager.members = roster
 	NetworkManager.start_round(true)
 	await get_tree().create_timer(1.5).timeout
+	var helper: Node3D = GameManager.world.PLAYER_SCENE.instantiate()
+	helper.name = "9001"
+	helper.peer_id = 9001
+	helper.nickname = "Медик"
+	helper.position = Vector3(-13,.05,-8)
+	helper.net_position = helper.position
+	GameManager.world.players.add_child(helper)
 	var player: Node3D = GameManager.local_player()
 	player.input_enabled = false
 	player.inventory = PackedStringArray(["fuse", "fuel", "key", "medkit"])
@@ -50,6 +65,26 @@ func _run() -> void:
 	SettingsManager.apply()
 	await get_tree().create_timer(2.0).timeout
 	await shot("generator_detail.png")
+	SettingsManager.quality = 2
+	SettingsManager.apply()
+	player.position = Vector3(-7,.05,1.6)
+	player.net_position = player.position
+	player.local_aim = Vector2(-1.1,-.1)
+	await get_tree().create_timer(.4).timeout
+	await shot("flashlight_high_angle.png")
+	GameManager.world.set_physics_process(false)
+	for light: OmniLight3D in GameManager.world.lights: light.shadow_enabled = false
+	await get_tree().create_timer(.25).timeout
+	await shot("flashlight_local_only.png")
+	player.lamp.shadow_enabled = false
+	await get_tree().create_timer(.25).timeout
+	await shot("flashlight_no_shadow.png")
+	player.lamp.shadow_enabled = true
+	player.lamp.shadow_bias = 1.0
+	player.lamp.shadow_normal_bias = 4.0
+	await get_tree().create_timer(.25).timeout
+	await shot("flashlight_bias.png")
+	GameManager.world.set_physics_process(true)
 	SettingsManager.quality = 0
 	SettingsManager.apply()
 	GameManager.world.monster.set_physics_process(false)
@@ -146,5 +181,30 @@ func _run() -> void:
 	GameManager.interface._show_settings(true, 2)
 	await get_tree().create_timer(.3).timeout
 	await shot("controls_settings.png")
+	GameManager.interface._resume()
+	player.input_enabled = false
+	helper.invulnerable = 0
+	helper.damage(100)
+	helper.apply_action("sos",0)
+	await get_tree().create_timer(.5).timeout
+	await shot("sos_direction.png")
+	GameManager.interface.open_map()
+	await get_tree().create_timer(.2).timeout
+	await shot("sos_map.png")
+	GameManager.interface.close_map()
+	player.position = helper.position+Vector3(1.8,0,0)
+	player.net_position = player.position
+	var help_direction: Vector3 = (helper.position+Vector3.UP*.3-player.eye_position()).normalized()
+	player.local_aim = Vector2(atan2(-help_direction.x,-help_direction.z),asin(help_direction.y))
+	player.input_enabled = true
+	Input.action_press("interact")
+	await get_tree().create_timer(.8).timeout
+	await shot("healing_progress.png")
+	Input.action_release("interact")
+	player.input_enabled = false
+	helper.revive()
+	player.start_vent(Vector3(0,.05,4))
+	await get_tree().create_timer(1.5).timeout
+	await shot("vent_crawl.png")
 	NetworkManager.leave()
 	get_tree().quit()

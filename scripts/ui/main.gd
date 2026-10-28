@@ -1,4 +1,5 @@
 extends Node
+var map_overlay: Control
 var canvas: CanvasLayer
 var ui: Control
 var screen: Control
@@ -59,6 +60,14 @@ func _ready() -> void:
 	if "--sector-check" in args:
 		var checker := Node.new()
 		checker.set_script(load("res://tests/sector_check.gd"))
+		add_child(checker)
+	if "--update-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/update_check.gd"))
+		add_child(checker)
+	if "--perf-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/performance_check.gd"))
 		add_child(checker)
 
 func _theme() -> Theme:
@@ -165,7 +174,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.6  /  Без микрофона", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.7  /  Без микрофона", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -174,6 +183,7 @@ func _lobby_changed() -> void:
 
 func _show_lobby() -> void:
 	var column := _new_screen("lobby")
+	column.add_theme_constant_override("separation",7)
 	label_in(column, "ЭКСПЕДИЦИЯ / ЛОББИ LAN", 28, "e6c18a")
 	var host: bool = multiplayer.is_server()
 	var ips := PackedStringArray()
@@ -188,14 +198,26 @@ func _show_lobby() -> void:
 		var entry: Dictionary = NetworkManager.members[id]
 		label_in(column, "%s  —  %s%s" % [entry.name, roles[mini(int(entry.role), roles.size() - 1)], "  [хост]" if id == 1 else ""], 19)
 	if NetworkManager.members.has(multiplayer.get_unique_id()):
-		label_in(column, "Ваша роль:", 16)
+		var role_row := HBoxContainer.new()
+		column.add_child(role_row)
+		label_in(role_row, "Ваша роль:  ", 16)
 		var choice := OptionButton.new()
 		for role: String in roles:
 			choice.add_item(role)
 		choice.selected = int(NetworkManager.members[multiplayer.get_unique_id()].role)
 		choice.item_selected.connect(func(index: int): NetworkManager.choose_role(index))
-		column.add_child(choice)
-	label_in(column, "Техник быстрее чинит. Медик быстрее поднимает.\nОхотник: дробовик и один патрон. Все роли доступны вдвоём.", 16, "8fa9a0")
+		role_row.add_child(choice)
+	label_in(column, "Техник быстрее чинит. Медик быстрее поднимает.\nОхотник: двухстволка и два патрона. Все роли доступны вдвоём.", 16, "8fa9a0")
+	var difficulty_row := HBoxContainer.new()
+	column.add_child(difficulty_row)
+	label_in(difficulty_row,"Сложность:  ",16)
+	var difficulty := OptionButton.new()
+	for name: String in NetworkManager.RULES.LABELS: difficulty.add_item(name)
+	difficulty.selected = NetworkManager.difficulty
+	difficulty.disabled = not host
+	difficulty.item_selected.connect(func(index: int): NetworkManager.choose_difficulty(index))
+	difficulty_row.add_child(difficulty)
+	label_in(column,"Тяжёлая: быстрее монстр, чаще саботаж, 2 запасных патрона.\nОбычная: 4 патрона • Лёгкая: 6 • Без монстра: исследование.",14,"8fa9a0")
 	if host:
 		var start := button_in(column, "НАЧАТЬ ЭКСПЕДИЦИЮ", func(): NetworkManager.start_round())
 		start.disabled = NetworkManager.members.size() < 2
@@ -216,6 +238,7 @@ func _load_world() -> void:
 	add_child(world)
 
 func _clear_world() -> void:
+	close_map()
 	var old := get_node_or_null("World")
 	if old:
 		remove_child(old)
@@ -243,6 +266,9 @@ func _build_hud() -> void:
 	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(hud)
+	var status := Control.new()
+	status.set_script(preload("res://scripts/ui/status_overlay.gd"))
+	hud.add_child(status)
 	var crosshair := Label.new()
 	crosshair.text = "+"
 	crosshair.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -295,10 +321,6 @@ func show_notice(message: String) -> void:
 		notice_time = 5.0
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("map") and NetworkManager.in_match and not displayed_result:
-		if paused: _resume()
-		else: open_map()
-		get_viewport().set_input_as_handled()
 	if event.is_action_pressed("pause") and NetworkManager.in_match and not displayed_result:
 		if paused:
 			_resume()
@@ -316,12 +338,12 @@ func _show_pause() -> void:
 	label_in(column, "Раунд и сущность продолжают действовать.", 17)
 	button_in(column, "Продолжить", _resume)
 	button_in(column, "Настройки", func(): _show_settings(true))
-	button_in(column, "Карта станции", open_map)
 	if multiplayer.is_server():
 		button_in(column, "Завершить раунд → в лобби", func(): NetworkManager.return_to_lobby())
 	button_in(column, "Покинуть комнату", func(): NetworkManager.leave())
 
 func _resume() -> void:
+	close_map()
 	paused = false
 	if is_instance_valid(screen):
 		ui.remove_child(screen)
@@ -339,6 +361,11 @@ func _show_settings(from_game: bool, tab: int = 0) -> void:
 	preload("res://scripts/ui/settings_panel.gd").build(self, column, from_game, tab)
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_released("map"):
+		close_map()
+	if event.is_action_pressed("map") and not event.is_echo() and NetworkManager.in_match and not paused and not displayed_result:
+		open_map()
+		get_viewport().set_input_as_handled()
 	if rebind_action.is_empty() or not event.is_pressed() or event.is_echo():
 		return
 	if event is InputEventKey and event.physical_keycode == KEY_ESCAPE:
@@ -395,17 +422,44 @@ func open_circuit() -> void:
 		circuit_buttons.append(button)
 	button_in(column, "Отойти", _resume)
 
+func close_map() -> void:
+	if is_instance_valid(map_overlay):
+		map_overlay.queue_free()
+	map_overlay = null
+
 func open_map() -> void:
-	paused = true
-	GameManager.local_player().input_enabled = false
-	var column := _new_screen("map", false)
-	label_in(column, "ПЛАН СТАНЦИИ РС–17", 24, "e6c18a")
+	if is_instance_valid(map_overlay): return
+	map_overlay = PanelContainer.new()
+	map_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	map_overlay.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	map_overlay.position = Vector2(65,35)
+	map_overlay.size = Vector2(1150,650)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(.015,.03,.035,.96)
+	style.border_color = Color("536d67")
+	style.set_border_width_all(1)
+	style.set_content_margin_all(16)
+	map_overlay.add_theme_stylebox_override("panel",style)
+	ui.add_child(map_overlay)
+	map_overlay.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	map_overlay.offset_left = -575
+	map_overlay.offset_right = 575
+	map_overlay.offset_top = -325
+	map_overlay.offset_bottom = 325
+	var row := HBoxContainer.new()
+	map_overlay.add_child(row)
 	var map := Control.new()
 	map.set_script(preload("res://scripts/ui/sector_map.gd"))
-	map.custom_minimum_size = Vector2(620,480)
-	column.add_child(map)
-	label_in(column, "B: давление → C: фильтрация → D: настройка и передача", 15)
-	button_in(column, "Вернуться", _resume)
+	map.custom_minimum_size = Vector2(660,610)
+	row.add_child(map)
+	var legend := VBoxContainer.new()
+	legend.add_theme_constant_override("separation",3)
+	row.add_child(legend)
+	label_in(legend,"ПЛАН РС–17",25,"e6c18a")
+	label_in(legend,"Удерживайте %s • отпустите, чтобы закрыть" % SettingsManager.key_label("map"),14)
+	for line: String in preload("res://scripts/ui/sector_map.gd").LEGEND:
+		label_in(legend,line,14,"a7c5ba")
+	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\nG: генератор • P: питание • T: передача\nC: пульт • F: фильтрация",13,"ddbb86")
 
 func _process(delta: float) -> void:
 	if notice_time > 0.0:
@@ -429,7 +483,7 @@ func _process(delta: float) -> void:
 		return
 	var seconds: int = int(goal.seconds_left)
 	stats.text = "%s / %s\nЗдоровье %d   •   Фонарь %d%%\n%02d:%02d  •  %d FPS" % [player.nickname, player.ROLE_NAMES.get(player.role, player.role), int(player.health), int(player.battery), seconds / 60, seconds % 60, Engine.get_frames_per_second()]
-	stats.text += "\n"+world.LAYOUT.sector_at(player.position)+" • "+SettingsManager.key_label("map")+": карта"
+	stats.text += "\n"+world.LAYOUT.sector_at(player.position)+" • "+SettingsManager.key_label("map")+": удерживать карту"
 	task.text = goal.task_text().replace(" E", " " + SettingsManager.key_label("interact"))
 	task.add_theme_color_override("font_color", Color("e47b65") if not goal.emergency.is_empty() else Color("e5c38e"))
 	if player.role == "hunter":
@@ -440,7 +494,7 @@ func _process(delta: float) -> void:
 	if paused or displayed_result:
 		return
 	var origin: Vector3 = player.camera.global_position
-	var query := PhysicsRayQueryParameters3D.create(origin, origin - player.camera.global_basis.z * 2.6, 7, [player.get_rid()])
+	var query := PhysicsRayQueryParameters3D.create(origin, origin - player.camera.global_basis.z * 2.6, 23, [player.get_rid()])
 	var hit: Dictionary = world.get_world_3d().direct_space_state.intersect_ray(query)
 	hint.text = ""
 	if not hit.is_empty():
@@ -449,7 +503,7 @@ func _process(delta: float) -> void:
 			object = object.get_parent()
 		if object.is_in_group("players"):
 			if object.health <= 0.0 and not object.dead:
-				hint.text = "Удерживайте %s — поднять напарника" % SettingsManager.key_label("interact")
+				hint.text = "Удерживайте %s — поднять напарника • %d%%" % [SettingsManager.key_label("interact"),int(player.healing_progress*100)]
 		elif object.get("title") != null:
 			hint.text = "[%s] " % SettingsManager.key_label("interact") + object.title.replace(" E", " " + SettingsManager.key_label("interact"))
 			if object.kind == "door":

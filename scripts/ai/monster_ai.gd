@@ -44,6 +44,7 @@ var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vecto
 var patrol_index: int = 0
 
 func _ready() -> void:
+	sabotage_cooldown = float(station.rules.sabotage_delay)
 	body_shape = CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.43
@@ -51,7 +52,7 @@ func _ready() -> void:
 	body_shape.shape = shape
 	body_shape.position.y = 1.335
 	add_child(body_shape)
-	collision_layer = 8
+	collision_layer = 8 if bool(station.rules.monster) else 0
 	collision_mask = 1 | 2 | 4
 	front_shape = CollisionShape3D.new()
 	var front := SphereShape3D.new()
@@ -83,12 +84,16 @@ func _ready() -> void:
 	net_position = position
 
 func _process(delta: float) -> void:
-	visible = state != State.DORMANT
+	visible = state != State.DORMANT and bool(station.rules.monster)
+	if not bool(station.rules.monster):
+		body_shape.disabled = true
+		front_shape.disabled = true
+		return
 	visual_time += delta
 	mesh.rotation.z = sin(visual_time * 1.7) * .012
 	body_shape.shape.height = lerpf(2.67, 1.15, crawl_amount)
 	body_shape.position.y = body_shape.shape.height * .5
-	front_shape.position = Vector3(0, lerpf(2.28, .67, crawl_amount), lerpf(-.10, -.9, crawl_amount))
+	front_shape.position = Vector3(0, lerpf(2.28, .67, crawl_amount), lerpf(-.10, -.43, crawl_amount))
 	body_shape.disabled = state == State.STUNNED
 	front_shape.disabled = state == State.STUNNED
 	if animation:
@@ -135,7 +140,8 @@ func eye_position() -> Vector3:
 	return position + Vector3.UP * lerpf(2.34, 1.08, crawl_amount)
 
 func _physics_process(delta: float) -> void:
-	visible = state != State.DORMANT
+	visible = state != State.DORMANT and bool(station.rules.monster)
+	if not bool(station.rules.monster): return
 	if not NetworkManager.in_match or not station.objectives.result.is_empty():
 		return
 	if not multiplayer.is_server():
@@ -164,8 +170,8 @@ func _physics_process(delta: float) -> void:
 		rage_clock = randf_range(7, 13)
 		gesture = "Roar" if randf() < .5 else "Bash"
 		gesture_left = 1.3
-		station.sound_event.rpc("roar" if gesture == "Roar" else "smash", eye_position())
-	if lonely_time >= 35 and sabotage_cooldown <= 0 and state in [State.PATROL, State.SEARCH, State.INVESTIGATE] and station.objectives.emergency.is_empty():
+		station.sound_event.rpc(("monster_voice" if randf()<.4 else "roar") if gesture == "Roar" else "smash", eye_position())
+	if lonely_time >= float(station.rules.sabotage_delay) and sabotage_cooldown <= 0 and state in [State.PATROL, State.SEARCH, State.INVESTIGATE] and station.objectives.emergency.is_empty():
 		sabotage_target = "generator" if station.objectives.generator_on and randf() < .5 else "ventilation"
 		sabotage_striking = false
 		change_state(State.SABOTAGE, station.objects[sabotage_target].position + Vector3(0, 0, 1.7))
@@ -188,12 +194,12 @@ func _physics_process(delta: float) -> void:
 			station.sound_event.rpc("smash", station.objects[sabotage_target].position)
 		elif gesture_left <= 0:
 			station.objectives.sabotage(sabotage_target)
-			sabotage_cooldown = 70
+			sabotage_cooldown = float(station.rules.sabotage_cooldown)
 			lonely_time = 0
 			change_state(State.PATROL, patrol_points[patrol_index])
 		return
 	if state == State.CHASE:
-		if target and target.health > 0.0:
+		if target and target.health > 0.0 and target.vent_time <= 0:
 			if position.distance_to(target.position) < 1.5 and station.elapsed - chase_started_at >= .65 and station.can_see(eye_position(), target, [get_rid()]):
 				if attack_clock <= 0.0:
 					attack_clock = 2.0
@@ -253,11 +259,13 @@ func _physics_process(delta: float) -> void:
 			break
 	if gesture_left > 0 and state != State.CHASE:
 		direction = Vector3.ZERO
-	var speed: float = 3.4 if state == State.CHASE else (2.3 if state == State.RETREAT else 1.25)
+	var speed: float = float(station.rules.chase_speed) if state == State.CHASE else (2.3 if state == State.RETREAT else 1.25)
 	if state == State.CHASE and station.elapsed - chase_started_at < .65:
 		speed = .35 # A short, readable stare precedes the pursuit.
 	if station.objectives.generator_on:
 		speed *= 1.1
+	if direction.length() > .1:
+		direction = _avoid_obstacle(direction)
 	velocity = Vector3(direction.x * speed, -0.5, direction.z * speed)
 	move_and_slide()
 	stuck_clock += delta
@@ -293,11 +301,14 @@ func change_state(next: int, destination: Vector3) -> void:
 	repath_clock = 0.0
 
 func hear_noise(pos: Vector3, radius: float) -> void:
-	if state in [State.DORMANT, State.CHASE, State.RETREAT, State.STUNNED]:
+	if not bool(station.rules.monster) or state in [State.DORMANT, State.STUNNED]:
 		return
 	var range_multiplier: float = 1.2 if station.objectives.generator_on else 1.0
 	if position.distance_to(pos) <= radius * range_multiplier:
 		last_known = pos
+		if state == State.CHASE:
+			goal = pos
+			return
 		change_state(State.INVESTIGATE, pos)
 
 func _perceive() -> void:
@@ -306,7 +317,7 @@ func _perceive() -> void:
 	var candidates: Array = station.players.get_children()
 	candidates.sort_custom(func(a: Node3D, b: Node3D): return position.distance_squared_to(a.position) < position.distance_squared_to(b.position))
 	for player: Node3D in candidates:
-		if player.health <= 0.0:
+		if player.health <= 0.0 or player.vent_time > 0:
 			continue
 		var distance: float = position.distance_to(player.position)
 		if state == State.RETREAT and distance > 2.2:
@@ -352,3 +363,15 @@ func _try_relocate() -> void:
 	position = candidate
 	station.flicker_event.rpc()
 	repath_clock = 0.0
+
+func _avoid_obstacle(wanted: Vector3) -> Vector3:
+	if not test_move(global_transform,wanted*.5): return wanted
+	var best := Vector3.ZERO
+	var score: float = -INF
+	for angle: float in [-.52,.52,-1.05,1.05,-1.57,1.57]:
+		var option: Vector3 = wanted.rotated(Vector3.UP,angle)
+		if test_move(global_transform,option*.55): continue
+		var alignment: float = option.dot((goal-position).normalized())
+		if alignment > score: score = alignment; best = option
+	if best == Vector3.ZERO: repath_clock = 0.0
+	return best

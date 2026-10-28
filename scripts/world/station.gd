@@ -3,6 +3,9 @@ const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const MONSTER_SCENE := preload("res://scenes/monster.tscn")
 const OBJECT_SCRIPT := preload("res://scripts/world/interactable.gd")
 const ART := preload("res://scripts/art/art_factory.gd")
+var rules: Dictionary
+var light_clock: float = 0.0
+var walls_for_map: Array[Rect2] = []
 var players: Node3D
 var spawner: MultiplayerSpawner
 var monster: CharacterBody3D
@@ -27,6 +30,7 @@ const LAYOUT := preload("res://scripts/world/sector_layout.gd")
 
 func _ready() -> void:
 	GameManager.world = self
+	rules = NetworkManager.RULES.profile(NetworkManager.difficulty)
 	players = Node3D.new()
 	players.name = "Players"
 	add_child(players)
@@ -56,7 +60,10 @@ func _ready() -> void:
 	atmosphere.set_script(preload("res://scripts/art/station_atmosphere.gd"))
 	add_child(atmosphere)
 	atmosphere.build(self)
+	_ground_loose_items.call_deferred()
+	_register_equipment_obstacles()
 	_build_navigation()
+	if "--no-batching" not in OS.get_cmdline_user_args(): _batch_architecture()
 	monster = MONSTER_SCENE.instantiate()
 	monster.name = "Monster"
 	monster.station = self
@@ -86,25 +93,71 @@ func _create_player(data: Dictionary) -> Node:
 func spawn_players() -> void:
 	if not multiplayer.is_server():
 		return
-	sectors.randomize_round()
-	var ammo_positions: Array = get_meta("ammo_positions")
+	randomize_puzzles()
+	var ammo_positions: Array = get_meta("ammo_positions").duplicate()
 	ammo_positions.shuffle()
-	var repeated: bool = NetworkManager.last_shell_positions.size() == 4
-	for i: int in range(4):
-		if not ammo_positions[i] in NetworkManager.last_shell_positions:
-			repeated = false
+	var ammo_count: int = int(rules.ammo)
+	var repeated: bool = NetworkManager.last_shell_positions.size() == ammo_count
+	for at: Vector3 in ammo_positions.slice(0,ammo_count):
+		if not at in NetworkManager.last_shell_positions: repeated = false
 	if repeated:
-		var previous: Vector3 = ammo_positions[0]
-		ammo_positions[0] = ammo_positions[4]
-		ammo_positions[4] = previous
-	NetworkManager.last_shell_positions = ammo_positions.slice(0, 4)
-	for i: int in range(4):
+		var swap: Vector3 = ammo_positions[0]
+		ammo_positions[0] = ammo_positions[6]
+		ammo_positions[6] = swap
+	NetworkManager.last_shell_positions = ammo_positions.slice(0, ammo_count)
+	for i: int in range(6):
+		objects["shell_%d" % i].taken = i >= ammo_count
 		objects["shell_%d" % i].position = ammo_positions[i]
+		objects["shell_%d" % i].refresh()
 	var index: int = 0
 	for id: int in NetworkManager.members:
 		spawner.spawn({"id": id, "nickname": NetworkManager.members[id].name, "role": NetworkManager.role_id(id), "position": Vector3(-1.2 + (index % 2) * 2.0, 0.15, 10.5 - floori(index / 2.0) * 1.8)})
 		index += 1
 	sync_state()
+
+func randomize_puzzles() -> void:
+	var previous: Dictionary = NetworkManager.last_puzzles
+	var code: String = str(randi_range(100, 999))
+	while code == previous.get("safe", ""): code = str(randi_range(100, 999))
+	objects.fuse_safe.code = code
+	objects.safe_note.description = "КОД СЕЙФА ЭТОЙ СМЕНЫ: %s\nПредохранитель — на складе A—01. Ключ от клетки — в шкафчике A—07." % code
+	objectives.relay_solution = _new_digits(4, previous.get("relays", []))
+	sectors.valve_solution = _new_digits(4, previous.get("valves", []))
+	sectors.frequency_solution = _new_digits(10, previous.get("frequency", []))
+	objects.relay_note.description = "РЕЗЕРВНЫЕ РЕЛЕ ЭТОЙ СМЕНЫ\nA: %d • B: %d • C: %d\nНастройте в релейной A—09." % objectives.relay_solution
+	objects.pressure_note.description = "КОНТУР B • ПЛАН СМЕНЫ\nВентиль A: %d • B: %d • C: %d\nПосле давления восстановите фильтрацию C." % sectors.valve_solution
+	objects.frequency_note.description = "НЕСУЩАЯ ЭТОЙ СМЕНЫ\nРазряды D: %d / %d / %d\nЩит резервного питания остаётся в A—06." % sectors.frequency_solution
+	NetworkManager.last_puzzles = {"safe":code, "relays":objectives.relay_solution.duplicate(), "valves":sectors.valve_solution.duplicate(), "frequency":sectors.frequency_solution.duplicate()}
+	sectors.randomize_round()
+	while sectors.circuit == previous.get("circuit",[]): sectors.randomize_round()
+	NetworkManager.last_puzzles.circuit = sectors.circuit.duplicate()
+
+func _new_digits(base: int, previous: Array) -> Array:
+	var value: Array = [randi_range(0,base-1),randi_range(0,base-1),randi_range(0,base-1)]
+	while value == previous or value == [0,0,0]:
+		value = [randi_range(0,base-1),randi_range(0,base-1),randi_range(0,base-1)]
+	return value
+
+func _ground_loose_items() -> void:
+	if not multiplayer.is_server(): return
+	await get_tree().physics_frame
+	for object: Node3D in objects.values():
+		if object.kind not in ["battery","medkit","shell"] or not object.container_id.is_empty(): continue
+		var bottom: float = INF
+		for part: Node3D in object.mesh.find_children("*","MeshInstance3D",true,false):
+			var bounds: AABB = part.global_transform*part.get_aabb()
+			bottom = minf(bottom,bounds.position.y)
+		var ray := PhysicsRayQueryParameters3D.create(object.position+Vector3.UP*.03,object.position-Vector3.UP*2.0,1|4,[object.get_rid()])
+		var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(ray)
+		if not hit.is_empty() and is_finite(bottom): object.position.y += hit.position.y+.008-bottom
+	if NetworkManager.in_match: sync_state()
+
+func _register_equipment_obstacles() -> void:
+	for object: Node3D in objects.values():
+		if object.collision_layer != 4 or object.kind in ["door", "hatch"]: continue
+		var shape: BoxShape3D = object.collider.shape
+		var bounds: AABB = object.collider.global_transform*AABB(-shape.size*.5,shape.size)
+		navigation_blocks.append(bounds)
 
 func remove_player(id: int) -> void:
 	var player := players.get_node_or_null(str(id))
@@ -142,6 +195,9 @@ func material(color: String, emission: float = 0.0) -> StandardMaterial3D:
 	return mat
 
 func block(pos: Vector3, size: Vector3, color: String, solid: bool = true, glow: float = 0.0) -> Node3D:
+	if solid and size.y >= 3.0 and size.y <= 3.25:
+		size.y += .2
+		pos.y += .1 # Overlap the ceiling instead of leaving a bright 10 cm seam.
 	var root: Node3D = StaticBody3D.new() if solid else Node3D.new()
 	root.position = pos
 	add_child(root)
@@ -150,8 +206,10 @@ func block(pos: Vector3, size: Vector3, color: String, solid: bool = true, glow:
 	box.size = size
 	mesh.mesh = box
 	mesh.material_override = material(color, glow)
+	mesh.set_meta("architecture",true)
 	root.add_child(mesh)
 	if solid and size.y >= 3.0:
+		walls_for_map.append(Rect2(pos.x-size.x*.5,pos.z-size.z*.5,size.x,size.z))
 		# A second surface follows the wall, sharing the existing box collision.
 		var lower := MeshInstance3D.new()
 		var lower_box := BoxMesh.new()
@@ -159,6 +217,8 @@ func block(pos: Vector3, size: Vector3, color: String, solid: bool = true, glow:
 		lower.mesh = lower_box
 		lower.position.y = .58 - pos.y
 		lower.material_override = ART.surface("paint")
+		lower.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		lower.set_meta("architecture",true)
 		root.add_child(lower)
 	if solid:
 		if pos.y + size.y * 0.5 > 0.2 and pos.y - size.y * 0.5 < 1.0:
@@ -188,7 +248,7 @@ func _build_station() -> void:
 	environment.background_color = Color("0c141b")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("91a6ac")
-	environment.ambient_light_energy = 0.075
+	environment.ambient_light_energy = float(rules.ambient)
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	world_environment.environment = environment
 	add_child(world_environment)
@@ -264,12 +324,14 @@ func _build_station() -> void:
 	add_object("fuel", "fuel", "Бензин", Vector3(-12, 1.95, 10.2))
 	add_object("key", "key", "Ключ архива", Vector3(-11, 1.0, -10.4))
 	add_object("cassette", "cassette", "Кассета №17", Vector3(10, 0.6, 1.5))
-	add_object("battery_a", "battery", "Батарейка", Vector3(8, 0.25, 8))
+	add_object("battery_a", "battery", "Батарейка", Vector3(7.8, 1.17, 8.0))
 	add_object("battery_b", "battery", "Батарейка", Vector3(-8, 0.25, -7))
 	add_object("medkit", "medkit", "Аптечка", Vector3(11, 0.3, 9))
 	add_object("generator", "generator", "ГЕНЕРАТОР • удерживать E", Vector3(-10, 0.6, 0))
 	add_object("transmitter", "transmitter", "ПЕРЕДАТЧИК • удерживать E", Vector3(10, 0.8, -8))
 	add_object("power", "power", "ЩИТ ПИТАНИЯ • удерживать E", Vector3(5.5, 1.2, -10.8))
+	block(Vector3(5.5,.45,-10.73),Vector3(.12,.9,.12),"293e40",false)
+	block(Vector3(5.5,.05,-10.73),Vector3(.65,.1,.5),"293e40",false)
 	preload("res://scripts/world/station_extension.gd").build(self)
 	LAYOUT.build(self)
 
@@ -309,10 +371,37 @@ func apply_quality() -> void:
 	environment.volumetric_fog_enabled = false
 	environment.ssr_enabled = false
 	for light: OmniLight3D in lights:
-		light.shadow_enabled = SettingsManager.quality == 2 and light.position.x == 0.0
+		light.shadow_enabled = false
 		light.distance_fade_enabled = true
-		light.distance_fade_begin = 22.0
+		light.distance_fade_begin = 14.0
 		light.distance_fade_length = 5.0
+
+func _batch_architecture() -> void:
+	var groups: Dictionary = {}
+	for part: Node in find_children("*","MeshInstance3D",true,false):
+		if not part.has_meta("architecture") or not part.visible: continue
+		var key: String = LAYOUT.sector_at(part.global_position)+str(part.material_override.get_rid())+str(part.cast_shadow)
+		if not groups.has(key): groups[key] = []
+		groups[key].append(part)
+	for group: Array in groups.values():
+		var batch := MultiMeshInstance3D.new()
+		var multi := MultiMesh.new()
+		multi.transform_format = MultiMesh.TRANSFORM_3D
+		var box := BoxMesh.new()
+		box.size = Vector3.ONE
+		multi.mesh = box
+		multi.instance_count = group.size()
+		batch.multimesh = multi
+		batch.material_override = group[0].material_override
+		batch.cast_shadow = group[0].cast_shadow
+		add_child(batch)
+		for i: int in range(group.size()):
+			var part: MeshInstance3D = group[i]
+			var transform: Transform3D = part.global_transform
+			transform.basis = transform.basis.scaled(part.mesh.size)
+			multi.set_instance_transform(i,transform)
+			part.queue_free()
+		batch.set_meta("architecture_batch",true)
 
 func _build_navigation() -> void:
 	astar.region = LAYOUT.EXTENT
@@ -381,7 +470,7 @@ func _nearest_walkable(point: Vector2i) -> Vector2i:
 
 func target_for(player: Node3D) -> Object:
 	var origin: Vector3 = player.eye_position()
-	var query := PhysicsRayQueryParameters3D.create(origin, origin + player.look_direction() * 2.6, 7, [player.get_rid()])
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + player.look_direction() * 2.6, 23, [player.get_rid()])
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	var target: Object = hit.get("collider")
 	if target and target.has_meta("door_switch"):
@@ -400,12 +489,26 @@ func _physics_process(delta: float) -> void:
 		return
 	elapsed += delta
 	flicker = maxf(0.0, flicker - delta)
-	for light: OmniLight3D in lights:
-		var base: float = float(light.get_meta("base_energy", 1.0))
-		var faulty: float = .93 + sin(elapsed * 13.1 + light.position.z) * .07
-		light.light_energy = base * (1.35 if objectives.generator_on else float(light.get_meta("standby", .3))) * faulty * (.04 if flicker > 0.0 and sin(elapsed * 27.0) > -.2 else 1.0)
+	light_clock -= delta
+	if light_clock <= 0:
+		light_clock = .1
+		var local: Node3D = GameManager.local_player()
+		var nearest: OmniLight3D
+		var distance: float = 10.0
+		for light: OmniLight3D in lights:
+			var base: float = float(light.get_meta("base_energy",1.0))
+			var faulty: float = .96+sin(elapsed*9.0+light.position.z)*.04
+			light.light_energy = base*(1.35 if objectives.generator_on else float(light.get_meta("standby",.3)))*faulty*float(rules.lighting)*(.04 if flicker>0 else 1.0)
+			light.shadow_enabled = false
+			if local and light.position.distance_to(local.position) < distance:
+				nearest = light
+				distance = light.position.distance_to(local.position)
+		if nearest and SettingsManager.quality == 2: nearest.shadow_enabled = true
 	if not multiplayer.is_server():
 		return
+	for actor: Node3D in players.get_children():
+		actor.healing_progress = 0.0
+		actor.rescue_progress = 0.0
 	objectives.begin_frame()
 	for player: Node3D in players.get_children():
 		var id: int = player.peer_id
@@ -440,7 +543,7 @@ func _physics_process(delta: float) -> void:
 		sync_state()
 
 func _run_horror_event() -> void:
-	if not multiplayer.is_server() or not objectives.result.is_empty():
+	if not multiplayer.is_server() or not objectives.result.is_empty() or not bool(rules.monster):
 		return
 	var living: Array[Node3D] = []
 	for actor: Node3D in players.get_children():
@@ -534,8 +637,7 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sync_state()
 	elif object.kind == "hatch":
 		if player.crouched:
-			player.position = object.destination
-			player.net_position = player.position
+			player.start_vent(object.destination)
 			make_noise(object.position, 20)
 			sound_event.rpc("scrape", object.position)
 		else:
@@ -605,6 +707,8 @@ func _revive_target(player: Node3D, other: Node3D, delta: float) -> void:
 		entry = {"target": other.peer_id, "time": 0.0}
 	entry.time += delta * (2.0 if player.is_medic() else 1.0)
 	revive_progress[player.peer_id] = entry
+	player.healing_progress = float(entry.time)/6.0
+	other.rescue_progress = maxf(other.rescue_progress,player.healing_progress)
 	if float(entry.time) >= 6.0:
 		other.revive()
 		revive_progress.erase(player.peer_id)

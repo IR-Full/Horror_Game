@@ -72,7 +72,7 @@ func _run() -> void:
 		place(p,valve.position+Vector3(0,-1.1,1.7),valve.position)
 		await delay(.06)
 		check(w.target_for(p)==valve,"ray reaches valve "+str(i))
-		for turn: int in range(system.VALVES[i]): w.interact_object(p,valve)
+		for turn: int in range(system.valve_solution[i]): w.interact_object(p,valve)
 	check(system.pressure_ready and w.objects.door_sector_d.locked,"pressure alone does not bypass filtration requirement")
 	place(p,Vector3(36,.05,-40.3),w.objects.circuit.position)
 	await delay(.1)
@@ -107,7 +107,7 @@ func _run() -> void:
 		var tuner: Node3D=w.objects["tuner_%d"%i]
 		place(p,tuner.position+Vector3(0,-1.2,1.7),tuner.position)
 		await delay(.06)
-		for turn: int in range(system.FREQUENCY[i]): w.interact_object(p,tuner)
+		for turn: int in range(system.frequency_solution[i]): w.interact_object(p,tuner)
 	check(system.ready_to_transmit(),"all three sector tasks are required before transmission")
 	var footprints: Node3D=w.atmosphere.get_node("Footprints")
 	var before: int=footprints.total_stamps

@@ -25,6 +25,8 @@ var label: Label3D
 
 func _ready() -> void:
 	collision_layer = 4
+	if kind in ["battery", "shell", "medkit", "key", "service_key", "cassette", "fuse", "fuel", "air_filter", "note"]:
+		collision_layer = 16 # Ray-targetable supplies never block characters or vision.
 	collision_mask = 0
 	var box := BoxMesh.new()
 	box.size = Vector3(0.42, 0.22, 0.32)

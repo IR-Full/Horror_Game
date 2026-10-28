@@ -1,4 +1,4 @@
-"""Build the shipped sound bank from attributed CC0 source recordings.
+"""Build the shipped sound bank from CC0 recordings and locally generated Russian speech.
 
 Requires numpy and soundfile for development only. No network calls. Sources and
 their provenance are kept under assets/audio/sources (excluded from Godot import).
@@ -6,7 +6,6 @@ their provenance are kept under assets/audio/sources (excluded from Godot import
 from pathlib import Path
 import sys, json, hashlib
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT/'test-results'/'audio-tools'))
 import numpy as np
 import soundfile as sf
 
@@ -52,10 +51,10 @@ def emit(kind, x, sources, label):
     bank.setdefault(kind,[]).append('res://assets/audio/clips/'+filename)
     metadata.append({'file':filename,'sources':sources,'processing':label,'seconds':round(len(x)/RATE,3),'peak_dbfs':round(20*np.log10(max(np.max(np.abs(x)),1e-8)),2),'sha256':hashlib.sha256((OUTPUT/filename).read_bytes()).hexdigest()})
 
-for file in ['hael_3grunt1.wav','hael_3grunt2.wav','hael_3grunt3.wav','hael_3grunt5.wav','hael_3yell7.wav','hael_3yell8.wav']:
-    x=read(file)
-    emit('pain',x,[file],'Silence trim, mono, 55 Hz rumble removal; original human pitch')
-    if 'grunt' in file: emit('hurt',x,[file],'Trim and normalize; original human pitch')
+for file in sorted(SOURCE.glob('emopreben_pain_*.ogg')):
+    x=read(file.name)
+    emit('pain',x,[file.name],'New CC0 human pain performance; original pitch, trim and EQ')
+    emit('hurt',x,[file.name],'Human injury grunt; original pitch')
 
 snarls=read('darsycho_snarls.ogg',False)
 frame=int(.02*RATE)
@@ -92,13 +91,35 @@ for file in ['bmac_lightclunk1.wav','bmac_lightclunk2.wav','bmac_squeakyclick1.w
     emit('switch',read(file),[file],'Recorded switch or clunk, EQ and normalize')
 for file in ['bmac_mechanical1.wav','bmac_mechanical2.wav']:
     emit('door',read(file),[file],'Mechanical door clank, mono and level matching')
-for i,factor in enumerate([.95,1,1.04]):
-    x=pitch(read('tiny_stone01.ogg'),factor)
-    emit('step',x,['tiny_stone01.ogg'],f'Stone footstep variation, pitch {factor}')
-    emit('entity_step',pitch(x,.72),['tiny_stone01.ogg'],'Heavy step based on recorded contact')
-    emit('step_metal',layer(x,read('bmac_lightclunk1.wav')*.35),['tiny_stone01.ogg','bmac_lightclunk1.wav'],'Footstep with metal contact layer')
-    emit('step_gravel',pitch(read('tiny_gravel.ogg'),factor),['tiny_gravel.ogg'],'Recorded loose-surface footstep')
-    emit('crawl_impact',layer(pitch(x,.78),read('bmac_lightclunk2.wav')*.35),['tiny_stone01.ogg','bmac_lightclunk2.wav'],'Heavy hand/foot contact')
+# Isolate actual shoe contacts from Joseph Sardin's concrete recording.
+steps=read('sardin_concrete.wav',False)
+window=160
+energy=np.array([np.sqrt(np.mean(steps[i:i+window]**2)) for i in range(0,len(steps),window)])
+peaks=[]
+for index in np.argsort(energy)[::-1]:
+    if energy[index] < energy.max()*.16:break
+    if all(abs(index-p)>int(.28*RATE/window) for p in peaks):peaks.append(int(index))
+selected=sorted(peaks)[:10]
+for take,index in enumerate(selected):
+    center=index*window
+    x=steps[max(0,center-int(.035*RATE)):min(len(steps),center+int(.26*RATE))]
+    emit('step',x,['sardin_concrete.wav'],'Isolated recorded shoe contact, natural transient and scuff')
+    emit('step_metal',layer(x,read('bmac_lightclunk1.wav')*.15),['sardin_concrete.wav','bmac_lightclunk1.wav'],'Recorded shoe contact with quiet structural metal resonance')
+    if take<4:
+        emit('entity_step',pitch(x,.75),['sardin_concrete.wav'],'Heavy recorded contact')
+        emit('step_gravel',layer(x,read('tiny_gravel.ogg')*.55),['sardin_concrete.wav','tiny_gravel.ogg'],'Natural shoe plus recorded gravel')
+        emit('crawl_impact',layer(pitch(x,.78),read('bmac_lightclunk2.wav')*.2),['sardin_concrete.wav','bmac_lightclunk2.wav'],'Heavy recorded hand impact')
+# Locally synthesized Russian lines, baked to portable OGG; no runtime TTS.
+rng=np.random.default_rng(407)
+for file in sorted(SOURCE.glob('monster_line_*.wav')):
+    x=pitch(read(file.name),.72)
+    low=pitch(read(file.name),.69)
+    x=layer(x,low,.2)
+    x=np.tanh(x*2.4)*(1+.08*np.sin(np.arange(len(x))*2*np.pi*37/RATE))
+    x += rng.normal(0,.004,len(x))*np.minimum(1,np.abs(x)*8)
+    delayed=np.zeros(len(x)+int(.17*RATE));delayed[:len(x)]+=x
+    delayed[int(.17*RATE):]+=x*.1
+    emit('monster_voice',delayed,[file.name],'Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback')
 emit('alarm',read('ez_alarm.ogg'),['ez_alarm.ogg'],'Mono, level matching; runtime loops a separate stream')
 if (SOURCE/'shotguncock.wav').exists(): emit('reload',read('shotguncock.wav'),['shotguncock.wav'],'Recorded shotgun mechanism')
 for file in sorted(SOURCE.glob('tabasco_*'))[:3]: emit('shotgun',read(file.name),[file.name],'Actual firearm recording, trim and normalize')

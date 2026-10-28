@@ -1,37 +1,50 @@
-; Open this file with Godot 4.x Standard.
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
+
 config/name="Последний сигнал"
-config/version="0.6.0"
+config/version="0.7.0"
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.3", "GL Compatibility")
+config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
+
 SettingsManager="*res://scripts/core/settings_manager.gd"
 AudioManager="*res://scripts/core/audio_manager.gd"
 GameManager="*res://scripts/core/game_manager.gd"
 NetworkManager="*res://scripts/core/network_manager.gd"
 
 [display]
+
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/size/window_width_override=1152
 window/size/window_height_override=648
 window/stretch/mode="canvas_items"
 
-[rendering]
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
-textures/default_filters/use_nearest_mipmap_filter=false
-environment/defaults/default_clear_color=Color(0.015, 0.025, 0.035, 1)
-
-[physics]
-common/physics_ticks_per_second=60
-
 [layer_names]
+
 3d_physics/layer_1="Station"
 3d_physics/layer_2="Players"
 3d_physics/layer_3="Interactables"
 3d_physics/layer_4="Entity"
+3d_physics/layer_5="Pickups"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.015, 0.025, 0.035, 1)

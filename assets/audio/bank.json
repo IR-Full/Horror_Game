@@ -12,7 +12,9 @@
       "res://assets/audio/clips/hurt_01.ogg",
       "res://assets/audio/clips/hurt_02.ogg",
       "res://assets/audio/clips/hurt_03.ogg",
-      "res://assets/audio/clips/hurt_04.ogg"
+      "res://assets/audio/clips/hurt_04.ogg",
+      "res://assets/audio/clips/hurt_05.ogg",
+      "res://assets/audio/clips/hurt_06.ogg"
     ],
     "growl": [
       "res://assets/audio/clips/growl_01.ogg",
@@ -60,27 +62,49 @@
     "step": [
       "res://assets/audio/clips/step_01.ogg",
       "res://assets/audio/clips/step_02.ogg",
-      "res://assets/audio/clips/step_03.ogg"
-    ],
-    "entity_step": [
-      "res://assets/audio/clips/entity_step_01.ogg",
-      "res://assets/audio/clips/entity_step_02.ogg",
-      "res://assets/audio/clips/entity_step_03.ogg"
+      "res://assets/audio/clips/step_03.ogg",
+      "res://assets/audio/clips/step_04.ogg",
+      "res://assets/audio/clips/step_05.ogg",
+      "res://assets/audio/clips/step_06.ogg",
+      "res://assets/audio/clips/step_07.ogg",
+      "res://assets/audio/clips/step_08.ogg",
+      "res://assets/audio/clips/step_09.ogg",
+      "res://assets/audio/clips/step_10.ogg"
     ],
     "step_metal": [
       "res://assets/audio/clips/step_metal_01.ogg",
       "res://assets/audio/clips/step_metal_02.ogg",
-      "res://assets/audio/clips/step_metal_03.ogg"
+      "res://assets/audio/clips/step_metal_03.ogg",
+      "res://assets/audio/clips/step_metal_04.ogg",
+      "res://assets/audio/clips/step_metal_05.ogg",
+      "res://assets/audio/clips/step_metal_06.ogg",
+      "res://assets/audio/clips/step_metal_07.ogg",
+      "res://assets/audio/clips/step_metal_08.ogg",
+      "res://assets/audio/clips/step_metal_09.ogg",
+      "res://assets/audio/clips/step_metal_10.ogg"
+    ],
+    "entity_step": [
+      "res://assets/audio/clips/entity_step_01.ogg",
+      "res://assets/audio/clips/entity_step_02.ogg",
+      "res://assets/audio/clips/entity_step_03.ogg",
+      "res://assets/audio/clips/entity_step_04.ogg"
     ],
     "step_gravel": [
       "res://assets/audio/clips/step_gravel_01.ogg",
       "res://assets/audio/clips/step_gravel_02.ogg",
-      "res://assets/audio/clips/step_gravel_03.ogg"
+      "res://assets/audio/clips/step_gravel_03.ogg",
+      "res://assets/audio/clips/step_gravel_04.ogg"
     ],
     "crawl_impact": [
       "res://assets/audio/clips/crawl_impact_01.ogg",
       "res://assets/audio/clips/crawl_impact_02.ogg",
-      "res://assets/audio/clips/crawl_impact_03.ogg"
+      "res://assets/audio/clips/crawl_impact_03.ogg",
+      "res://assets/audio/clips/crawl_impact_04.ogg"
+    ],
+    "monster_voice": [
+      "res://assets/audio/clips/monster_voice_01.ogg",
+      "res://assets/audio/clips/monster_voice_02.ogg",
+      "res://assets/audio/clips/monster_voice_03.ogg"
     ],
     "alarm": [
       "res://assets/audio/clips/alarm_01.ogg"
@@ -106,102 +130,122 @@
     {
       "file": "pain_01.ogg",
       "sources": [
-        "hael_3grunt1.wav"
+        "emopreben_pain_0.ogg"
       ],
-      "processing": "Silence trim, mono, 55 Hz rumble removal; original human pitch",
-      "seconds": 0.466,
+      "processing": "New CC0 human pain performance; original pitch, trim and EQ",
+      "seconds": 0.454,
       "peak_dbfs": -1.51,
-      "sha256": "d4b02f51489ef73e038970dc4554963445f6208c0ef2d7027aaeea7fccf80c98"
+      "sha256": "6356e64d396dbee500e42ef860ec74175a5403bb3b526e56bd6c120245ebf915"
     },
     {
       "file": "hurt_01.ogg",
       "sources": [
-        "hael_3grunt1.wav"
+        "emopreben_pain_0.ogg"
       ],
-      "processing": "Trim and normalize; original human pitch",
-      "seconds": 0.466,
+      "processing": "Human injury grunt; original pitch",
+      "seconds": 0.454,
       "peak_dbfs": -1.51,
-      "sha256": "c404299041d93f027924a0fc632d80c764c54ea0c24db6e6fb4628120bec8fa1"
+      "sha256": "203f5c5034a2e98fcbd6e700e6068b294176b8f9cdb6da3093114b8d6eec8cfe"
     },
     {
       "file": "pain_02.ogg",
       "sources": [
-        "hael_3grunt2.wav"
+        "emopreben_pain_1.ogg"
       ],
-      "processing": "Silence trim, mono, 55 Hz rumble removal; original human pitch",
-      "seconds": 0.709,
+      "processing": "New CC0 human pain performance; original pitch, trim and EQ",
+      "seconds": 0.57,
       "peak_dbfs": -1.51,
-      "sha256": "4d747e20f6c5def90feb811f0101b3b32d5d7c325f0bab82069721ea5f0be80f"
+      "sha256": "6a0271dc48e86a36d213deac00ee2c703135909cc8888afcae3020b50ac518f8"
     },
     {
       "file": "hurt_02.ogg",
       "sources": [
-        "hael_3grunt2.wav"
+        "emopreben_pain_1.ogg"
       ],
-      "processing": "Trim and normalize; original human pitch",
-      "seconds": 0.709,
+      "processing": "Human injury grunt; original pitch",
+      "seconds": 0.57,
       "peak_dbfs": -1.51,
-      "sha256": "c819777ef5d5acb0fff7d9572187b9729bdf703e8995106ce6ca08333b912051"
+      "sha256": "80d85fe0902f4c240e098b06b5d2435a981c84db784ddd86ec2aeb20239f4e1c"
     },
     {
       "file": "pain_03.ogg",
       "sources": [
-        "hael_3grunt3.wav"
+        "emopreben_pain_2.ogg"
       ],
-      "processing": "Silence trim, mono, 55 Hz rumble removal; original human pitch",
-      "seconds": 0.5,
+      "processing": "New CC0 human pain performance; original pitch, trim and EQ",
+      "seconds": 0.684,
       "peak_dbfs": -1.51,
-      "sha256": "d0e661df482ca1b796578e9548dca1ec6cf05a47fdf709a5ae635a3cbe6e7ab8"
+      "sha256": "770f55b512c15cabdadaad968c19868f0bf3e8010cfeb6cba3c0e97ece80ff88"
     },
     {
       "file": "hurt_03.ogg",
       "sources": [
-        "hael_3grunt3.wav"
+        "emopreben_pain_2.ogg"
       ],
-      "processing": "Trim and normalize; original human pitch",
-      "seconds": 0.5,
+      "processing": "Human injury grunt; original pitch",
+      "seconds": 0.684,
       "peak_dbfs": -1.51,
-      "sha256": "f0f1add2376d7cfe55257b03a0b180821e0ead192ee844701491cf38565efd4f"
+      "sha256": "5c2b6e76e11d68cc7b005c82cb350a319e7e10b8399c6db7fb36860360cb6c8f"
     },
     {
       "file": "pain_04.ogg",
       "sources": [
-        "hael_3grunt5.wav"
+        "emopreben_pain_3.ogg"
       ],
-      "processing": "Silence trim, mono, 55 Hz rumble removal; original human pitch",
-      "seconds": 0.375,
+      "processing": "New CC0 human pain performance; original pitch, trim and EQ",
+      "seconds": 0.561,
       "peak_dbfs": -1.51,
-      "sha256": "d63ed399515fa744320e79c6dca65ba2a0c71b1a4e7efe9115ca2e12a61b91c7"
+      "sha256": "56a31ba152d20ec1b4e2cbe191d830bc2df93dd975d5d37ad47683f9047e5673"
     },
     {
       "file": "hurt_04.ogg",
       "sources": [
-        "hael_3grunt5.wav"
+        "emopreben_pain_3.ogg"
       ],
-      "processing": "Trim and normalize; original human pitch",
-      "seconds": 0.375,
+      "processing": "Human injury grunt; original pitch",
+      "seconds": 0.561,
       "peak_dbfs": -1.51,
-      "sha256": "88593021c27496ca48091ed970c8de8b673ac42a3c7957233f844f000c6f751d"
+      "sha256": "83842dee27c68ae6627cd9ac99d8d7c11037a45c57cef082ea4f440e3a38d29c"
     },
     {
       "file": "pain_05.ogg",
       "sources": [
-        "hael_3yell7.wav"
+        "emopreben_pain_4.ogg"
       ],
-      "processing": "Silence trim, mono, 55 Hz rumble removal; original human pitch",
-      "seconds": 0.893,
+      "processing": "New CC0 human pain performance; original pitch, trim and EQ",
+      "seconds": 0.57,
       "peak_dbfs": -1.51,
-      "sha256": "434a4a2a51539222d4864c354b30510f356fa1fe60806169ce0d45348cfd61c6"
+      "sha256": "33c0aa537d90a3d9a9a1b2d35b944f4b22864fef251b54a0313291d5a0e84ec7"
+    },
+    {
+      "file": "hurt_05.ogg",
+      "sources": [
+        "emopreben_pain_4.ogg"
+      ],
+      "processing": "Human injury grunt; original pitch",
+      "seconds": 0.57,
+      "peak_dbfs": -1.51,
+      "sha256": "dec7bf23d62f073ca907322e72168eaf82f07fb1476b07dd7a83a4957a867aaa"
     },
     {
       "file": "pain_06.ogg",
       "sources": [
-        "hael_3yell8.wav"
+        "emopreben_pain_5.ogg"
       ],
-      "processing": "Silence trim, mono, 55 Hz rumble removal; original human pitch",
-      "seconds": 0.84,
+      "processing": "New CC0 human pain performance; original pitch, trim and EQ",
+      "seconds": 0.673,
       "peak_dbfs": -1.51,
-      "sha256": "f070ae5bdc2b7e91cdda7a182333f6ef681d8ef635648a57038733e14ca19b0a"
+      "sha256": "5a00513abd5fa9a2161b2ddf54aeb1c78602fbd98fc2d7f55c0c65d0e955e025"
+    },
+    {
+      "file": "hurt_06.ogg",
+      "sources": [
+        "emopreben_pain_5.ogg"
+      ],
+      "processing": "Human injury grunt; original pitch",
+      "seconds": 0.673,
+      "peak_dbfs": -1.51,
+      "sha256": "45f8a832d4390c1aad959aee90c9f43c232763a1e805bf8bf8dc9175bc547370"
     },
     {
       "file": "growl_01.ogg",
@@ -211,7 +255,7 @@
       "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
       "seconds": 3.643,
       "peak_dbfs": -1.51,
-      "sha256": "ef15955c766cbb9891f4117d17b3dde9d627ebe2f010ef0538eab98ae4cf2b88"
+      "sha256": "557689e8f825c43f66bdbacbeb0541b41eda6dc2785209f65c17d1bf38dc5fbd"
     },
     {
       "file": "growl_02.ogg",
@@ -221,7 +265,7 @@
       "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
       "seconds": 3.376,
       "peak_dbfs": -1.51,
-      "sha256": "17e953f71e0980111c5a4adc07684a99fc9bbe62ae6311b60747df9d9bcd4b72"
+      "sha256": "82a67320bf379af0303867190f2334f0f1605c171e9e8e0b45404576799159f8"
     },
     {
       "file": "growl_03.ogg",
@@ -231,7 +275,7 @@
       "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
       "seconds": 0.687,
       "peak_dbfs": -1.51,
-      "sha256": "2aa51ce314fde217d4c0cab013d5ae5838c3e9f569dfd39ef9f05ea20a0aad20"
+      "sha256": "6ebde006a8a9aa40269d044b810d10231c251cddccae159f61b549e35d666b35"
     },
     {
       "file": "growl_04.ogg",
@@ -241,7 +285,7 @@
       "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
       "seconds": 2.932,
       "peak_dbfs": -1.51,
-      "sha256": "92bfda2e36448771448eac2ce638b2e1118a84f0dce2fef9d165f8d2ea15c4fe"
+      "sha256": "09b332cbb19efb1f3acb8f96f4b51fe35ff33371c1b7a6306221c50c986cdd8d"
     },
     {
       "file": "roar_01.ogg",
@@ -251,7 +295,7 @@
       "processing": "Human creature vocal, layered pitched takes 0.78 and 0.61",
       "seconds": 1.258,
       "peak_dbfs": -1.51,
-      "sha256": "c144c1461f08e7d53ed9e1fa04c764699c846d3c73fe7ab03aa8d80628257f38"
+      "sha256": "615954f311deb1cccc4b8ef85e83322d940223d7b94494e6a76bca726b75eabc"
     },
     {
       "file": "roar_02.ogg",
@@ -261,7 +305,7 @@
       "processing": "Human creature vocal, layered pitched takes 0.78 and 0.61",
       "seconds": 1.49,
       "peak_dbfs": -1.51,
-      "sha256": "85f4b678732eece677852d876f310deed15168ca394a917ac078ba2eafb3387f"
+      "sha256": "8ef86fc12c27fbb4bb7e7a6f1d3f0c199a3e36cdd594181acb415f1922a9c968"
     },
     {
       "file": "roar_03.ogg",
@@ -271,7 +315,7 @@
       "processing": "Human creature vocal, layered pitched takes 0.78 and 0.61",
       "seconds": 1.489,
       "peak_dbfs": -1.51,
-      "sha256": "aab759d4645e64ac9686a519f047d49e34c5cdd6af0467ee21848530dbc0c05e"
+      "sha256": "6610d5edc42eb051d495aa5835dcb1abdacec484176793403e4d78d1e424408f"
     },
     {
       "file": "breath_01.ogg",
@@ -281,7 +325,7 @@
       "processing": "Trim and EQ",
       "seconds": 0.454,
       "peak_dbfs": -1.51,
-      "sha256": "f9af62c9dc3b1b4d9b0655cffc32cc9402920bdca05e5df4c106845a3e9db4eb"
+      "sha256": "bf9ee45ed2a02b210e643c105210ac7fc3aa45b6446cb2d39ecd2e0475727946"
     },
     {
       "file": "whisper_01.ogg",
@@ -291,7 +335,7 @@
       "processing": "Close breath, original recorded vocal texture",
       "seconds": 0.493,
       "peak_dbfs": -1.51,
-      "sha256": "2014b5bec479ed8efc2e125c851a2caa81ed5b7360a310587de10e69fca41338"
+      "sha256": "9575e4420e527759e01f528d2edcf264007f62ad7b05dc62e47146e6b0999fe7"
     },
     {
       "file": "scrape_01.ogg",
@@ -301,7 +345,7 @@
       "processing": "Recorded mechanical scrape",
       "seconds": 0.731,
       "peak_dbfs": -1.51,
-      "sha256": "251fd24baea386237afac4b97e1d95baa0de36992c3b6e5a60ccbbca14e84ffd"
+      "sha256": "99994ff23ba81492578b92b7d63f22e380f945ede9d808c6016281211a1c7095"
     },
     {
       "file": "pickup_01.ogg",
@@ -311,7 +355,7 @@
       "processing": "Small recorded handling click",
       "seconds": 0.378,
       "peak_dbfs": -1.51,
-      "sha256": "147d8dcb65f20e476df955a4e89171c31aaf3e9b45d438400316a246088e6b98"
+      "sha256": "8ce55f1c27ed72606190917262a7225871aea43db5bb0a4ea85e5bb15aa1d61d"
     },
     {
       "file": "power_01.ogg",
@@ -322,7 +366,7 @@
       "processing": "Recorded switch-on clunk",
       "seconds": 0.6,
       "peak_dbfs": -1.51,
-      "sha256": "d0f093f3934af9e735ac3d61a974c43173f6b0722d9328ae59ce9369d1058ab5"
+      "sha256": "fb4f949463caccb09e0a1685cf1dfdbf0b3cfed32a015ec5afdefbcf507e125c"
     },
     {
       "file": "smash_01.ogg",
@@ -332,7 +376,7 @@
       "processing": "Metallic impact with low recording layer",
       "seconds": 0.789,
       "peak_dbfs": -1.51,
-      "sha256": "d3e8943983a6a4760e02141cc03871d3c68b0ccd3b5de7a54c99e311286614f1"
+      "sha256": "39e8d868849ffb4d99893133507cf2f8360e29f47f9e804efcfdc3fb2863b42c"
     },
     {
       "file": "knock_01.ogg",
@@ -342,7 +386,7 @@
       "processing": "Metal impact variation",
       "seconds": 0.514,
       "peak_dbfs": -1.51,
-      "sha256": "93b418947cef06463f3e718e4753c363b8915770a93311e846a10f0341a3e27e"
+      "sha256": "239bc4192107a34be1f866e76039fc890f1d2db484ac49e686c1a66701b31091"
     },
     {
       "file": "smash_02.ogg",
@@ -352,7 +396,7 @@
       "processing": "Metallic impact with low recording layer",
       "seconds": 0.902,
       "peak_dbfs": -1.51,
-      "sha256": "b382a138b1a125c01b6d2093458aeb09b1cbbce1eeda0dc2fe2155845ad1199f"
+      "sha256": "96daa78e181bb248191c19da51f0c0ef39f7b543aacd16253a583816f918d55f"
     },
     {
       "file": "knock_02.ogg",
@@ -362,7 +406,7 @@
       "processing": "Metal impact variation",
       "seconds": 0.588,
       "peak_dbfs": -1.51,
-      "sha256": "8da59b915385151590784a7adac9bfd3f466b869b8782134d1ba8b5fe3a39b79"
+      "sha256": "fa2c7404b70a65fd578b02b34f0d6e7ae05a6b9061108badfec5ba219280de0e"
     },
     {
       "file": "switch_01.ogg",
@@ -372,7 +416,7 @@
       "processing": "Recorded switch or clunk, EQ and normalize",
       "seconds": 0.362,
       "peak_dbfs": -1.51,
-      "sha256": "3a00424b97823acb486e2bcbb8348d39e6477c09fa2c5bc0f6edbdf5b34fc650"
+      "sha256": "c47cbe2f778c600148780292272d0fab5c2e5c982990b550e2a5974e47d8d555"
     },
     {
       "file": "switch_02.ogg",
@@ -382,7 +426,7 @@
       "processing": "Recorded switch or clunk, EQ and normalize",
       "seconds": 0.302,
       "peak_dbfs": -5.61,
-      "sha256": "d7fa42675301aea99c42253271cfff1917808fb8a077f2fcc5642eaeb99830b9"
+      "sha256": "f74b1391ce1898cb61ee1a6b39195f58ec2d2efb8a224ea765263b2aa157c4e1"
     },
     {
       "file": "switch_03.ogg",
@@ -392,7 +436,7 @@
       "processing": "Recorded switch or clunk, EQ and normalize",
       "seconds": 0.378,
       "peak_dbfs": -1.51,
-      "sha256": "7725749f8a29db9319c6482330d44f0bb6a5e0a0a9ec100f93e3f2d856e98242"
+      "sha256": "d4c32828be81fb44c1ac820dd79bd3c7346f42b7a8fc74fd125ea69e8d538c0d"
     },
     {
       "file": "door_01.ogg",
@@ -402,7 +446,7 @@
       "processing": "Mechanical door clank, mono and level matching",
       "seconds": 0.541,
       "peak_dbfs": -1.51,
-      "sha256": "8442a444732b3dddab9f783ddc1be0899626a210a0d5a32f90e72d7566f2ef84"
+      "sha256": "987288f854447fcd0ec45b534f61d17932c1b0aeda6e5b27c423d45d45e11de0"
     },
     {
       "file": "door_02.ogg",
@@ -412,163 +456,375 @@
       "processing": "Mechanical door clank, mono and level matching",
       "seconds": 0.6,
       "peak_dbfs": -1.51,
-      "sha256": "956eaf52e8db25199ffc223c5a7edab47c01dc73addec88ff7db4146206adafc"
+      "sha256": "6fdcbe67e636a5b22ade529fa842716b68ed487ea6669f0e5af946dd6072fdf2"
     },
     {
       "file": "step_01.ogg",
       "sources": [
-        "tiny_stone01.ogg"
+        "sardin_concrete.wav"
       ],
-      "processing": "Stone footstep variation, pitch 0.95",
-      "seconds": 0.24,
-      "peak_dbfs": -1.51,
-      "sha256": "457a843a7b7527ad88f6498f1415a4e16102eba74c59cd4e90a9ab830abc904d"
-    },
-    {
-      "file": "entity_step_01.ogg",
-      "sources": [
-        "tiny_stone01.ogg"
-      ],
-      "processing": "Heavy step based on recorded contact",
-      "seconds": 0.333,
-      "peak_dbfs": -1.51,
-      "sha256": "4b377fee3c1d11f947e9975833312076ef99f5d2fd734906c1044bd893c2cb70"
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -10.03,
+      "sha256": "2946cf829e37507cfd7effd7d1ef17f7714116d629db34e0a67ea71483b33fa3"
     },
     {
       "file": "step_metal_01.ogg",
       "sources": [
-        "tiny_stone01.ogg",
+        "sardin_concrete.wav",
         "bmac_lightclunk1.wav"
       ],
-      "processing": "Footstep with metal contact layer",
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
       "seconds": 0.362,
-      "peak_dbfs": -1.51,
-      "sha256": "5c6843335013ffe35f96bbb232006432f822d26d96d785c6bfee95ddee23cbe8"
+      "peak_dbfs": -10.09,
+      "sha256": "272d07266522156f2a786ac964f030039d1cbfd482fcb187ae0f80a6a0e9006e"
+    },
+    {
+      "file": "entity_step_01.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Heavy recorded contact",
+      "seconds": 0.393,
+      "peak_dbfs": -10.21,
+      "sha256": "7892594a3d3fc6da41d374a7083007e3841e32434923650b36f1949ed19f54bd"
     },
     {
       "file": "step_gravel_01.ogg",
       "sources": [
+        "sardin_concrete.wav",
         "tiny_gravel.ogg"
       ],
-      "processing": "Recorded loose-surface footstep",
-      "seconds": 0.716,
-      "peak_dbfs": -1.51,
-      "sha256": "73adf87a088cb42689a70be06be72b2b424c01a3cfaf7b3148ec8b6cae5a14e1"
+      "processing": "Natural shoe plus recorded gravel",
+      "seconds": 0.68,
+      "peak_dbfs": -10.12,
+      "sha256": "c78fc64ab5154862372e5c6c4a4d6bd13821edb2490eec546238066932a5a7cb"
     },
     {
       "file": "crawl_impact_01.ogg",
       "sources": [
-        "tiny_stone01.ogg",
+        "sardin_concrete.wav",
         "bmac_lightclunk2.wav"
       ],
-      "processing": "Heavy hand/foot contact",
-      "seconds": 0.307,
-      "peak_dbfs": -1.51,
-      "sha256": "47e368bc549e5bb5a9fc465c67026ec3c91b4e07d841af164929b72306e98ea0"
+      "processing": "Heavy recorded hand impact",
+      "seconds": 0.378,
+      "peak_dbfs": -10.16,
+      "sha256": "3473bb6c493121d101a59f36f246e9aec2a8295fea831bfe87cf22970c1ca3ba"
     },
     {
       "file": "step_02.ogg",
       "sources": [
-        "tiny_stone01.ogg"
+        "sardin_concrete.wav"
       ],
-      "processing": "Stone footstep variation, pitch 1",
-      "seconds": 0.228,
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
       "peak_dbfs": -1.51,
-      "sha256": "de16d23b570c31d86ab87738c2b1613e6f4a6758660bbf538978a2af5e90aecc"
-    },
-    {
-      "file": "entity_step_02.ogg",
-      "sources": [
-        "tiny_stone01.ogg"
-      ],
-      "processing": "Heavy step based on recorded contact",
-      "seconds": 0.316,
-      "peak_dbfs": -1.51,
-      "sha256": "5f69ecc1517e89823911ddd89010cc6fa16286c4d75b3161f95c064ac660f79f"
+      "sha256": "98ded986c0030dd94d799dfe56ce4f5de587b2e50315f10bdfe93a28176dda05"
     },
     {
       "file": "step_metal_02.ogg",
       "sources": [
-        "tiny_stone01.ogg",
+        "sardin_concrete.wav",
         "bmac_lightclunk1.wav"
       ],
-      "processing": "Footstep with metal contact layer",
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
       "seconds": 0.362,
       "peak_dbfs": -1.51,
-      "sha256": "b2de9246fd21daf1172919076b5d3d7283b81384f888f0dbf2c19fc8b89c1816"
+      "sha256": "a8fd6503b1960037c7c4b130dc416c6dd7c92e1d86f241719646617d4246565a"
+    },
+    {
+      "file": "entity_step_02.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Heavy recorded contact",
+      "seconds": 0.393,
+      "peak_dbfs": -1.51,
+      "sha256": "8bf5c69626f9bde46f9804999e426ac362da7265486a326a0582df2ca1108c36"
     },
     {
       "file": "step_gravel_02.ogg",
       "sources": [
+        "sardin_concrete.wav",
         "tiny_gravel.ogg"
       ],
-      "processing": "Recorded loose-surface footstep",
+      "processing": "Natural shoe plus recorded gravel",
       "seconds": 0.68,
       "peak_dbfs": -1.51,
-      "sha256": "68174c471a49f493daa92bec46b2b3c598d645961ca8149ed8204ae653662f26"
+      "sha256": "d0de7579765f68d2cad20c6323fcdfe6ee5ab8fe24e093332e0bb9db93e84cea"
     },
     {
       "file": "crawl_impact_02.ogg",
       "sources": [
-        "tiny_stone01.ogg",
+        "sardin_concrete.wav",
         "bmac_lightclunk2.wav"
       ],
-      "processing": "Heavy hand/foot contact",
-      "seconds": 0.302,
+      "processing": "Heavy recorded hand impact",
+      "seconds": 0.378,
       "peak_dbfs": -1.51,
-      "sha256": "4de3ac7cae08de91cab5d1a6f62875aceec8a5629d4a585b3ed43b15c3e3897a"
+      "sha256": "859f4ef4bc0d010afef7a276046d62ee56b3a619851f14874d4fe1a24478ef84"
     },
     {
       "file": "step_03.ogg",
       "sources": [
-        "tiny_stone01.ogg"
+        "sardin_concrete.wav"
       ],
-      "processing": "Stone footstep variation, pitch 1.04",
-      "seconds": 0.219,
-      "peak_dbfs": -1.51,
-      "sha256": "3fdc8ca63bc1300fa6ef245d82745935aca61f32f92b5c469632282b557356f0"
-    },
-    {
-      "file": "entity_step_03.ogg",
-      "sources": [
-        "tiny_stone01.ogg"
-      ],
-      "processing": "Heavy step based on recorded contact",
-      "seconds": 0.304,
-      "peak_dbfs": -1.51,
-      "sha256": "8a46692c28c7cffb5921764a51a163117e4bfa56acacb64bc636c935fe2fa712"
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -1.63,
+      "sha256": "ee56c6082dc427c8a06fff91ac498e1c13bd52a74567c17db27a0f4d749c7735"
     },
     {
       "file": "step_metal_03.ogg",
       "sources": [
-        "tiny_stone01.ogg",
+        "sardin_concrete.wav",
         "bmac_lightclunk1.wav"
       ],
-      "processing": "Footstep with metal contact layer",
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
       "seconds": 0.362,
-      "peak_dbfs": -1.51,
-      "sha256": "650548fb464c842aa6d9609e76a6beaae9b6ce31b84d40eca5d586f7df9f121b"
+      "peak_dbfs": -1.6,
+      "sha256": "bd5b0858cd10672dc4b98f578b0e58ec30855e34766803780a79778768f9358c"
+    },
+    {
+      "file": "entity_step_03.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Heavy recorded contact",
+      "seconds": 0.393,
+      "peak_dbfs": -1.69,
+      "sha256": "35b858e0f522c06ffa8d625af9087fc586588f4c3948bc6306ab56154aa870f7"
     },
     {
       "file": "step_gravel_03.ogg",
       "sources": [
+        "sardin_concrete.wav",
         "tiny_gravel.ogg"
       ],
-      "processing": "Recorded loose-surface footstep",
-      "seconds": 0.654,
-      "peak_dbfs": -1.87,
-      "sha256": "b5ebd3cfaefa3a67d242a1db03fc9a76a622b2671426f03ee10c2ac8dc23eb9f"
+      "processing": "Natural shoe plus recorded gravel",
+      "seconds": 0.68,
+      "peak_dbfs": -1.63,
+      "sha256": "caae32bb2f48e51c28ed6b86c5f25d0f534eabd20d0cec00c11643ea80a160f4"
     },
     {
       "file": "crawl_impact_03.ogg",
       "sources": [
-        "tiny_stone01.ogg",
+        "sardin_concrete.wav",
         "bmac_lightclunk2.wav"
       ],
-      "processing": "Heavy hand/foot contact",
-      "seconds": 0.302,
+      "processing": "Heavy recorded hand impact",
+      "seconds": 0.378,
+      "peak_dbfs": -1.62,
+      "sha256": "839531aa5d518d32b6fd08ce240498479eb77e358bc09db11996d371a97265cf"
+    },
+    {
+      "file": "step_04.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
       "peak_dbfs": -1.51,
-      "sha256": "4abeac954d2d894ca4bd18eac485703994bd9959a234bdf416c89f13a0e90d05"
+      "sha256": "8049af72e28712f82400caf3a275bd8b9b72c57972a00b925d6feadd3f683dcf"
+    },
+    {
+      "file": "step_metal_04.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk1.wav"
+      ],
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
+      "seconds": 0.362,
+      "peak_dbfs": -1.51,
+      "sha256": "e6ec2121d6a2844434b51a1f7c54a530afe40db2fa7ca4ef1a338e8908b881d5"
+    },
+    {
+      "file": "entity_step_04.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Heavy recorded contact",
+      "seconds": 0.393,
+      "peak_dbfs": -1.51,
+      "sha256": "e183e94215ff5439859191388d326f17298ae2124b5772eb7789528ea3939b2a"
+    },
+    {
+      "file": "step_gravel_04.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "tiny_gravel.ogg"
+      ],
+      "processing": "Natural shoe plus recorded gravel",
+      "seconds": 0.68,
+      "peak_dbfs": -1.51,
+      "sha256": "bda71138e0acff37cc633d22d4bfa4bf23c397d794bc8d07480f0c947e43c7a9"
+    },
+    {
+      "file": "crawl_impact_04.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk2.wav"
+      ],
+      "processing": "Heavy recorded hand impact",
+      "seconds": 0.378,
+      "peak_dbfs": -1.51,
+      "sha256": "c5d18577954b62b74caa5d13940e4f3ddf4297aca9507f863d37bce34198388d"
+    },
+    {
+      "file": "step_05.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -1.51,
+      "sha256": "49ad39e0cecc924b9dff7590d5ddec0721247f8a242505646aac6616e9a3ce5e"
+    },
+    {
+      "file": "step_metal_05.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk1.wav"
+      ],
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
+      "seconds": 0.362,
+      "peak_dbfs": -1.51,
+      "sha256": "7536426c601c2808edc12024c80a7e01ed6f83b03aebd402a4477dda06ebb69f"
+    },
+    {
+      "file": "step_06.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -1.51,
+      "sha256": "4647f73730ee454f09528767f880f413f0625aee0df4078f8367406844edc541"
+    },
+    {
+      "file": "step_metal_06.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk1.wav"
+      ],
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
+      "seconds": 0.362,
+      "peak_dbfs": -1.51,
+      "sha256": "16a7860dda2528ebc6964a9e24d5f19958cd6e9e421af4fb605dcfab18c26409"
+    },
+    {
+      "file": "step_07.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -7.7,
+      "sha256": "ba0813d329bf5d36c2da8fd1c4abe0d8a116dd572500e4d8dcaf899abf5ee1ac"
+    },
+    {
+      "file": "step_metal_07.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk1.wav"
+      ],
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
+      "seconds": 0.362,
+      "peak_dbfs": -7.73,
+      "sha256": "a62258808e22a1f30d16c8527b3309e6935c70217bbd3dbc345b0c8a7c366361"
+    },
+    {
+      "file": "step_08.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -1.51,
+      "sha256": "093f47ff42902b0b82ec34532e900916ed192f0905cba9de045d5160ae16901f"
+    },
+    {
+      "file": "step_metal_08.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk1.wav"
+      ],
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
+      "seconds": 0.362,
+      "peak_dbfs": -1.51,
+      "sha256": "f41fe33a3902b69dd2059483dc87601f5c6c8586c89729dfeed57acae697f67b"
+    },
+    {
+      "file": "step_09.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -1.51,
+      "sha256": "1b186591446601d804ef234244aaff6d45d040c30dfea6d4006b3ef07c0dd313"
+    },
+    {
+      "file": "step_metal_09.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk1.wav"
+      ],
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
+      "seconds": 0.362,
+      "peak_dbfs": -1.51,
+      "sha256": "4ad2e9dce0b6841470fa36d772fb00d64c9453cb530927a55055af13904772ad"
+    },
+    {
+      "file": "step_10.ogg",
+      "sources": [
+        "sardin_concrete.wav"
+      ],
+      "processing": "Isolated recorded shoe contact, natural transient and scuff",
+      "seconds": 0.295,
+      "peak_dbfs": -1.51,
+      "sha256": "0f568a9c0ad7639a12212c67f73709e57add586fb7477b52518b7c579c60beec"
+    },
+    {
+      "file": "step_metal_10.ogg",
+      "sources": [
+        "sardin_concrete.wav",
+        "bmac_lightclunk1.wav"
+      ],
+      "processing": "Recorded shoe contact with quiet structural metal resonance",
+      "seconds": 0.362,
+      "peak_dbfs": -1.51,
+      "sha256": "7a496cc5013a2ae82be10a6472bc5f694c5a430292b27ffe9727ef5a46caadfc"
+    },
+    {
+      "file": "monster_voice_01.ogg",
+      "sources": [
+        "monster_line_0.wav"
+      ],
+      "processing": "Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback",
+      "seconds": 1.346,
+      "peak_dbfs": -1.51,
+      "sha256": "2b8ffe4ea235018bd96a3b93615db003870f0c7c9845babade4c424182283f86"
+    },
+    {
+      "file": "monster_voice_02.ogg",
+      "sources": [
+        "monster_line_1.wav"
+      ],
+      "processing": "Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback",
+      "seconds": 3.018,
+      "peak_dbfs": -1.51,
+      "sha256": "fb4a5fc42d124a591e57ded33d400fcdf48ebe7252529acca94a453b0603ace0"
+    },
+    {
+      "file": "monster_voice_03.ogg",
+      "sources": [
+        "monster_line_2.wav"
+      ],
+      "processing": "Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback",
+      "seconds": 8.103,
+      "peak_dbfs": -1.51,
+      "sha256": "5654da90f3174a68b011a5a2d83a3d916ecfae947cd7c40f66fdb2162f066dfa"
     },
     {
       "file": "alarm_01.ogg",
@@ -578,7 +834,7 @@
       "processing": "Mono, level matching; runtime loops a separate stream",
       "seconds": 1.846,
       "peak_dbfs": -5.28,
-      "sha256": "8a84775305fb9394eaf207404ccf226d306606cf734a037e0f66f7f55ac944bd"
+      "sha256": "96936f05efd8be3e5cb0dd9f4a72b27814d9a52311cd177da900f94634569cae"
     },
     {
       "file": "reload_01.ogg",
@@ -588,7 +844,7 @@
       "processing": "Recorded shotgun mechanism",
       "seconds": 0.445,
       "peak_dbfs": -1.51,
-      "sha256": "02029b0d7b97c51472d41873b8019439a9b2e3c8ef5a08bf26d375af2cba30b8"
+      "sha256": "5dc43055370c02c7e28f910377a795d4ded74683533be7d2cd4fda88108d0df6"
     },
     {
       "file": "shotgun_01.ogg",
@@ -598,7 +854,7 @@
       "processing": "Actual firearm recording, trim and normalize",
       "seconds": 0.698,
       "peak_dbfs": -1.51,
-      "sha256": "6998d5c6c29e767a76970eb57672392f64fcc14545747dafb3c3f02bcb0c24db"
+      "sha256": "846b756abf1dc8e72b10c89a412484671e88a0819480f7770e3ef1c8cd34515a"
     },
     {
       "file": "motor_01.ogg",
@@ -608,7 +864,7 @@
       "processing": "Loop seam crossfade 250 ms, EQ, mono",
       "seconds": 5.186,
       "peak_dbfs": -1.51,
-      "sha256": "6658a30b861b51636ef3e0143271ab0d3b2d0220deb5953265d9392cb1d005f2"
+      "sha256": "ace941614f43757c4c65f991e64f102e328b975109f7d4c4d2aaa957b9f0314e"
     },
     {
       "file": "hum_01.ogg",
@@ -618,7 +874,7 @@
       "processing": "Loop seam crossfade 250 ms, EQ, mono",
       "seconds": 1.485,
       "peak_dbfs": -1.51,
-      "sha256": "f5cab3db46b350c424891d0f2ca872a9cc55bd2413f93a0377b21ad690ac2e15"
+      "sha256": "637a104192297e94acaf950921f9416ebb0fc8b704471b5923cfd6469b2517ee"
     }
   ]
 }

@@ -69,7 +69,7 @@ func _make_sound(kind: String) -> AudioStreamWAV:
 	var duration: float = 4.0 if kind in ["hum", "motor", "score"] else (1.6 if kind in ["whisper", "sos", "alarm"] else (1.0 if kind in ["knock", "pain"] else (.7 if kind in ["heartbeat", "radio", "smash", "shotgun"] else .22)))
 	if kind in ["breath", "scrape"]:
 		duration = 1.4
-	if kind in ["roar", "growl"]:
+	if kind in ["roar", "growl", "monster_voice"]:
 		duration = 1.9 if kind == "roar" else 1.15
 	if kind == "sos":
 		duration = 2.7
@@ -170,14 +170,14 @@ func play_at(kind: String, position: Vector3, volume_offset: float = 0.0) -> voi
 	player.volume_db = -10.0
 	if kind in ["whisper", "entity_step", "breath", "scrape"]:
 		player.volume_db = -15.0
-	if kind in ["roar", "growl"]:
-		player.volume_db = -1.0 if kind == "roar" else -5.0
+	if kind in ["roar", "growl", "monster_voice"]:
+		player.volume_db = 3.0 if kind == "roar" else (1.0 if kind == "monster_voice" else 0.0)
 	if kind == "crawl_impact":
 		player.volume_db = -7.0
 	if kind in ["smash", "shotgun", "alarm"]:
 		player.volume_db = -2.0
 	player.volume_db += volume_offset
-	player.max_distance = 65.0 if kind in ["roar","smash","shotgun"] else 24.0
+	player.max_distance = 80.0 if kind in ["roar","growl","monster_voice","smash","shotgun"] else 24.0
 	var listener: Node3D = GameManager.local_player()
 	if listener and listener.position.distance_to(position) > 2:
 		var ray := PhysicsRayQueryParameters3D.create(listener.eye_position(),position+Vector3.UP*.25,1|4,[listener.get_rid()])

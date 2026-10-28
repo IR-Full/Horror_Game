@@ -47,6 +47,15 @@ var body_collision: CollisionShape3D
 var blood_pool: MeshInstance3D
 var shotgun: Node3D
 var recoil: float = 0.0
+var stamina: float = 100.0
+var exhausted: bool = false
+var stamina_delay: float = 0.0
+var shot_cooldown: float = 0.0
+var sos_left: float = 0.0
+var healing_progress: float = 0.0
+var rescue_progress: float = 0.0
+var vent_time: float = 0.0
+var vent_destination := Vector3.ZERO
 var next_left_foot: bool = true
 var bloody_steps: int = 0
 
@@ -70,7 +79,7 @@ func _ready() -> void:
 	add_child(blood_pool)
 	blood_pool.hide()
 	if role == "hunter":
-		loaded_shells = 1
+		loaded_shells = 2
 	var tag := Label3D.new()
 	tag.text = nickname
 	tag.position.y = 2.05
@@ -104,6 +113,8 @@ func _ready() -> void:
 			camera.add_child(shotgun)
 			shotgun.position = Vector3(.18, -.24, -.34)
 			held_flashlight.position.x = -.25
+			for part: Node in shotgun.find_children("*","MeshInstance3D",true,false):
+				part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		else:
 			body_pivot.add_child(shotgun)
 			shotgun.position = Vector3(.2, .35, -.3)
@@ -113,12 +124,14 @@ func _ready() -> void:
 	lamp.spot_range = 13.0
 	lamp.spot_angle = 34.0
 	lamp.position = Vector3(0.18, -0.12, -0.1)
+	lamp.shadow_bias = 1.0
+	lamp.shadow_normal_bias = 4.0
 	rig.add_child(lamp)
 	var sync := MultiplayerSynchronizer.new()
 	sync.name = "StateSync"
 	sync.replication_interval = 0.05
 	var config := SceneReplicationConfig.new()
-	for property: String in ["net_position", "net_yaw", "net_pitch", "health", "battery", "lamp_on", "crouched", "dead", "inventory", "down_time", "sos_cooldown", "loaded_shells", "reserve_shells", "reload_left"]:
+	for property: String in ["net_position", "net_yaw", "net_pitch", "health", "battery", "lamp_on", "crouched", "dead", "inventory", "down_time", "sos_cooldown", "loaded_shells", "reserve_shells", "reload_left", "stamina", "exhausted", "shot_cooldown", "sos_left", "healing_progress", "rescue_progress", "vent_time"]:
 		var path := NodePath(".:" + property)
 		config.add_property(path)
 		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -130,6 +143,11 @@ func _ready() -> void:
 		body_mesh.hide()
 		tag.hide()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if is_local():
+		var vent := Node3D.new()
+		vent.set_script(preload("res://scripts/player/vent_view.gd"))
+		vent.actor = self
+		add_child(vent)
 	SettingsManager.changed.connect(_apply_quality)
 	_apply_quality()
 
@@ -150,13 +168,15 @@ func capacity() -> int:
 	return 4
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not is_local() or not input_enabled:
+	if not is_local() or not input_enabled or vent_time > 0:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		local_aim.x = wrapf(local_aim.x - event.relative.x * SettingsManager.sensitivity, -PI, PI)
 		local_aim.y = clampf(local_aim.y - event.relative.y * SettingsManager.sensitivity, -1.35, 1.35)
 	if event.is_action_pressed("slot"):
 		selected_slot = (selected_slot + 1) % maxi(1, inventory.size())
+	for i: int in range(4):
+		if event.is_action_pressed("slot_%d" % (i+1)) and i < inventory.size(): selected_slot = i
 	for action: String in ["flashlight", "shout", "drop", "use_item", "shoot", "reload", "sos"]:
 		if event.is_action_pressed(action) and not event.is_echo():
 			if multiplayer.is_server():
@@ -186,7 +206,10 @@ func _physics_process(delta: float) -> void:
 	elif not multiplayer.is_server():
 		position = position.lerp(net_position, minf(1.0, delta * 18.0))
 	rig.position.y = lerpf(rig.position.y, 0.45 if health <= 0.0 else (1.0 if crouched else 1.55), delta * 12.0)
-	lamp.visible = lamp_on and battery > 0.0 and health > 0.0
+	lamp.visible = lamp_on and battery > 0.0 and health > 0.0 and vent_time <= 0
+	body_collision.set_deferred("disabled",vent_time > 0)
+	body_pivot.visible = vent_time <= 0
+	if not is_local(): body_mesh.visible = vent_time <= 0
 	fall_amount = move_toward(fall_amount, 1.0 if health <= 0 else 0.0, delta / .85)
 	var eased: float = smoothstep(0, 1, fall_amount)
 	body_pivot.rotation = Vector3(-PI * .5 * eased, net_yaw, .08 * eased)
@@ -209,7 +232,7 @@ func _physics_process(delta: float) -> void:
 	if is_local():
 		view_time += delta
 		var moving: float = Input.get_vector("left", "right", "forward", "back").length() if input_enabled and health > 0 else 0.0
-		camera.position.y = sin(view_time * (11.0 if Input.is_action_pressed("sprint") else 7.0)) * .012 * moving
+		camera.position.y = sin(view_time * (11.0 if Input.is_action_pressed("sprint") and not exhausted and stamina > 0 else 7.0)) * .012 * moving
 		held_flashlight.rotation.z = -.12 + sin(view_time * 6.0) * .018 * moving
 		lamp.light_energy = 3.0 * (.6 + .4 * absf(sin(view_time * 19.0)) if battery < 15.0 else 1.0)
 
@@ -225,14 +248,18 @@ func accept_input(direction: Vector2, look: Vector2, run: bool, duck: bool, use:
 
 func _server_tick(delta: float) -> void:
 	input_age += delta
+	shot_cooldown = maxf(0,shot_cooldown-delta)
+	sos_left = maxf(0,sos_left-delta)
+	stamina_delay = maxf(0,stamina_delay-delta)
 	action_cooldown = maxf(0.0, action_cooldown - delta)
 	shout_cooldown = maxf(0.0, shout_cooldown - delta)
 	sos_cooldown = maxf(0.0, sos_cooldown - delta)
 	if reload_left > 0:
 		reload_left = maxf(0.0, reload_left - delta)
 		if reload_left <= 0 and health > 0 and reserve_shells > 0:
-			loaded_shells = 1
-			reserve_shells -= 1
+			var amount: int = mini(2-loaded_shells,reserve_shells)
+			loaded_shells += amount
+			reserve_shells -= amount
 	invulnerable = maxf(0.0, invulnerable - delta)
 	if input_age > 0.3 or GameManager.world.objectives.result != "":
 		move_input = Vector2.ZERO
@@ -249,13 +276,30 @@ func _server_tick(delta: float) -> void:
 		if down_time >= 120.0 and not dead:
 			dead = true
 			GameManager.world.items.drop_all(self)
-	var speed: float = 1.35 if crouched else (4.5 if sprinting else 2.8)
+	if vent_time > 0:
+		vent_time = maxf(0,vent_time-delta)
+		velocity = Vector3.ZERO
+		if vent_time <= 0:
+			position = vent_destination
+			net_position = position
+			GameManager.world.make_noise(position,20)
+		return
+	if exhausted and stamina >= 28: exhausted = false
+	var running: bool = sprinting and not crouched and not exhausted and move_input.length() > .1 and health > 0
+	if running:
+		stamina = maxf(0,stamina-delta*19)
+		stamina_delay = 1.2
+		if stamina <= 0: exhausted = true; running = false
+	elif stamina_delay <= 0:
+		stamina = minf(100,stamina+delta*14)
+	var speed: float = 1.35 if crouched else (4.5 if running else 2.8)
 	if is_technician():
 		speed *= 0.9
 	var direction := Basis(Vector3.UP, aim.x) * Vector3(move_input.x, 0, move_input.y)
 	velocity.x = direction.x * speed
 	velocity.z = direction.z * speed
 	velocity.y = velocity.y - 18.0 * delta if not is_on_floor() else -0.1
+	var previous_position: Vector3 = position
 	move_and_slide()
 	net_position = position
 	net_yaw = aim.x
@@ -265,9 +309,9 @@ func _server_tick(delta: float) -> void:
 		if battery <= 0.0:
 			lamp_on = false
 	noise_clock -= delta
-	if move_input.length() > 0.1 and health > 0.0 and noise_clock <= 0.0:
-		noise_clock = .48 if crouched else (.25 if sprinting else .32)
-		var radius: float = 12.0 if sprinting and not crouched else (1.4 if crouched else 4.0)
+	if Vector2(position.x-previous_position.x,position.z-previous_position.z).length() > .004 and health > 0.0 and noise_clock <= 0.0:
+		noise_clock = .48 if crouched else (.25 if running else .36)
+		var radius: float = 24.0 if running else (2.0 if crouched else 10.0)
 		GameManager.world.make_noise(position, radius)
 		if GameManager.world.is_bloody(position): bloody_steps = 9
 		GameManager.world.player_step.rpc(position, net_yaw, next_left_foot, bloody_steps > 0, crouched)
@@ -280,17 +324,18 @@ func apply_action(action: String, slot: int) -> void:
 	if action == "sos":
 		if health <= 0 and not dead and sos_cooldown <= 0:
 			sos_cooldown = 15
+			sos_left = 14
 			GameManager.world.sound_event.rpc("sos", position)
 			GameManager.world.announce.rpc("SOS! %s ранен. Осталось %d сек. до гибели." % [nickname, maxi(0, ceili(120 - down_time))])
 		return
-	if health <= 0 or action_cooldown > 0:
+	if health <= 0 or action_cooldown > 0 or vent_time > 0:
 		return
 	action_cooldown = 0.18
 	match action:
 		"shoot": _fire_shotgun()
 		"reload":
-			if role == "hunter" and loaded_shells == 0 and reserve_shells > 0 and reload_left <= 0:
-				reload_left = 1.7
+			if role == "hunter" and loaded_shells < 2 and reserve_shells > 0 and reload_left <= 0:
+				reload_left = 2.0
 				GameManager.world.sound_event.rpc("reload", position)
 		"flashlight": lamp_on = not lamp_on and battery > 0.0
 		"shout":
@@ -302,10 +347,10 @@ func apply_action(action: String, slot: int) -> void:
 		"use_item": GameManager.world.items.use(self, slot)
 
 func _fire_shotgun() -> void:
-	if role != "hunter" or loaded_shells <= 0 or reload_left > 0:
+	if role != "hunter" or loaded_shells <= 0 or reload_left > 0 or shot_cooldown > 0:
 		return
-	loaded_shells = 0
-	action_cooldown = 1.2
+	loaded_shells -= 1
+	shot_cooldown = .65
 	var world: Node3D = GameManager.world
 	world.make_noise(position, 60)
 	world.sound_event.rpc("shotgun", eye_position())
@@ -348,7 +393,16 @@ func damage(amount: float) -> void:
 	GameManager.world.sound_event.rpc("hurt", position)
 
 func revive() -> void:
+	sos_left = 0
+	healing_progress = 0
+	rescue_progress = 0
 	health = 45.0
 	down_time = 0.0
 	dead = false
 	invulnerable = 5.0
+
+func start_vent(destination: Vector3) -> void:
+	if not multiplayer.is_server() or vent_time > 0 or health <= 0: return
+	vent_destination = destination
+	vent_time = 3.6
+	velocity = Vector3.ZERO

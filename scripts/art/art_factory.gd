@@ -13,6 +13,12 @@ static func model(kind: String) -> Node3D:
 	for child: Node in node.find_children("*", "MeshInstance3D", true, false):
 		for index: int in range(child.mesh.get_surface_count()):
 			var original: StandardMaterial3D = child.mesh.surface_get_material(index)
+			child.visibility_range_end = 48.0
+			child.visibility_range_end_margin = 5.0
+			if original and original.resource_name == "HGM_flesh":
+				if not worn_materials.has("HGM_flesh"): worn_materials["HGM_flesh"] = original.duplicate()
+				child.set_surface_override_material(index,worn_materials.HGM_flesh)
+				worn_materials.HGM_flesh.normal_enabled = SettingsManager.quality > 0
 			if original and original.resource_name in ["muscle", "muscle_dark", "tendon"]:
 				var flesh_key: String = "flesh_" + original.resource_name
 				if not worn_materials.has(flesh_key):

@@ -98,7 +98,7 @@ static func _props_and_tasks(s: Node3D) -> void:
 	locker.gate_rule = "circuit"
 	var cartridge: Node3D = s.add_object("air_filter", "air_filter", "Фильтрующий картридж", Vector3(54, .75, -19.9))
 	cartridge.container_id = "filter_locker"
-	s.add_object("purifier", "purifier", "Фильтрация C • вставить картридж, удерживать E", Vector3(39, 1.05, -42))
+	s.add_object("purifier", "purifier", "Фильтрация C • вставить картридж, удерживать E", Vector3(39, .9, -42))
 	for at: Vector3 in [Vector3(36,.65,-42),Vector3(-15,.65,-76),Vector3(-13,.65,-76),Vector3(-11,.65,-76)]:
 		s.block(at,Vector3(.12,1.3,.12),"293e40",false)
 		s.block(Vector3(at.x,.05,at.z),Vector3(.7,.1,.5),"293e40",false)

@@ -190,5 +190,85 @@
     "member": "shotguncock.wav",
     "license": "CC0-1.0",
     "sha256": "33e007321ba83301c861aef573f2c40b70bc62f8f24c0164877e6dd123e24371"
+  },
+  {
+    "file": "emopreben_pain_0.ogg",
+    "author": "Lasse Bührmann (EmoPreben)",
+    "source": "https://opengameart.org/content/pain-sounds-by-emopreben",
+    "member": "Painsounds v2 - Track 1 - Arrrch.ogg",
+    "license": "CC0-1.0",
+    "sha256": "ea1277dac42d689abe6a271faebd4e5c3d1ca388d72e6fd828aa97b38f4a2c2b"
+  },
+  {
+    "file": "emopreben_pain_1.ogg",
+    "author": "Lasse Bührmann (EmoPreben)",
+    "source": "https://opengameart.org/content/pain-sounds-by-emopreben",
+    "member": "Painsounds v2 - Track 2 - Hurgh.ogg",
+    "license": "CC0-1.0",
+    "sha256": "e328c4977de1fb5125b6d9ca642d45fa3f4cad8198c89474c2ac6132e5167443"
+  },
+  {
+    "file": "emopreben_pain_2.ogg",
+    "author": "Lasse Bührmann (EmoPreben)",
+    "source": "https://opengameart.org/content/pain-sounds-by-emopreben",
+    "member": "Painsounds v2 - Track 3 - Huuurh.ogg",
+    "license": "CC0-1.0",
+    "sha256": "cfb6a352d828ab3b80b40b6fe8d972cc3e8af4cc33f417b21f1f32968d65518f"
+  },
+  {
+    "file": "emopreben_pain_3.ogg",
+    "author": "Lasse Bührmann (EmoPreben)",
+    "source": "https://opengameart.org/content/pain-sounds-by-emopreben",
+    "member": "Painsounds v2 - Track 4 - Arrggh .ogg",
+    "license": "CC0-1.0",
+    "sha256": "13a78b9bf7114a8c0e38c1e9322ce558dba3462bd6f2cf455e0f451d886ba4fc"
+  },
+  {
+    "file": "emopreben_pain_4.ogg",
+    "author": "Lasse Bührmann (EmoPreben)",
+    "source": "https://opengameart.org/content/pain-sounds-by-emopreben",
+    "member": "Painsounds v2 - Track 5 - Urggh.ogg",
+    "license": "CC0-1.0",
+    "sha256": "93d3b166247c66c8f583c71669400038a53e635a188e385a1942cab106cb2103"
+  },
+  {
+    "file": "emopreben_pain_5.ogg",
+    "author": "Lasse Bührmann (EmoPreben)",
+    "source": "https://opengameart.org/content/pain-sounds-by-emopreben",
+    "member": "Painsounds v2 - Track 6 - hyyrdhh.ogg",
+    "license": "CC0-1.0",
+    "sha256": "d0a8bf406559e10f50e3b5e4817718ffeaefff490b324102c81fb5021209c2c7"
+  },
+  {
+    "file": "sardin_concrete.wav",
+    "author": "Joseph SARDIN",
+    "source": "https://bigsoundbank.com/footsteps-shoe-on-concrete-s0514.html",
+    "download_url": "https://bigsoundbank.com/UPLOAD/bwf-en/0514.wav",
+    "license": "CC0-1.0",
+    "sha256": "e424c7d07c7197f0d9aa5e3570de72d2572c1930984a92254013fa5e8fa76397"
+  },
+  {
+    "file": "monster_line_0.wav",
+    "author": "Project-authored text and DSP; local Microsoft Irina Desktop SAPI synthesis",
+    "source": "Local Windows SAPI, no remote service or runtime dependency",
+    "text": "Вы где?",
+    "license": "Generated speech output; project text and processing",
+    "sha256": "b0e660c658f1057263883310a18b821bc8fc470face09dc5dd3db4e43c8f19e4"
+  },
+  {
+    "file": "monster_line_1.wav",
+    "author": "Project-authored text and DSP; local Microsoft Irina Desktop SAPI synthesis",
+    "source": "Local Windows SAPI, no remote service or runtime dependency",
+    "text": "Я вас найду и убью.",
+    "license": "Generated speech output; project text and processing",
+    "sha256": "322277a68ea93b0881cbf003dbb3fecddfcd4bb7506554f8961c26e62bee9f26"
+  },
+  {
+    "file": "monster_line_2.wav",
+    "author": "Project-authored text and DSP; local Microsoft Irina Desktop SAPI synthesis",
+    "source": "Local Windows SAPI, no remote service or runtime dependency",
+    "text": "Выходите. Я же всего лишь хочу поиграть с вами.",
+    "license": "Generated speech output; project text and processing",
+    "sha256": "cd202a48ba3f5607f6c648b344877f346881b1facf7c97c59c98a36f5761cc23"
   }
 ]

@@ -81,7 +81,7 @@
   },
   {
     "model": "entity",
-    "triangles": 23820
+    "triangles": 3584
   },
   {
     "model": "radio_rack",
@@ -117,7 +117,7 @@
   },
   {
     "model": "shotgun",
-    "triangles": 2552
+    "triangles": 2924
   },
   {
     "model": "shell",

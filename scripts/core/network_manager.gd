@@ -8,7 +8,10 @@ signal left_room
 
 const DEFAULT_PORT := 27840
 const MAX_PLAYERS := 4
-const PROTOCOL := 6
+const PROTOCOL := 7
+const RULES := preload("res://scripts/core/round_rules.gd")
+var difficulty: int = 1
+var last_puzzles: Dictionary = {}
 const ROLES := ["technician", "medic", "hunter"]
 const ROLE_LABELS := ["Техник", "Медик", "Охотник"]
 var members: Dictionary = {}
@@ -128,7 +131,7 @@ func register_player(nickname: String, protocol: int) -> void:
 	if role in taken:
 		role = 0
 	members[sender] = {"name": clean_name(nickname), "role": role}
-	_sync_lobby.rpc(members)
+	_sync_lobby.rpc(members, difficulty)
 
 func choose_role(role: int) -> void:
 	if multiplayer.is_server():
@@ -148,11 +151,17 @@ func _set_role(id: int, role: int) -> void:
 	if role < 0 or role >= count:
 		return
 	members[id].role = role
-	_sync_lobby.rpc(members)
+	_sync_lobby.rpc(members, difficulty)
+
+func choose_difficulty(level: int) -> void:
+	if not multiplayer.is_server() or in_match or loading or unloading or level < 0 or level > 3: return
+	difficulty = level
+	_sync_lobby.rpc(members, difficulty)
 
 @rpc("authority", "call_local", "reliable")
-func _sync_lobby(roster: Dictionary) -> void:
+func _sync_lobby(roster: Dictionary, level: int) -> void:
 	members = roster.duplicate(true)
+	difficulty = clampi(level, 0, 3)
 	lobby_changed.emit()
 
 func role_id(peer_id: int) -> String:
@@ -266,7 +275,7 @@ func _peer_disconnected(id: int) -> void:
 	if in_match and is_instance_valid(GameManager.world):
 		GameManager.world.remove_player(id)
 	members.erase(id)
-	_sync_lobby.rpc(members)
+	_sync_lobby.rpc(members, difficulty)
 	if loading:
 		abort_round("Загрузка отменена: игрок отключился.")
 	if unloading:

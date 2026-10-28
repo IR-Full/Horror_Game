@@ -105,7 +105,7 @@ func _equipment() -> void:
 		var moon := SpotLight3D.new()
 		moon.position = Vector3(x, 2.3, -12.4)
 		moon.light_color = Color("799bab")
-		moon.light_energy = .7
+		moon.light_energy = .12 * float(station.rules.lighting)
 		moon.spot_range = 7.0
 		moon.spot_angle = 24.0
 		add_child(moon)
@@ -128,7 +128,7 @@ func _screen(parent: Node3D, pos: Vector3, size: Vector2) -> void:
 
 func _quality() -> void:
 	for light: SpotLight3D in moon_lights:
-		light.shadow_enabled = SettingsManager.quality == 2
+		light.shadow_enabled = false
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(station) or not NetworkManager.in_match:

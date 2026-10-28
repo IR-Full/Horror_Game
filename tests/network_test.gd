@@ -48,19 +48,23 @@ func _client() -> void:
 	var world: Node3D = GameManager.world
 	var player: Node3D = GameManager.local_player()
 	if not await until(func(): return world.players.get_child_count() == expected): return
+	check(NetworkManager.difficulty == 2 and int(world.rules.ammo) == 2,"host difficulty and hard ammunition rules replicate")
 	check(player.role == NetworkManager.role_id(player.peer_id), "selected role exactly matches replicated character")
 	if player.role == "hunter":
-		check(player.loaded_shells == 1, "hunter starts with one replicated loaded shell")
+		check(player.loaded_shells == 2, "hunter starts with two replicated loaded shells")
 	var start: Vector3 = player.position
 	Input.action_press("forward")
+	Input.action_press("sprint")
 	await delay(0.85)
 	Input.action_release("forward")
+	Input.action_release("sprint")
 	await delay(0.25)
+	check(player.stamina < 99,"sprint stamina is owned by host and replicated to client")
 	if not check(player.position.distance_to(start) > 0.8, "client input moves authoritative body and replicates back"): return
 	if player.role == "hunter":
 		NetworkManager.request_player_action.rpc_id(1, NetworkManager.round_id, "shoot", 0)
 		await delay(.25)
-		check(player.loaded_shells == 0, "client shot consumes server-owned ammunition")
+		check(player.loaded_shells == 1, "client shot consumes one of two server-owned shells")
 	# A stale-round command must be rejected before reaching any character.
 	NetworkManager.request_player_action.rpc_id(1, NetworkManager.round_id - 1, "flashlight", 0)
 	NetworkManager.request_role.rpc_id(1, 99)
@@ -104,6 +108,7 @@ func _host() -> void:
 	var previous: int = NetworkManager.members[1].role
 	NetworkManager.choose_role(99)
 	check(int(NetworkManager.members[1].role) == previous, "invalid lobby role rejected")
+	NetworkManager.choose_difficulty(2)
 	NetworkManager.start_round()
 	if not await until(func(): return NetworkManager.in_match and GameManager.local_player() != null): return
 	var world: Node3D = GameManager.world
@@ -133,7 +138,7 @@ func _host() -> void:
 	await delay(.1)
 	world.unlock_safe("fuse_safe", "000")
 	check(world.objects.fuse.concealed, "wrong safe code keeps fuse inaccessible")
-	world.unlock_safe("fuse_safe", "417")
+	world.unlock_safe("fuse_safe", world.objects.fuse_safe.code)
 	await delay(.1)
 	if not await pickup(player, world.objects.fuse, Vector3(-7, .05, 9.7)): return
 	before = player.inventory.size()
@@ -173,9 +178,9 @@ func _host() -> void:
 		var relay: Node3D = world.objects["relay_%d" % index]
 		place(player, relay.position + Vector3(0, -1.25, 1.8), relay.position)
 		await delay(.1)
-		for turn: int in range(world.objectives.RELAY_SOLUTION[index]):
+		for turn: int in range(world.objectives.relay_solution[index]):
 			world.interact_object(player, relay)
-	check(world.objectives.relay_values == world.objectives.RELAY_SOLUTION, "relay puzzle accepts the documented circuit")
+	check(world.objectives.relay_values == world.objectives.relay_solution, "relay puzzle accepts the documented circuit")
 	# Perception unit checks run against real station collisions.
 	world.monster.position = Vector3(0, 0.05, -7)
 	world.monster.state = world.monster.State.PATROL
@@ -260,14 +265,23 @@ func _host() -> void:
 	GameManager.world.objectives.tick(0.1)
 	check(GameManager.world.objectives.result.begins_with("Все"), "entire deceased team loses round")
 	print("TEST_PASS host: %s-player LAN lifecycle" % expected)
+	for id: int in NetworkManager.members:
+		if id != 1: client_reports.erase(id)
 	shutdown.rpc()
+	if not await until(func():
+		for id: int in NetworkManager.members:
+			if id != 1 and str(client_reports.get(id,"")) != "shutdown": return false
+		return true
+	): return
+	print("TEST_PASS host")
+	get_tree().quit(0)
 
 func _solve_sectors(world: Node3D, player: Node3D) -> bool:
 	for i: int in range(3):
 		var valve: Node3D=world.objects["valve_%d"%i]
 		place(player,valve.position+Vector3(0,-1.1,1.7),valve.position)
 		await delay(.07)
-		for turn: int in range(world.sectors.VALVES[i]): world.interact_object(player,valve)
+		for turn: int in range(world.sectors.valve_solution[i]): world.interact_object(player,valve)
 	if not check(world.sectors.pressure_ready,"boiler valve puzzle completes on host"): return false
 	place(player,Vector3(36,.05,-40.3),world.objects.circuit.position)
 	await delay(.1)
@@ -290,7 +304,7 @@ func _solve_sectors(world: Node3D, player: Node3D) -> bool:
 		var tuner: Node3D=world.objects["tuner_%d"%i]
 		place(player,tuner.position+Vector3(0,-1.2,1.7),tuner.position)
 		await delay(.07)
-		for turn: int in range(world.sectors.FREQUENCY[i]):world.interact_object(player,tuner)
+		for turn: int in range(world.sectors.frequency_solution[i]):world.interact_object(player,tuner)
 	return check(world.sectors.ready_to_transmit(),"pressure, filtration and radio tuning unlock final transmission")
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -309,7 +323,9 @@ func leave_test() -> void:
 	NetworkManager.leave()
 	get_tree().quit(0)
 
-@rpc("authority", "call_local", "reliable")
+@rpc("authority", "call_remote", "reliable")
 func shutdown() -> void:
 	print("TEST_PASS " + mode)
+	report.rpc_id(1,"shutdown")
+	await delay(.3)
 	get_tree().quit(0)

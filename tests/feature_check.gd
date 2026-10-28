@@ -32,8 +32,14 @@ func _run() -> void:
 	var player: Node3D = GameManager.local_player()
 	var creature: Node3D = world.monster
 	creature.set_physics_process(false)
+	var helper: Node3D = world.PLAYER_SCENE.instantiate()
+	helper.name = "9001"
+	helper.peer_id = 9001
+	helper.position = Vector3(-13,.05,-8)
+	helper.net_position = helper.position
+	world.players.add_child(helper)
 	player.input_enabled = false
-	check(player.role == "hunter" and player.loaded_shells == 1, "practice preserves chosen hunter and exactly one loaded shell")
+	check(player.role == "hunter" and player.loaded_shells == 2, "practice preserves chosen hunter and two loaded shells")
 	var shell_locations: Dictionary = {}
 	for i: int in range(4):
 		var at: Vector3 = world.objects["shell_%d" % i].position
@@ -53,6 +59,8 @@ func _run() -> void:
 	world.interact_object(player, hatch)
 	Input.action_release("crouch")
 	player.input_enabled = false
+	check(player.vent_time > 3,"ventilation starts a timed crawl instead of an instant teleport")
+	await delay(3.8)
 	check(player.position.distance_to(hatch.destination) < .1, "crouched interaction traverses the ventilation shortcut")
 	# The old archive door: the upper head ray must hit the closed leaf.
 	var door: Node3D = world.objects.door_9_0
@@ -64,12 +72,12 @@ func _run() -> void:
 	place(player, Vector3(0, .05, 0), Vector3(6, 1.4, 0))
 	await delay(.1)
 	player.apply_action("shoot", 0)
-	check(creature.state != creature.State.STUNNED and player.loaded_shells == 0, "shotgun cannot hit through a closed door")
+	check(creature.state != creature.State.STUNNED and player.loaded_shells == 1, "shotgun cannot hit through a closed door")
 	await delay(1.3)
 	player.reserve_shells = 1
 	player.apply_action("reload", 0)
-	await delay(1.9)
-	check(player.loaded_shells == 1 and player.reserve_shells == 0, "reload consumes one reserve shell on host")
+	await delay(2.15)
+	check(player.loaded_shells == 2 and player.reserve_shells == 0, "partial reload fills the second chamber using one reserve shell")
 	creature.position = Vector3(0, .05, 1)
 	place(player, Vector3(0, .05, 6), Vector3(0, 1.4, 1))
 	await delay(.1)

@@ -18,10 +18,6 @@ func build() -> void:
 		_pool(data[0], data[1], rng)
 	for data: Array in [[Vector3(9, .027, -20.4), Vector2(.9, .4)], [Vector3(-8.2, .027, -35.4), Vector2(.65, .4)], [Vector3(-10.9, .027, -43.4), Vector2(1.1, .55)], [Vector3(8.2, .027, -46.4), Vector2(1, .45)]]:
 		_pool(data[0], data[1], rng)
-	# Sparse drops lead out of sight, instead of filling every floor tile.
-	for i: int in range(25):
-		var pos := Vector3(1.3 + sin(i * .42) * .3, .027, 1.8 - i * .23)
-		_pool(pos, Vector2(rng.randf_range(.012, .045), rng.randf_range(.02, .07)), rng, false)
 	for side: float in [-1, 1]:
 		var x: float = side * 2.865
 		var z: float = 4.7 if side < 0 else -4.2
@@ -52,6 +48,7 @@ static func make_pool(at: Vector3, radius: Vector2, seed_value: float = 1.0) -> 
 	plane.size = radius * 2.25
 	object.mesh = plane
 	object.position = at
+	object.set_meta("blood_radius", radius)
 	object.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://assets/shaders/blood_pool.gdshader")

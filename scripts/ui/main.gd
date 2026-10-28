@@ -18,7 +18,7 @@ var screen_kind: String = ""
 var test_mode: bool = false
 var rebind_action: String = ""
 var rebind_button: Button
-var controls_label: Label
+var circuit_buttons: Array[Button] = []
 
 func _ready() -> void:
 	GameManager.interface = self
@@ -55,6 +55,10 @@ func _ready() -> void:
 	if "--feature-check" in args:
 		var checker := Node.new()
 		checker.set_script(load("res://tests/feature_check.gd"))
+		add_child(checker)
+	if "--sector-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/sector_check.gd"))
 		add_child(checker)
 
 func _theme() -> Theme:
@@ -161,7 +165,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.4  /  Без микрофона", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.6  /  Без микрофона", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -270,13 +274,6 @@ func _build_hud() -> void:
 	hint.offset_bottom = -120
 	hint.custom_minimum_size.x = 560
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var controls := label_in(hud, "E — взаимодействие • Q — ячейка\nЛКМ — выстрел • T — перезарядка\nH — SOS • Esc — меню", 14, "8ea69c")
-	controls_label = controls
-	controls.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	controls.offset_left = 28
-	controls.offset_right = 395
-	controls.offset_top = -70
-	controls.offset_bottom = -10
 	_make_message_label()
 
 func _make_message_label() -> void:
@@ -298,6 +295,10 @@ func show_notice(message: String) -> void:
 		notice_time = 5.0
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("map") and NetworkManager.in_match and not displayed_result:
+		if paused: _resume()
+		else: open_map()
+		get_viewport().set_input_as_handled()
 	if event.is_action_pressed("pause") and NetworkManager.in_match and not displayed_result:
 		if paused:
 			_resume()
@@ -315,6 +316,7 @@ func _show_pause() -> void:
 	label_in(column, "Раунд и сущность продолжают действовать.", 17)
 	button_in(column, "Продолжить", _resume)
 	button_in(column, "Настройки", func(): _show_settings(true))
+	button_in(column, "Карта станции", open_map)
 	if multiplayer.is_server():
 		button_in(column, "Завершить раунд → в лобби", func(): NetworkManager.return_to_lobby())
 	button_in(column, "Покинуть комнату", func(): NetworkManager.leave())
@@ -377,6 +379,34 @@ func show_document(title: String, content: String) -> void:
 	label_in(column, content, 18)
 	button_in(column, "Закрыть", _resume)
 
+func open_circuit() -> void:
+	paused = true
+	GameManager.local_player().input_enabled = false
+	var column := _new_screen("circuit", false)
+	label_in(column, "ФИЛЬТРЫ C • ЛОГИЧЕСКИЙ ПУЛЬТ", 24, "e6c18a")
+	label_in(column, "Погасите все лампы. Каждая меняет себя\nи соседей сверху, снизу, слева и справа.", 17)
+	var grid := GridContainer.new()
+	grid.columns = 3
+	column.add_child(grid)
+	circuit_buttons.clear()
+	for i: int in range(9):
+		var button: Button = button_in(grid, str(i+1), func(): GameManager.world.circuit_command.rpc_id(1, NetworkManager.round_id, i))
+		button.custom_minimum_size = Vector2(160,60)
+		circuit_buttons.append(button)
+	button_in(column, "Отойти", _resume)
+
+func open_map() -> void:
+	paused = true
+	GameManager.local_player().input_enabled = false
+	var column := _new_screen("map", false)
+	label_in(column, "ПЛАН СТАНЦИИ РС–17", 24, "e6c18a")
+	var map := Control.new()
+	map.set_script(preload("res://scripts/ui/sector_map.gd"))
+	map.custom_minimum_size = Vector2(620,480)
+	column.add_child(map)
+	label_in(column, "B: давление → C: фильтрация → D: настройка и передача", 15)
+	button_in(column, "Вернуться", _resume)
+
 func _process(delta: float) -> void:
 	if notice_time > 0.0:
 		notice_time -= delta
@@ -386,6 +416,11 @@ func _process(delta: float) -> void:
 		return
 	var world: Node3D = GameManager.world
 	var goal: Node = world.objectives
+	if screen_kind == "circuit":
+		for i: int in range(circuit_buttons.size()):
+			circuit_buttons[i].text = "● ВКЛ" if world.sectors.circuit[i] else "○ ВЫКЛ"
+			circuit_buttons[i].modulate = Color("e6bf73") if world.sectors.circuit[i] else Color("6b8f86")
+			circuit_buttons[i].disabled = world.sectors.circuit_ready
 	if not goal.result.is_empty() and not displayed_result:
 		displayed_result = true
 		_show_result(goal.result)
@@ -394,8 +429,8 @@ func _process(delta: float) -> void:
 		return
 	var seconds: int = int(goal.seconds_left)
 	stats.text = "%s / %s\nЗдоровье %d   •   Фонарь %d%%\n%02d:%02d  •  %d FPS" % [player.nickname, player.ROLE_NAMES.get(player.role, player.role), int(player.health), int(player.battery), seconds / 60, seconds % 60, Engine.get_frames_per_second()]
+	stats.text += "\n"+world.LAYOUT.sector_at(player.position)+" • "+SettingsManager.key_label("map")+": карта"
 	task.text = goal.task_text().replace(" E", " " + SettingsManager.key_label("interact"))
-	controls_label.text = "%s — взаимодействие • %s — ячейка\n%s — выстрел • %s — перезарядка\n%s — SOS • Esc — меню" % [SettingsManager.key_label("interact"), SettingsManager.key_label("slot"), SettingsManager.key_label("shoot"), SettingsManager.key_label("reload"), SettingsManager.key_label("sos")]
 	task.add_theme_color_override("font_color", Color("e47b65") if not goal.emergency.is_empty() else Color("e5c38e"))
 	if player.role == "hunter":
 		stats.text += "\nДробовик: %d / %d  %s" % [player.loaded_shells, player.reserve_shells, "ПЕРЕЗАРЯДКА" if player.reload_left > 0 else ""]

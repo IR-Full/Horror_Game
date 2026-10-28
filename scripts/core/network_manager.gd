@@ -8,7 +8,7 @@ signal left_room
 
 const DEFAULT_PORT := 27840
 const MAX_PLAYERS := 4
-const PROTOCOL := 4
+const PROTOCOL := 6
 const ROLES := ["technician", "medic", "hunter"]
 const ROLE_LABELS := ["Техник", "Медик", "Охотник"]
 var members: Dictionary = {}

@@ -4,8 +4,10 @@ static func build(s: Node3D) -> void:
 	s.block(Vector3(0, -.2, -32), Vector3(30, .4, 38), "313c3e")
 	s.block(Vector3(0, 3.4, -32), Vector3(30, .2, 38), "202c30")
 	for x: float in [-15, 15]:
-		s.block(Vector3(x, 1.6, -32), Vector3(.3, 3.2, 38), "465354")
-	s.block(Vector3(0, 1.6, -51), Vector3(30, 3.2, .3), "465354")
+		for z: float in [-42.5, -21.5]:
+			s.block(Vector3(x, 1.6, z), Vector3(.3, 3.2, 17), "465354")
+	for x: float in [-9, 9]:
+		s.block(Vector3(x, 1.6, -51), Vector3(12, 3.2, .3), "465354")
 	for z: float in [-26, -38]:
 		for x: float in [-9, 9]:
 			s.block(Vector3(x, 1.6, z), Vector3(12, 3.2, .22), "475653")

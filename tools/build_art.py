@@ -1,7 +1,8 @@
 """Original low-poly station assets. Run with Blender --background --python this_file.
 
 All dimensions and positions below use Godot coordinates (metres, Y up, -Z front).
-No external assets, add-ons or downloads. A .blend library is saved outside res://.
+The optional Bento creature is adapted locally; see assets/CREDITS.md.
+A .blend library is saved in the ignored-by-Godot art-source directory.
 """
 import bpy
 import sys
@@ -338,6 +339,11 @@ def avatar():
 
 
 def entity():
+    source = SOURCE / 'third_party' / 'bento_smily' / 'source.glb'
+    if source.exists() and '--procedural-creature' not in sys.argv:
+        from adapt_monster import build_external
+        build_external(globals())
+        return
     from creature_art import build_creature
     build_creature(globals())
 
@@ -442,7 +448,12 @@ builders = {name: globals()[name] for name in ['generator', 'transmitter', 'powe
     'fan_housing', 'fan_blades']}
 from equipment_art import register
 builders.update(register(globals()))
+from sector_art import register as sector_models
+builders.update(sector_models(globals()))
 catalog = []
+staging = ROOT / 'test-results' / 'art-build'
+staging.mkdir(parents=True, exist_ok=True)
+(staging / '.gdignore').touch()
 for index, (name, builder) in enumerate(builders.items()):
     before = set(bpy.data.objects)
     builder()
@@ -463,9 +474,12 @@ for index, (name, builder) in enumerate(builders.items()):
         obj.parent = rig
         rig.select_set(True)
     triangles = sum(len(face.vertices) - 2 for face in obj.data.polygons)
-    bpy.ops.export_scene.gltf(filepath=str(MODELS / f'{name}.glb'), export_format='GLB',
+    temporary = staging / f'{name}.glb'
+    bpy.ops.export_scene.gltf(filepath=str(temporary), export_format='GLB',
                               use_selection=True, export_yup=True, export_animations=bool(rig),
                               export_cameras=False, export_lights=False)
+    # Never expose partially written GLBs to an editor importing in the background.
+    temporary.replace(MODELS / f'{name}.glb')
     catalog.append({'model': name, 'triangles': triangles})
     if rig:
         rig.location = coord(((index % 5) * 4, 0, (index // 5) * 4))

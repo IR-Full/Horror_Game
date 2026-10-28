@@ -25,11 +25,14 @@ func build(world: Node3D) -> void:
 	blood.set_script(preload("res://scripts/art/blood_traces.gd"))
 	add_child(blood)
 	blood.build()
+	var footprints := Node3D.new()
+	footprints.set_script(preload("res://scripts/art/footprints.gd"))
+	add_child(footprints)
 	_build_overlay()
 	_build_dust()
-	if AudioManager.sounds.has("motor"):
+	if AudioManager.sounds.has("motor") and DisplayServer.get_name() != "headless":
 		generator_sound = AudioStreamPlayer3D.new()
-		generator_sound.stream = AudioManager.sounds.motor
+		generator_sound.stream = AudioManager.stream_for("motor")
 		generator_sound.position = Vector3(-10, .8, 0)
 		generator_sound.volume_db = -20
 		generator_sound.bus = "Ambience"
@@ -126,10 +129,10 @@ func _build_details() -> void:
 		emergency_lights.append(red)
 		station.block(pos, Vector3(.16, .15, .22), "b85333", false, 1.2)
 	# Main dispatch board at the end of the corridor.
-	station.block(Vector3(0, 1.9, -50.77), Vector3(3.4, 1.5, .06), "172723", false)
-	station.sign_text("РАДИОСТАНЦИЯ РС–17", Vector3(0, 2.23, -50.71), 0, 27)
-	station.sign_text("СМЕНА НЕ ЗАКОНЧЕНА", Vector3(0, 1.83, -50.7), 0, 20)
-	station.sign_text("НЕ СЛУШАЙТЕ ЧАСТОТУ 17.4", Vector3(0, 1.47, -50.7), 0, 15)
+	station.block(Vector3(0, 1.9, -104.77), Vector3(3.4, 1.5, .06), "172723", false)
+	station.sign_text("РАДИОСТАНЦИЯ РС–17", Vector3(0, 2.23, -104.71), 0, 27)
+	station.sign_text("СМЕНА НЕ ЗАКОНЧЕНА", Vector3(0, 1.83, -104.7), 0, 20)
+	station.sign_text("НЕ СЛУШАЙТЕ ЧАСТОТУ 17.4", Vector3(0, 1.47, -104.7), 0, 15)
 	apparition = ART.model("entity")
 	apparition.hide()
 	add_child(apparition)
@@ -244,8 +247,9 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(station) or not NetworkManager.in_match:
 		return
 	time += delta
-	if is_instance_valid(generator_sound) and station.objectives.generator_on and not generator_sound.playing:
-		generator_sound.play()
+	if is_instance_valid(generator_sound):
+		if station.objectives.generator_on and not generator_sound.playing: generator_sound.play()
+		elif not station.objectives.generator_on and generator_sound.playing: generator_sound.stop()
 	apparition_time -= delta
 	if apparition_time <= 0.0:
 		apparition.hide()
@@ -271,3 +275,8 @@ func _process(delta: float) -> void:
 	if stress > .25 and heartbeat_clock <= 0.0 and player.health > 0:
 		heartbeat_clock = lerpf(1.5, .65, stress)
 		AudioManager.play_local("heartbeat")
+
+func _exit_tree() -> void:
+	if is_instance_valid(generator_sound):
+		generator_sound.stop()
+		generator_sound.stream = null

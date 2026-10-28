@@ -17,6 +17,7 @@ var rotors: Array[Node3D] = []
 var warning_light: OmniLight3D
 var cover_collider: CollisionShape3D
 var cover_width: float = .8
+var gate_rule: String = ""
 const ART := preload("res://scripts/art/art_factory.gd")
 var mesh: Node3D
 var collider: CollisionShape3D
@@ -44,6 +45,10 @@ func _ready() -> void:
 		"relay": box.size = Vector3(.6, .9, .35)
 		"hatch": box.size = Vector3(1, .8, .12)
 		"note": box.size = Vector3(.3, .024, .36)
+		"valve": box.size = Vector3(.6, .6, .35)
+		"purifier": box.size = Vector3(1.5, 1.8, .8)
+		"circuit", "tuner": box.size = Vector3(.6, .9, .35)
+		"air_filter": box.size = Vector3(.18, .34, .18)
 	if kind == "door":
 		mesh = Node3D.new()
 		mesh.position.z = 1.09
@@ -51,9 +56,9 @@ func _ready() -> void:
 		leaf.position.z = -1.09
 		mesh.add_child(leaf)
 	else:
-		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell"}.get(kind, kind)
+		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit"}.get(kind, kind)
 		mesh = _paper() if kind == "note" else ART.model(model_name)
-		if kind in ["generator", "transmitter", "power"]:
+		if kind in ["generator", "transmitter", "power", "circuit", "tuner"]:
 			mesh.rotation.y = PI
 	add_child(mesh)
 	if kind == "ventilation":
@@ -132,7 +137,7 @@ func refresh() -> void:
 		cover_collider.rotation.y = -PI*.62 if opened else 0.0
 		cover_collider.position = cover.position + Basis(Vector3.UP, cover_collider.rotation.y) * Vector3(cover_width*.5, 0, 0)
 	if is_instance_valid(mesh) and kind == "door":
-		mesh.rotation.y = -signf(position.x) * PI / 2 if opened else 0.0
+		mesh.rotation.y = (-1.0 if position.x >= 0 else 1.0) * PI / 2 if opened else 0.0
 		collider.rotation.y = mesh.rotation.y
 		collider.position = mesh.position + Basis(Vector3.UP, mesh.rotation.y) * Vector3(0, 0, -1.09)
 	if is_instance_valid(label) and kind == "door":
@@ -148,6 +153,12 @@ func _process(delta: float) -> void:
 		var index: int = int(object_id.trim_prefix("relay_"))
 		title = "Реле %s: %d • переключить" % [["A", "B", "C"][index], goals.relay_values[index]]
 		label.text = title
+	if kind in ["valve", "tuner"]:
+		var index: int = int(object_id.get_slice("_", 1))
+		var values: Array = GameManager.world.sectors.valves if kind == "valve" else GameManager.world.sectors.frequency
+		title = ("Вентиль %s: %d" if kind == "valve" else "Частота %s: %d") % [["A","B","C"][index], values[index]]
+		label.text = title
+		if kind == "valve": mesh.rotation.z = -float(values[index])*TAU/4
 	if warning_light:
 		warning_light.visible = goals.emergency == kind
 		warning_light.light_energy = .45 + .35 * sin(Time.get_ticks_msec() * .008)

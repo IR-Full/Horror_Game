@@ -1,17 +1,27 @@
 extends Node
-## Original synthesized sound design; no microphone or downloaded recordings.
+## Attributed CC0 recordings, voice variations and procedural radio/music fallback.
 var sounds: Dictionary = {}
 var ambience: AudioStreamPlayer
 var music: AudioStreamPlayer
+var alert: AudioStreamPlayer
+var last_take: Dictionary = {}
 
 func _ready() -> void:
+	var bank: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/bank.json"))
+	for kind: String in bank.sounds:
+		var takes: Array[AudioStream] = []
+		for path: String in bank.sounds[kind]:
+			var stream: AudioStream = load(path)
+			if kind in bank.loops and stream is AudioStreamOggVorbis: stream.loop = true
+			takes.append(stream)
+		sounds[kind] = takes
 	# Headless LAN tests have no audio device and do not need playback resources.
 	if DisplayServer.get_name() == "headless":
 		return
 	for kind: String in ["step", "radio", "pickup", "door", "hurt", "power", "knock", "whisper", "heartbeat", "entity_step", "motor", "breath", "scrape", "roar", "growl", "crawl_impact", "smash", "shotgun", "reload", "pain", "sos", "alarm"]:
-		sounds[kind] = _make_sound(kind)
+		if not sounds.has(kind): sounds[kind] = [_make_sound(kind)]
 	ambience = AudioStreamPlayer.new()
-	ambience.stream = _make_sound("hum")
+	ambience.stream = stream_for("hum") if sounds.has("hum") else _make_sound("hum")
 	ambience.volume_db = -25.0
 	ambience.bus = "Ambience"
 	add_child(ambience)
@@ -20,6 +30,39 @@ func _ready() -> void:
 	music.volume_db = -26
 	music.bus = "Music"
 	add_child(music)
+	alert = AudioStreamPlayer.new()
+	alert.stream = stream_for("alarm").duplicate()
+	if alert.stream is AudioStreamOggVorbis: alert.stream.loop = true
+	alert.volume_db = -23
+	alert.bus = "Effects"
+	add_child(alert)
+	for bus_name: String in ["Room", "Occluded"]:
+		if AudioServer.get_bus_index(bus_name) < 0:
+			AudioServer.add_bus()
+			AudioServer.set_bus_name(AudioServer.bus_count-1,bus_name)
+			AudioServer.set_bus_send(AudioServer.bus_count-1,"Effects" if bus_name == "Room" else "Room")
+	var reverb := AudioEffectReverb.new()
+	reverb.room_size = .65
+	reverb.damping = .65
+	reverb.wet = .12
+	AudioServer.add_bus_effect(AudioServer.get_bus_index("Room"),reverb)
+	var muffled := AudioEffectLowPassFilter.new()
+	muffled.cutoff_hz = 1800
+	AudioServer.add_bus_effect(AudioServer.get_bus_index("Occluded"),muffled)
+
+func stream_for(kind: String) -> AudioStream:
+	if not sounds.has(kind): return null
+	var takes: Array = sounds[kind]
+	var index: int = randi()%takes.size()
+	if takes.size()>1 and int(last_take.get(kind,-1)) == index: index=(index+1)%takes.size()
+	last_take[kind] = index
+	return takes[index]
+
+func _process(_delta: float) -> void:
+	if not is_instance_valid(alert): return
+	var active: bool = NetworkManager.in_match and is_instance_valid(GameManager.world) and not GameManager.world.objectives.emergency.is_empty() and GameManager.world.objectives.result.is_empty()
+	if active and not alert.playing: alert.play()
+	elif not active and alert.playing: alert.stop()
 
 func _make_sound(kind: String) -> AudioStreamWAV:
 	var rate: int = 16000
@@ -103,10 +146,11 @@ func set_ambience(enabled: bool) -> void:
 		music.stop()
 
 func play_local(kind: String) -> void:
+	if DisplayServer.get_name() == "headless": return
 	if not sounds.has(kind):
 		return
 	var player := AudioStreamPlayer.new()
-	player.stream = sounds[kind]
+	player.stream = stream_for(kind)
 	player.bus = "Effects"
 	player.volume_db = -16.0
 	if kind == "heartbeat":
@@ -115,12 +159,14 @@ func play_local(kind: String) -> void:
 	player.finished.connect(player.queue_free)
 	player.play()
 
-func play_at(kind: String, position: Vector3) -> void:
+func play_at(kind: String, position: Vector3, volume_offset: float = 0.0) -> void:
+	if DisplayServer.get_name() == "headless": return
 	if not sounds.has(kind) or not is_instance_valid(GameManager.world):
 		return
 	var player := AudioStreamPlayer3D.new()
-	player.stream = sounds[kind]
-	player.bus = "Effects"
+	player.stream = stream_for(kind)
+	player.bus = "Room"
+	player.pitch_scale = randf_range(.97,1.03) if kind in ["step","step_metal","step_gravel","growl","pain","hurt"] else 1.0
 	player.volume_db = -10.0
 	if kind in ["whisper", "entity_step", "breath", "scrape"]:
 		player.volume_db = -15.0
@@ -130,7 +176,14 @@ func play_at(kind: String, position: Vector3) -> void:
 		player.volume_db = -7.0
 	if kind in ["smash", "shotgun", "alarm"]:
 		player.volume_db = -2.0
-	player.max_distance = 24.0
+	player.volume_db += volume_offset
+	player.max_distance = 65.0 if kind in ["roar","smash","shotgun"] else 24.0
+	var listener: Node3D = GameManager.local_player()
+	if listener and listener.position.distance_to(position) > 2:
+		var ray := PhysicsRayQueryParameters3D.create(listener.eye_position(),position+Vector3.UP*.25,1|4,[listener.get_rid()])
+		if not GameManager.world.get_world_3d().direct_space_state.intersect_ray(ray).is_empty():
+			player.bus = "Occluded"
+			player.volume_db -= 7
 	GameManager.world.add_child(player)
 	player.global_position = position
 	player.finished.connect(player.queue_free)

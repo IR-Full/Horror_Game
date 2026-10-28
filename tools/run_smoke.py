@@ -1,6 +1,7 @@
 """Real headless ENet processes, separate writable user-data directories."""
 import argparse
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -9,11 +10,13 @@ import time
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--godot', default=r'C:\Users\Huawei\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe')
+    parser.add_argument('--godot', default=os.environ.get('GODOT_BIN') or shutil.which('godot4') or shutil.which('godot'))
     parser.add_argument('--players', type=int, choices=(2, 3, 4), default=2)
     parser.add_argument('--port', type=int, default=27941)
     parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
+    if not args.godot:
+        parser.error('Set GODOT_BIN or pass --godot /path/to/Godot 4.7.2')
     root = Path(__file__).resolve().parents[1]
     output = root / 'test-results' / f'lan-{args.players}'
     output.mkdir(parents=True, exist_ok=True)
@@ -26,10 +29,13 @@ def main():
             env = os.environ.copy()
             env['APPDATA'] = str(runtime)
             env['LOCALAPPDATA'] = str(runtime)
+            env['XDG_DATA_HOME'] = str(runtime)
+            env['XDG_CONFIG_HOME'] = str(runtime)
             path = output / f'{mode}-{index}.log'
             log = path.open('w', encoding='utf-8')
             command = [args.godot, '--headless', '--path', str(root), '--',
-                       f'--test={mode}', f'--players={args.players}', f'--port={args.port}']
+                       f'--test={mode}', f'--players={args.players}', f'--port={args.port}',
+                       f'--test-user-dir={runtime}']
             if args.verbose:
                 command.insert(1, '--verbose')
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=env)
@@ -42,8 +48,9 @@ def main():
             if any(proc.poll() not in (None, 0) for proc, _, _ in jobs):
                 raise RuntimeError('A Godot process failed')
             time.sleep(0.25)
-    except (TimeoutError, RuntimeError) as error:
+    except (TimeoutError, RuntimeError, OSError) as error:
         print(error)
+        return 1
     finally:
         for proc, log, _ in jobs:
             if proc.poll() is None:

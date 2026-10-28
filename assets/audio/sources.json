@@ -1,0 +1,194 @@
+[
+  {
+    "file": "hael_3grunt1.wav",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "member": "yelling sounds/3grunt1.wav",
+    "license": "CC0-1.0",
+    "sha256": "57b3a59c39ffe74a1706bcb85c451443c3b388d1f6423827b2af4af508c8416b"
+  },
+  {
+    "file": "hael_3grunt2.wav",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "member": "yelling sounds/3grunt2.wav",
+    "license": "CC0-1.0",
+    "sha256": "a377c43f2151000713a45c18223c94e1de2e2393ad10569a391c1b9f96898544"
+  },
+  {
+    "file": "hael_3grunt3.wav",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "member": "yelling sounds/3grunt3.wav",
+    "license": "CC0-1.0",
+    "sha256": "6006516ae7979896a4053cfc88f26ef575a67133fa0c51de5d9a893498960cc9"
+  },
+  {
+    "file": "hael_3grunt5.wav",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "member": "yelling sounds/3grunt5.wav",
+    "license": "CC0-1.0",
+    "sha256": "32705e7835d0cdce3eb6e9d3a512ef128ee6c50564bd53bb0723b4474be85181"
+  },
+  {
+    "file": "hael_3yell7.wav",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "member": "yelling sounds/3yell7.wav",
+    "license": "CC0-1.0",
+    "sha256": "5d864df467eb4e4f1937f0f3eeb210514551a38c3fca9a8b2bfaf8ef45dbd79f"
+  },
+  {
+    "file": "hael_3yell8.wav",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "member": "yelling sounds/3yell8.wav",
+    "license": "CC0-1.0",
+    "sha256": "3944906b73779fcd6bc300385ed65456bffae3c31165417a42a56f3534c38469"
+  },
+  {
+    "file": "rubber_roar_02.ogg",
+    "author": "rubberduck",
+    "source": "https://opengameart.org/content/80-cc0-creature-sfx",
+    "member": "roar_02.ogg",
+    "license": "CC0-1.0",
+    "sha256": "ceb532ee0fe775d6f86a821099b75f1790ab8022b963cb837c8c1fa4fffee5c2"
+  },
+  {
+    "file": "rubber_scream_01.ogg",
+    "author": "rubberduck",
+    "source": "https://opengameart.org/content/80-cc0-creature-sfx",
+    "member": "scream_01.ogg",
+    "license": "CC0-1.0",
+    "sha256": "54da7bba4c4272b0b77dc3fe26a91d0a26d9280797fecb8197d716b47745eb85"
+  },
+  {
+    "file": "rubber_scream_02.ogg",
+    "author": "rubberduck",
+    "source": "https://opengameart.org/content/80-cc0-creature-sfx",
+    "member": "scream_02.ogg",
+    "license": "CC0-1.0",
+    "sha256": "73aedfbcc7e5b3004507d5a79e95ae53954026036bf8d6f65aa0a4ca298dd372"
+  },
+  {
+    "file": "rubber_breath.ogg",
+    "author": "rubberduck",
+    "source": "https://opengameart.org/content/80-cc0-creature-sfx",
+    "member": "breath.ogg",
+    "license": "CC0-1.0",
+    "sha256": "d6ecfd092c261059701fe81581957ce6e67c1737978449bbd98ec6d4f30abb7f"
+  },
+  {
+    "file": "tiny_stone01.ogg",
+    "author": "TinyWorlds",
+    "source": "https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud",
+    "member": "stone01.ogg",
+    "license": "CC0-1.0",
+    "sha256": "99b04d784eb6b531777a64fb0e319f104eb7cdd6b625c1fac68f511605930a2c"
+  },
+  {
+    "file": "tiny_gravel.ogg",
+    "author": "TinyWorlds",
+    "source": "https://opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud",
+    "member": "gravel.ogg",
+    "license": "CC0-1.0",
+    "sha256": "34e6057ec1581b5cb8802e4942952b00b1dac235bfcb0ed8cff0ceb15a3ebbbf"
+  },
+  {
+    "file": "bmac_clank1.wav",
+    "author": "Brian MacIntosh (BMacZero)",
+    "source": "https://opengameart.org/content/mechanical-sounds",
+    "member": "clank1.wav",
+    "license": "CC0-1.0",
+    "sha256": "899a46a8423fa0ca349b3c70a07a422d1eaa3a58695ce6facfbae074dd70226f"
+  },
+  {
+    "file": "bmac_lightclunk1.wav",
+    "author": "Brian MacIntosh (BMacZero)",
+    "source": "https://opengameart.org/content/mechanical-sounds",
+    "member": "lightclunk1.wav",
+    "license": "CC0-1.0",
+    "sha256": "d5a2aa8764c02924f6ed6fbaad0c650ab2d57ec57a626cee9e6645f941dbc8fa"
+  },
+  {
+    "file": "bmac_lightclunk2.wav",
+    "author": "Brian MacIntosh (BMacZero)",
+    "source": "https://opengameart.org/content/mechanical-sounds",
+    "member": "lightclunk2.wav",
+    "license": "CC0-1.0",
+    "sha256": "987be837a5941ded9a81572c319b9bf8f57d9f89741a5781fc7104adc87d60f5"
+  },
+  {
+    "file": "bmac_squeakyclick1.wav",
+    "author": "Brian MacIntosh (BMacZero)",
+    "source": "https://opengameart.org/content/mechanical-sounds",
+    "member": "squeakyclick1.wav",
+    "license": "CC0-1.0",
+    "sha256": "27b9430c35123a6b2e662b4268adb2238c59fa02522b060756d47666c6b0ffe0"
+  },
+  {
+    "file": "bmac_mechanical1.wav",
+    "author": "Brian MacIntosh (BMacZero)",
+    "source": "https://opengameart.org/content/mechanical-sounds",
+    "member": "mechanical1.wav",
+    "license": "CC0-1.0",
+    "sha256": "de520ad93fa9f4df357b31a8fdef7778d8df994574c861f9337d5241fee5db33"
+  },
+  {
+    "file": "bmac_mechanical2.wav",
+    "author": "Brian MacIntosh (BMacZero)",
+    "source": "https://opengameart.org/content/mechanical-sounds",
+    "member": "mechanical2.wav",
+    "license": "CC0-1.0",
+    "sha256": "27b4b6c3517c90d635295fca48fccd747950f869d680c871662f26038c3665ef"
+  },
+  {
+    "file": "darsycho_snarls.ogg",
+    "author": "Darsycho",
+    "source": "https://opengameart.org/content/monster-snarls",
+    "member": "monster-snarls_0.ogg",
+    "license": "CC0-1.0",
+    "sha256": "7401193d0cc5eb193379cf326c8868d6823a284ebc32ffaa298c1a94d2e25994"
+  },
+  {
+    "file": "ez_alarm.ogg",
+    "author": "EZduzziteh",
+    "source": "https://opengameart.org/content/alarm-1",
+    "member": "alarm_2.ogg",
+    "license": "CC0-1.0",
+    "sha256": "ace7c78d3e071eadce6db3df560fb4722af41efbc0934b55439dcc28ab27bb20"
+  },
+  {
+    "file": "loop_generator_1.mp3",
+    "author": "YCbCr",
+    "source": "https://opengameart.org/content/generator-loop",
+    "member": "loop_generator_1.mp3",
+    "license": "CC0-1.0",
+    "sha256": "c5989e33550cefb84e7e224c531662d02530e0484caa814a7fa7e7bed39f2062"
+  },
+  {
+    "file": "qubodup-edev.flac",
+    "author": "qubodup",
+    "source": "https://opengameart.org/content/electronic-device-loop",
+    "member": "qubodup-edev.flac",
+    "license": "CC0-1.0",
+    "sha256": "d361ad8b7762bde722c5c941cc754c9bb1a07e6b6f02029a499d23713100f9f0"
+  },
+  {
+    "file": "tabasco_shotgun.wav",
+    "author": "Tabasco",
+    "source": "https://opengameart.org/content/gunshot-sounds",
+    "member": "sounds/shotty.wav",
+    "license": "CC0-1.0",
+    "sha256": "2e4b51fafbc93ea2b9aa0cf2428d6bad6cfa79817f2d0d7aa38c64dc97afa02f"
+  },
+  {
+    "file": "shotguncock.wav",
+    "author": "SpringySpringo",
+    "source": "https://opengameart.org/content/gun-reload-sounds",
+    "member": "shotguncock.wav",
+    "license": "CC0-1.0",
+    "sha256": "33e007321ba83301c861aef573f2c40b70bc62f8f24c0164877e6dd123e24371"
+  }
+]

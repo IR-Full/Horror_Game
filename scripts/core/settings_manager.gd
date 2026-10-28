@@ -3,6 +3,7 @@ extends Node
 signal changed
 
 const SAVE_PATH := "user://settings.cfg"
+var save_path: String = SAVE_PATH
 var quality: int = 0
 var resolution_scale: float = 0.75
 var sensitivity: float = 0.0024
@@ -12,12 +13,17 @@ var music_volume: float = .45
 var effects_volume: float = .85
 var ambience_volume: float = .65
 var bindings: Dictionary = {}
-const DEFAULT_KEYS := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "sprint": KEY_SHIFT, "crouch": KEY_CTRL, "interact": KEY_E, "flashlight": KEY_F, "shout": KEY_V, "drop": KEY_G, "use_item": KEY_R, "slot": KEY_Q, "reload": KEY_T, "sos": KEY_H, "pause": KEY_ESCAPE}
-const ACTION_LABELS := {"forward": "Вперёд", "back": "Назад", "left": "Влево", "right": "Вправо", "sprint": "Бег", "crouch": "Присесть", "interact": "Взаимодействие", "flashlight": "Фонарь", "shout": "Отвлечь шумом", "drop": "Положить предмет", "use_item": "Использовать предмет", "slot": "Следующая ячейка", "reload": "Перезарядить", "shoot": "Выстрел", "sos": "Позвать на помощь"}
+const DEFAULT_KEYS := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "sprint": KEY_SHIFT, "crouch": KEY_CTRL, "interact": KEY_E, "flashlight": KEY_F, "shout": KEY_V, "drop": KEY_G, "use_item": KEY_R, "slot": KEY_Q, "reload": KEY_T, "sos": KEY_H, "pause": KEY_ESCAPE, "map":KEY_M}
+const ACTION_LABELS := {"forward": "Вперёд", "back": "Назад", "left": "Влево", "right": "Вправо", "sprint": "Бег", "crouch": "Присесть", "interact": "Взаимодействие", "flashlight": "Фонарь", "shout": "Отвлечь шумом", "drop": "Положить предмет", "use_item": "Использовать предмет", "slot": "Следующая ячейка", "reload": "Перезарядить", "shoot": "Выстрел", "sos": "Позвать на помощь", "map":"Схема станции"}
 
 func _ready() -> void:
+	# CI/LAN processes get separate local files on every OS, including macOS.
+	if DisplayServer.get_name() == "headless":
+		for argument: String in OS.get_cmdline_user_args():
+			if argument.begins_with("--test-user-dir="):
+				save_path = argument.trim_prefix("--test-user-dir=").path_join("settings.cfg")
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) == OK:
+	if cfg.load(save_path) == OK:
 		quality = clampi(int(cfg.get_value("video", "quality", 0)), 0, 2)
 		resolution_scale = clampf(float(cfg.get_value("video", "scale", 0.75)), 0.5, 1.0)
 		sensitivity = clampf(float(cfg.get_value("input", "sensitivity", 0.0024)), 0.0005, 0.006)
@@ -91,5 +97,5 @@ func save() -> void:
 	cfg.set_value("audio", "effects", effects_volume)
 	cfg.set_value("audio", "ambience", ambience_volume)
 	cfg.set_value("input", "bindings", bindings)
-	cfg.save(SAVE_PATH)
+	cfg.save(save_path)
 	apply()

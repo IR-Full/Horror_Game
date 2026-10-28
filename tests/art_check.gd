@@ -15,7 +15,7 @@ func check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var catalog: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/catalog.json"))
-	check(catalog.size() == 39, "all 39 authored models are catalogued")
+	check(catalog.size() == 42, "all 42 authored models are catalogued")
 	for entry: Dictionary in catalog:
 		var model := ART.model(str(entry.model))
 		var meshes: Array[Node] = model.find_children("*", "MeshInstance3D", true, false)

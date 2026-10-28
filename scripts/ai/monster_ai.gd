@@ -40,7 +40,7 @@ var stuck_position := Vector3.ZERO
 var front_shape: CollisionShape3D
 var fell_crawling: bool = false
 var recovery_left: float = 0.0
-var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vector3(-8, 0, 0), Vector3(0, 0, -22), Vector3(8, 0, -32), Vector3(-8, 0, -44), Vector3(0, 0, -44), Vector3(-7, 0, -8)]
+var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vector3(-8, 0, 0), Vector3(0, 0, -22), Vector3(-45, 0, -32), Vector3(-54, 0, -43), Vector3(45, 0, -32), Vector3(54, 0, -43), Vector3(0, 0, -44), Vector3(0, 0, -84), Vector3(-7, 0, -8)]
 var patrol_index: int = 0
 
 func _ready() -> void:
@@ -219,6 +219,9 @@ func _physics_process(delta: float) -> void:
 	if repath_clock <= 0.0:
 		repath_clock = 0.5
 		path = station.find_path(position, goal, true)
+		if path.is_empty() and state == State.PATROL:
+			patrol_index = (patrol_index+1)%patrol_points.size()
+			goal = patrol_points[patrol_index]
 		path_index = 1 if path.size() > 1 else 0
 	var direction := Vector3.ZERO
 	if path_index < path.size():
@@ -232,7 +235,8 @@ func _physics_process(delta: float) -> void:
 	for object: Node3D in station.objects.values():
 		if object.kind != "door" or object.opened or object.locked:
 			continue
-		if absf(position.x - object.position.x) < 1.9 and absf(position.z - object.position.z) < .65:
+		var door_local: Vector3 = object.to_local(global_position)
+		if absf(door_local.x) < 1.9 and absf(door_local.z) < .65:
 			door_strike += delta
 			direction = Vector3.ZERO
 			if gesture_left <= 0:
@@ -317,8 +321,8 @@ func _perceive() -> void:
 		var to_monster: Vector3 = (position + Vector3.UP * 1.5 - player.eye_position()).normalized()
 		if player.lamp_on and player.battery > 0.0 and distance > 2.2 and distance < 4.2 and player.look_direction().dot(to_monster) > 0.96:
 			var away: Vector3 = position + (position - player.position).normalized() * 4.0
-			away.x = clampf(away.x, -13, 13)
-			away.z = clampf(away.z, -49, 11)
+			away.x = clampf(away.x, -62, 62)
+			away.z = clampf(away.z, -104, 11)
 			change_state(State.RETREAT, away)
 			return
 		if state != State.CHASE:
@@ -341,6 +345,7 @@ func neutralize() -> void:
 
 func _try_relocate() -> void:
 	var candidate: Vector3 = patrol_points.pick_random()
+	if candidate.z < -63 and not station.sectors.is_unlocked("sector_d"): return
 	for player: Node3D in station.players.get_children():
 		if candidate.distance_to(player.position) < 9.0 or station.can_see(candidate + Vector3.UP, player, [get_rid()]):
 			return

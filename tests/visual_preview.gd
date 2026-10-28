@@ -103,8 +103,39 @@ func _run() -> void:
 	await get_tree().create_timer(.3).timeout
 	await shot("player_down.png")
 	player.revive()
+	player.lamp_on = true
 	player.camera.make_current()
 	qa_light.queue_free()
+	player.position = Vector3(1,.05,3)
+	player.net_position = player.position
+	player.local_aim = Vector2(-.12,-.72)
+	await get_tree().create_timer(.5).timeout
+	await shot("bootprints.png")
+	player.position = Vector3(-54,.05,-39)
+	player.net_position = player.position
+	player.local_aim = Vector2(0,.02)
+	await get_tree().create_timer(.6).timeout
+	await shot("sector_b.png")
+	player.position = Vector3(36,.05,-39.8)
+	player.net_position = player.position
+	player.local_aim = Vector2(0,-.08)
+	await get_tree().create_timer(.6).timeout
+	await shot("sector_c.png")
+	GameManager.interface.open_circuit()
+	await get_tree().create_timer(.3).timeout
+	await shot("circuit.png")
+	GameManager.interface._resume()
+	player.input_enabled = false
+	GameManager.interface.open_map()
+	await get_tree().create_timer(.3).timeout
+	await shot("sector_map.png")
+	GameManager.interface._resume()
+	player.input_enabled = false
+	player.position = Vector3(12,.05,-92)
+	player.net_position = player.position
+	player.local_aim = Vector2(0,-.08)
+	await get_tree().create_timer(.6).timeout
+	await shot("sector_d.png")
 	GameManager.interface._show_pause()
 	GameManager.interface._show_settings(true)
 	await get_tree().create_timer(0.3).timeout

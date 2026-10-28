@@ -1,5 +1,5 @@
 extends RefCounted
-## Shared imported meshes and materials. All assets are authored in this project.
+## Shared imported meshes and materials. See assets/CREDITS.md for third-party art.
 static var models: Dictionary = {}
 static var surfaces: Dictionary = {}
 static var worn_materials: Dictionary = {}

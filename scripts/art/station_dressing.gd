@@ -87,7 +87,7 @@ func _prop(kind: String, at: Vector3, yaw: float = 0.0) -> Node3D:
 
 func _equipment() -> void:
 	_prop("rotary_phone", Vector3(9.1, 1.06, -10.3), .25)
-	_prop("wall_clock", Vector3(0, 2.95, -50.78), PI)
+	_prop("wall_clock", Vector3(0, 2.95, -104.78), PI)
 	for x: float in [-11, 11]:
 		_prop("radiator", Vector3(x, .02, -12.54), PI)
 	_prop("fan_housing", Vector3(-12.8, 2.4, -3.79), PI)

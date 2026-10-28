@@ -1,6 +1,6 @@
 extends Node
 ## Inventory mutations and pickups are called on the host only.
-const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "service_key": "Служебный ключ", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка", "shell": "Патрон 12 калибра"}
+const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "service_key": "Служебный ключ", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка", "shell": "Патрон 12 калибра", "air_filter":"Воздушный фильтр"}
 var station: Node3D
 var next_drop: int = 0
 

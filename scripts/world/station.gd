@@ -21,6 +21,9 @@ var revive_progress: Dictionary = {}
 var materials: Dictionary = {}
 var navigation_blocks: Array[AABB] = []
 var atmosphere: Node3D
+var sectors: Node
+var base_navigation: Dictionary = {}
+const LAYOUT := preload("res://scripts/world/sector_layout.gd")
 
 func _ready() -> void:
 	GameManager.world = self
@@ -43,6 +46,11 @@ func _ready() -> void:
 	objectives.name = "ObjectiveSystem"
 	objectives.station = self
 	add_child(objectives)
+	sectors = Node.new()
+	sectors.set_script(preload("res://scripts/world/sector_system.gd"))
+	sectors.name = "SectorSystem"
+	sectors.station = self
+	add_child(sectors)
 	_build_station()
 	atmosphere = Node3D.new()
 	atmosphere.set_script(preload("res://scripts/art/station_atmosphere.gd"))
@@ -78,6 +86,7 @@ func _create_player(data: Dictionary) -> Node:
 func spawn_players() -> void:
 	if not multiplayer.is_server():
 		return
+	sectors.randomize_round()
 	var ammo_positions: Array = get_meta("ammo_positions")
 	ammo_positions.shuffle()
 	var repeated: bool = NetworkManager.last_shell_positions.size() == 4
@@ -262,6 +271,7 @@ func _build_station() -> void:
 	add_object("transmitter", "transmitter", "ПЕРЕДАТЧИК • удерживать E", Vector3(10, 0.8, -8))
 	add_object("power", "power", "ЩИТ ПИТАНИЯ • удерживать E", Vector3(5.5, 1.2, -10.8))
 	preload("res://scripts/world/station_extension.gd").build(self)
+	LAYOUT.build(self)
 
 func door_frame(x: float, z: float) -> void:
 	block(Vector3(x, 3.09, z), Vector3(.32, .42, 2.28), "45524f")
@@ -305,33 +315,50 @@ func apply_quality() -> void:
 		light.distance_fade_length = 5.0
 
 func _build_navigation() -> void:
-	astar.region = Rect2i(-15, -51, 31, 65)
+	astar.region = LAYOUT.EXTENT
 	astar.cell_size = Vector2.ONE
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	astar.update()
-	for x: int in range(-15, 16):
-		for z: int in range(-51, 14):
-			var wall: bool = abs(x) >= 15 or z <= -51 or z >= 13
-			for bounds: AABB in navigation_blocks:
-				if x > bounds.position.x - 0.3 and x < bounds.end.x + 0.3 and z > bounds.position.z - 0.3 and z < bounds.end.z + 0.3:
-					wall = true
+	for x: int in range(astar.region.position.x, astar.region.end.x):
+		for z: int in range(astar.region.position.y, astar.region.end.y):
+			var floor_found: bool = false
+			for floor_region: Rect2 in LAYOUT.FLOORS:
+				if floor_region.has_point(Vector2(x, z)): floor_found = true; break
+			var wall: bool = not floor_found
+			if floor_found:
+				for bounds: AABB in navigation_blocks:
+					if x > bounds.position.x - .4 and x < bounds.end.x + .4 and z > bounds.position.z - .4 and z < bounds.end.z + .4:
+						wall = true
+						break
+			base_navigation[Vector2i(x, z)] = wall
 			astar.set_point_solid(Vector2i(x, z), wall)
 	_update_doors_navigation()
 
 func _update_doors_navigation() -> void:
+	if base_navigation.is_empty(): return
+	# Restore static occupancy around doors before applying all current leaf poses.
 	for object: Node3D in objects.values():
 		if object.kind == "door":
-			astar.set_point_solid(Vector2i(roundi(object.position.x), roundi(object.position.z)), not object.opened)
-			for x: int in [4, 5]:
-				astar.set_point_solid(Vector2i(int(signf(object.position.x)) * x, roundi(object.position.z) + 1), object.opened)
+			for x: int in range(roundi(object.position.x)-3, roundi(object.position.x)+4):
+				for z: int in range(roundi(object.position.z)-3, roundi(object.position.z)+4):
+					var cell := Vector2i(x, z)
+					if base_navigation.has(cell): astar.set_point_solid(cell, base_navigation[cell])
+	for object: Node3D in objects.values():
+		if object.kind != "door": continue
+		var shape: BoxShape3D = object.collider.shape
+		var bounds: AABB = object.collider.global_transform * AABB(-shape.size*.5, shape.size)
+		bounds = bounds.grow(.35)
+		for x: int in range(ceili(bounds.position.x), floori(bounds.end.x)+1):
+			for z: int in range(ceili(bounds.position.z), floori(bounds.end.z)+1):
+				if astar.is_in_boundsv(Vector2i(x,z)): astar.set_point_solid(Vector2i(x,z), true)
 
 func find_path(from: Vector3, to: Vector3, for_monster: bool = false) -> PackedVector3Array:
 	if for_monster:
 		for object: Node3D in objects.values():
 			if object.kind == "door" and not object.locked:
 				astar.set_point_solid(Vector2i(roundi(object.position.x), roundi(object.position.z)), false)
-	var start := _nearest_walkable(Vector2i(clampi(roundi(from.x), -14, 14), clampi(roundi(from.z), -50, 12)))
-	var goal := _nearest_walkable(Vector2i(clampi(roundi(to.x), -14, 14), clampi(roundi(to.z), -50, 12)))
+	var start := _nearest_walkable(Vector2i(clampi(roundi(from.x), -63, 63), clampi(roundi(from.z), -105, 12)))
+	var goal := _nearest_walkable(Vector2i(clampi(roundi(to.x), -63, 63), clampi(roundi(to.z), -105, 12)))
 	var path := PackedVector3Array()
 	if astar.is_point_solid(start) or astar.is_point_solid(goal):
 		_update_doors_navigation()
@@ -390,7 +417,7 @@ func _physics_process(delta: float) -> void:
 					_revive_target(player, target, delta)
 				elif target.get("object_id") != null:
 					revive_progress.erase(id)
-					if target.kind in ["generator", "transmitter", "power", "ventilation"]:
+					if target.kind in ["generator", "transmitter", "power", "ventilation", "purifier"]:
 						objectives.interact(player, target)
 					elif not bool(was_holding.get(id, false)):
 						interact_object(player, target)
@@ -457,7 +484,12 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		return
 	if object.kind == "door":
 		if object.locked:
-			if not "key" in player.inventory:
+			if not object.gate_rule.is_empty():
+				if not sectors.is_unlocked(object.gate_rule):
+					tell(player.peer_id, "Шлюз D закрыт: нужны давление B и очистка воздуха C.")
+					return
+				object.locked = false
+			elif not "key" in player.inventory:
 				tell(player.peer_id, "Архив заперт. Ищите ключ в жилом блоке.")
 				return
 			object.locked = false
@@ -465,7 +497,8 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 			if monster.position.distance_to(object.position - Vector3.UP * 1.44) < 2.1:
 				return
 			for other: Node3D in players.get_children():
-				if absf(other.position.x - object.position.x) < 0.6 and absf(other.position.z - object.position.z) < 1.3:
+				var local_at: Vector3 = object.to_local(other.global_position)
+				if absf(local_at.x) < .6 and absf(local_at.z) < 1.3:
 					return # Don't close a collision shape inside another player.
 		object.opened = not object.opened
 		object.refresh()
@@ -474,6 +507,9 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sound_event.rpc("door", object.position)
 		sync_state()
 	elif object.kind in ["locker_container", "safe", "cage"]:
+		if not object.gate_rule.is_empty() and not sectors.is_unlocked(object.gate_rule):
+			tell(player.peer_id, "Хранилище заблокировано. Восстановите пульт C—01.")
+			return
 		if object.kind == "safe" and not object.opened:
 			container_prompt.rpc_id(player.peer_id, object.object_id)
 			return
@@ -488,6 +524,8 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sync_state()
 	elif object.kind == "note":
 		document_prompt.rpc_id(player.peer_id, object.title, object.description)
+	elif object.kind in ["valve", "tuner", "circuit"]:
+		sectors.handle_object(player, object)
 	elif object.kind == "relay":
 		var index: int = int(object.object_id.trim_prefix("relay_"))
 		objectives.relay_values[index] = (int(objectives.relay_values[index]) + 1) % 4
@@ -540,6 +578,19 @@ func document_prompt(title: String, content: String) -> void:
 	GameManager.interface.show_document(title, content)
 
 @rpc("authority", "call_local", "reliable")
+func circuit_prompt() -> void:
+	GameManager.interface.open_circuit()
+
+@rpc("any_peer", "call_local", "reliable")
+func circuit_command(number: int, index: int) -> void:
+	if not multiplayer.is_server() or not NetworkManager.in_match or number != NetworkManager.round_id or not objectives.result.is_empty(): return
+	var id: int = multiplayer.get_remote_sender_id()
+	if id == 0: id = 1
+	var actor: Node3D = players.get_node_or_null(str(id))
+	if not actor or actor.health <= 0 or target_for(actor) != objects.circuit: return
+	sectors.toggle_circuit(index)
+
+@rpc("authority", "call_local", "reliable")
 func announce(message: String) -> void:
 	GameManager.notice(message)
 	if message.begins_with("АВАРИЯ"):
@@ -565,6 +616,22 @@ func make_noise(pos: Vector3, radius: float) -> void:
 @rpc("authority", "call_local", "unreliable", 2)
 func sound_event(kind: String, pos: Vector3) -> void:
 	AudioManager.play_at(kind, pos)
+
+@rpc("authority", "call_local", "unreliable", 2)
+func player_step(at: Vector3, yaw: float, left: bool, bloody: bool, quiet: bool) -> void:
+	var kind: String = "step"
+	if (absf(at.x)>15 and absf(at.x)<27) or (at.z < -51 and at.z > -63): kind = "step_metal"
+	elif at.x < -27: kind = "step_gravel"
+	AudioManager.play_at(kind, at, -6.0 if quiet else 0.0)
+	atmosphere.get_node("Footprints").stamp(at+Vector3.UP*.034, yaw, left, bloody)
+
+func is_bloody(at: Vector3) -> bool:
+	for pool: Node3D in atmosphere.get_node("BloodTraces").get_children():
+		if pool.has_meta("blood_radius"):
+			var radius: Vector2 = pool.get_meta("blood_radius")
+			var delta: Vector3 = at-pool.global_position
+			if Vector2(delta.x/radius.x,delta.z/radius.y).length() < .8: return true
+	return false
 
 @rpc("authority", "call_local", "reliable")
 func shot_event(id: int) -> void:

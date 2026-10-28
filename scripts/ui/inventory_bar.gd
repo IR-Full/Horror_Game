@@ -40,6 +40,11 @@ func _icon(kind: String, c: Vector2) -> void:
 	var cream := Color("c6bb96")
 	var metal := Color("8bada4")
 	match kind:
+		"air_filter":
+			draw_rect(Rect2(c-Vector2(13,18),Vector2(26,36)),cream)
+			for i: int in range(5): draw_line(c+Vector2(-9+i*4,-14),c+Vector2(-9+i*4,14),metal,2)
+			draw_rect(Rect2(c-Vector2(15,18),Vector2(30,5)),Color("263634"))
+			draw_rect(Rect2(c+Vector2(-15,13),Vector2(30,5)),Color("263634"))
 		"key", "service_key":
 			draw_arc(c + Vector2(-9, -5), 7, 0, TAU, 18, cream, 3, true)
 			draw_line(c + Vector2(-2, -5), c + Vector2(16, 9), cream, 4, true)

@@ -24,10 +24,8 @@ if /I "%~1"=="editor" (
   start "" "%GODOT%" --editor --path "%PROJECT%"
   exit /b 0
 )
-if not exist "%PROJECT%\.godot\imported" (
-  echo First launch: importing models and textures. Please wait...
-  "%GODOT%" --headless --editor --path "%PROJECT%" --import --quit
-  if errorlevel 1 exit /b 1
-)
+echo Preparing game assets. Please wait...
+"%GODOT%" --headless --editor --path "%PROJECT%" --import --quit
+if errorlevel 1 exit /b 1
 start "" "%GODOT%" --path "%PROJECT%"
 exit /b 0

@@ -74,6 +74,9 @@ func _client() -> void:
 	check(world.monster.visible and world.monster.stunned_left > 50, "fallen monster remains visible on every peer")
 	report.rpc_id(1, "emergency")
 	if not await until(func(): return world.objectives.emergency.is_empty(), 12.0): return
+	if not await until(func(): return world.sectors.ready_to_transmit(), 30.0): return
+	check(not world.objects.door_sector_d.locked and world.sectors.circuit_ready, "all sector puzzles and bulkhead access replicate")
+	report.rpc_id(1,"sectors")
 	if not await until(func(): return not world.objectives.result.is_empty(), 25.0): return
 	if not check(world.objectives.result.begins_with("Победа"), "cooperative win replicated"): return
 	report.rpc_id(1, "victory")
@@ -204,7 +207,13 @@ func _host() -> void:
 	if not await until(func(): return world.objectives.emergency.is_empty(), 12.0): return
 	Input.action_release("interact")
 	check(world.objectives.emergency_left == 0, "emergency repair cancels countdown for the team")
-	place(player, Vector3(10, 0.05, -6), world.objects.transmitter.position)
+	if not await _solve_sectors(world,player): return
+	if not await until(func():
+		for id: int in client_reports:
+			if str(client_reports[id]) != "sectors": return false
+		return true
+	): return
+	place(player, world.objects.transmitter.position+Vector3(0,-.75,2), world.objects.transmitter.position)
 	Input.action_press("interact")
 	await delay(1.0)
 	check(world.objectives.cassette_loaded and world.objectives.transmit_progress == 0.0, "operator alone cannot transmit in a team")
@@ -252,6 +261,37 @@ func _host() -> void:
 	check(GameManager.world.objectives.result.begins_with("Все"), "entire deceased team loses round")
 	print("TEST_PASS host: %s-player LAN lifecycle" % expected)
 	shutdown.rpc()
+
+func _solve_sectors(world: Node3D, player: Node3D) -> bool:
+	for i: int in range(3):
+		var valve: Node3D=world.objects["valve_%d"%i]
+		place(player,valve.position+Vector3(0,-1.1,1.7),valve.position)
+		await delay(.07)
+		for turn: int in range(world.sectors.VALVES[i]): world.interact_object(player,valve)
+	if not check(world.sectors.pressure_ready,"boiler valve puzzle completes on host"): return false
+	place(player,Vector3(36,.05,-40.3),world.objects.circuit.position)
+	await delay(.1)
+	var moves: Array[int]=preload("res://tests/sector_check.gd").circuit_solution(world.sectors.circuit)
+	for i: int in moves: world.circuit_command(NetworkManager.round_id,i)
+	if not check(world.sectors.circuit_ready,"random circuit solved through validated command"): return false
+	place(player,Vector3(54,.05,-18.3),world.objects.filter_locker.position)
+	await delay(.1)
+	world.interact_object(player,world.objects.filter_locker)
+	await delay(.1)
+	if not await pickup(player,world.objects.air_filter,Vector3(54,.05,-18.3)): return false
+	place(player,Vector3(39,.05,-40.2),world.objects.purifier.position)
+	Input.action_press("interact")
+	if not await until(func():return world.sectors.purified,9): return false
+	Input.action_release("interact")
+	place(player,Vector3(0,.05,-61.2),world.objects.door_sector_d.position)
+	await delay(.1)
+	world.interact_object(player,world.objects.door_sector_d)
+	for i: int in range(3):
+		var tuner: Node3D=world.objects["tuner_%d"%i]
+		place(player,tuner.position+Vector3(0,-1.2,1.7),tuner.position)
+		await delay(.07)
+		for turn: int in range(world.sectors.FREQUENCY[i]):world.interact_object(player,tuner)
+	return check(world.sectors.ready_to_transmit(),"pressure, filtration and radio tuning unlock final transmission")
 
 @rpc("any_peer", "call_remote", "reliable")
 func report(phase: String) -> void:

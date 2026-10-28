@@ -81,7 +81,7 @@
   },
   {
     "model": "entity",
-    "triangles": 30132
+    "triangles": 23820
   },
   {
     "model": "radio_rack",
@@ -154,5 +154,17 @@
   {
     "model": "vent_grate",
     "triangles": 1972
+  },
+  {
+    "model": "boiler",
+    "triangles": 1844
+  },
+  {
+    "model": "valve",
+    "triangles": 872
+  },
+  {
+    "model": "air_filter",
+    "triangles": 864
   }
 ]

@@ -47,6 +47,8 @@ var body_collision: CollisionShape3D
 var blood_pool: MeshInstance3D
 var shotgun: Node3D
 var recoil: float = 0.0
+var next_left_foot: bool = true
+var bloody_steps: int = 0
 
 func _ready() -> void:
 	add_to_group("players")
@@ -264,10 +266,13 @@ func _server_tick(delta: float) -> void:
 			lamp_on = false
 	noise_clock -= delta
 	if move_input.length() > 0.1 and health > 0.0 and noise_clock <= 0.0:
-		noise_clock = 0.32 if sprinting else 0.6
+		noise_clock = .48 if crouched else (.25 if sprinting else .32)
 		var radius: float = 12.0 if sprinting and not crouched else (1.4 if crouched else 4.0)
 		GameManager.world.make_noise(position, radius)
-		GameManager.world.sound_event.rpc("step", position)
+		if GameManager.world.is_bloody(position): bloody_steps = 9
+		GameManager.world.player_step.rpc(position, net_yaw, next_left_foot, bloody_steps > 0, crouched)
+		next_left_foot = not next_left_foot
+		bloody_steps = maxi(0,bloody_steps-1)
 
 func apply_action(action: String, slot: int) -> void:
 	if not NetworkManager.in_match or GameManager.world.objectives.result != "":

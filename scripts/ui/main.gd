@@ -154,7 +154,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.2  /  Без микрофона", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.3  /  Без микрофона", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:

@@ -29,20 +29,42 @@ func _run() -> void:
 	player.local_aim = Vector2(-.65, -.08)
 	await get_tree().create_timer(.6).timeout
 	await shot("radio_room.png")
+	player.position = Vector3(0, .05, -2)
+	player.net_position = player.position
+	player.local_aim = Vector2(.89, .08)
+	await get_tree().create_timer(.4).timeout
+	await shot("blood_wall.png")
+	player.position = Vector3(0, .05, 4)
+	player.net_position = player.position
+	player.local_aim = Vector2(-.6, -.5)
+	await get_tree().create_timer(.4).timeout
+	await shot("blood_floor.png")
 	player.position = Vector3(-10, .05, 2.3)
 	player.net_position = player.position
 	player.local_aim = Vector2(0, -.23)
 	await get_tree().create_timer(.6).timeout
 	await shot("generator.png")
+	SettingsManager.quality = 1
+	SettingsManager.apply()
+	await get_tree().create_timer(2.0).timeout
+	await shot("generator_detail.png")
+	SettingsManager.quality = 0
+	SettingsManager.apply()
 	GameManager.world.monster.set_physics_process(false)
-	GameManager.world.monster.state = 3
+	GameManager.world.monster.state = 1
 	GameManager.world.monster.show()
 	GameManager.world.monster.position = Vector3(0, .05, -2)
 	GameManager.world.monster.rotation.y = PI
-	player.position = Vector3(0, .05, 2.5)
+	player.position = Vector3(0, .05, 1.5)
 	player.net_position = player.position
 	player.local_aim = Vector2(0, .05)
 	await get_tree().create_timer(.6).timeout
+	await shot("entity_standing.png")
+	GameManager.world.monster.state = 3
+	await get_tree().create_timer(.3).timeout
+	await shot("entity_drop.png")
+	await get_tree().create_timer(.7).timeout
+	await shot("entity_crawl.png")
 	await shot("entity.png")
 	GameManager.interface._show_pause()
 	GameManager.interface._show_settings(true)

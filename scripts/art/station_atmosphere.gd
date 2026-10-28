@@ -17,6 +17,14 @@ func build(world: Node3D) -> void:
 	station = world
 	name = "Atmosphere"
 	_build_details()
+	var dressing := Node3D.new()
+	dressing.set_script(preload("res://scripts/art/station_dressing.gd"))
+	add_child(dressing)
+	dressing.build(station)
+	var blood := Node3D.new()
+	blood.set_script(preload("res://scripts/art/blood_traces.gd"))
+	add_child(blood)
+	blood.build()
 	_build_overlay()
 	_build_dust()
 	if AudioManager.sounds.has("motor"):
@@ -217,6 +225,7 @@ func _build_dust() -> void:
 	add_child(dust)
 
 func _quality_changed() -> void:
+	ART.apply_quality()
 	dust.visible = SettingsManager.quality > 0
 	dust.multimesh.visible_instance_count = 32 if SettingsManager.quality == 1 else 64
 
@@ -228,7 +237,7 @@ func trigger(kind: int, pos: Vector3) -> void:
 			apparition.look_at(Vector3(player.position.x, pos.y, player.position.z))
 			apparition_time = .9
 			apparition.show()
-	AudioManager.play_at(["knock", "whisper", "radio"][kind % 3], pos)
+	AudioManager.play_at(["knock", "whisper", "scrape"][kind % 3], pos)
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(station) or not NetworkManager.in_match:

@@ -18,24 +18,41 @@ var target_id: int = 0
 var mesh: Node3D
 var visual_time: float = 0.0
 var footstep_clock: float = 0.0
+var animation: AnimationPlayer
+var last_visual_position := Vector3.ZERO
+var voice_clock: float = 0.0
+var chase_started_at: float = 0.0
+var crawl_amount: float = 0.0
+var body_shape: CollisionShape3D
+var clip_names: Dictionary = {}
+var visual_mode: String = ""
 var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vector3(-8, 0, 0), Vector3(8, 0, -8), Vector3(-7, 0, -8)]
 var patrol_index: int = 0
 
 func _ready() -> void:
-	var collider := CollisionShape3D.new()
+	body_shape = CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
-	shape.radius = 0.28
-	shape.height = 2.3
-	collider.shape = shape
-	collider.position.y = 1.15
-	add_child(collider)
+	shape.radius = 0.3
+	shape.height = 2.45
+	body_shape.shape = shape
+	body_shape.position.y = 1.225
+	add_child(body_shape)
 	mesh = preload("res://scripts/art/art_factory.gd").model("entity")
 	add_child(mesh)
+	var found: Array[Node] = mesh.find_children("*", "AnimationPlayer", true, false)
+	if not found.is_empty():
+		animation = found[0]
+		for clip: StringName in animation.get_animation_list():
+			var leaf: String = str(clip).split("|")[-1].split("/")[-1]
+			clip_names[leaf] = clip
+		_play_clip("Idle")
+	preload("res://scripts/art/art_factory.gd").contact_shadow(self, Vector3.ZERO, Vector2(1.1, .85))
+	last_visual_position = position
 	var sync := MultiplayerSynchronizer.new()
 	sync.name = "StateSync"
 	sync.replication_interval = 0.1
 	var config := SceneReplicationConfig.new()
-	for property: String in ["net_position", "net_rotation", "state"]:
+	for property: String in ["net_position", "net_rotation", "state", "crawl_amount"]:
 		var property_path := NodePath(".:" + property)
 		config.add_property(property_path)
 		config.property_set_replication_mode(property_path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -45,9 +62,36 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	visual_time += delta
-	mesh.position.y = sin(visual_time * 2.8) * .025
-	mesh.rotation.z = sin(visual_time * 1.7) * .035
-	mesh.rotation.x = -.08 if state == State.CHASE else sin(visual_time * 1.3) * .025
+	mesh.rotation.z = sin(visual_time * 1.7) * .012
+	body_shape.shape.height = lerpf(2.45, 1.15, crawl_amount)
+	body_shape.position.y = body_shape.shape.height * .5
+	if animation:
+		var moving: bool = position.distance_squared_to(last_visual_position) > .000001
+		if state == State.CHASE:
+			if visual_mode not in ["DropToCrawl", "Crawl"]:
+				_play_clip("DropToCrawl", false)
+			elif visual_mode == "DropToCrawl" and not animation.is_playing():
+				_play_clip("Crawl", true, 2.0)
+		elif visual_mode in ["DropToCrawl", "Crawl"]:
+			_play_clip("Rise", false)
+		elif visual_mode == "Rise":
+			if not animation.is_playing():
+				_play_clip("Walk" if moving else "Idle")
+		else:
+			_play_clip("Walk" if moving else "Idle", true, 1.05)
+	last_visual_position = position
+
+func _play_clip(key: String, loop: bool = true, speed: float = 1.0) -> void:
+	if not animation or not clip_names.has(key) or visual_mode == key:
+		return
+	visual_mode = key
+	var clip: StringName = clip_names[key]
+	animation.get_animation(clip).loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
+	animation.speed_scale = speed
+	animation.play(clip, .08)
+
+func eye_position() -> Vector3:
+	return position + Vector3.UP * lerpf(2.34, 1.08, crawl_amount)
 
 func _physics_process(delta: float) -> void:
 	visible = state != State.DORMANT
@@ -59,6 +103,8 @@ func _physics_process(delta: float) -> void:
 		return
 	state_time += delta
 	attack_clock -= delta
+	voice_clock -= delta
+	crawl_amount = move_toward(crawl_amount, 1.0 if state == State.CHASE else 0.0, delta / .65)
 	teleport_clock -= delta
 	if state == State.DORMANT:
 		if station.elapsed >= 30.0:
@@ -71,7 +117,7 @@ func _physics_process(delta: float) -> void:
 	var target: Node3D = station.players.get_node_or_null(str(target_id))
 	if state == State.CHASE:
 		if target and target.health > 0.0:
-			if position.distance_to(target.position) < 1.45 and station.can_see(position + Vector3.UP * 1.8, target, [get_rid()]):
+			if position.distance_to(target.position) < 1.5 and station.elapsed - chase_started_at >= .65 and station.can_see(eye_position(), target, [get_rid()]):
 				if attack_clock <= 0.0:
 					attack_clock = 2.0
 					target.damage(40.0)
@@ -105,21 +151,31 @@ func _physics_process(delta: float) -> void:
 			path_index += 1
 		else:
 			direction = (waypoint - position).normalized()
-	var speed: float = 2.65 if state == State.CHASE else (2.3 if state == State.RETREAT else 1.25)
+	var speed: float = 3.4 if state == State.CHASE else (2.3 if state == State.RETREAT else 1.25)
+	if state == State.CHASE and station.elapsed - chase_started_at < .65:
+		speed = .35 # A short, readable stare precedes the pursuit.
 	if station.objectives.generator_on:
 		speed *= 1.1
 	velocity = Vector3(direction.x * speed, -0.5, direction.z * speed)
 	move_and_slide()
+	if state == State.CHASE and voice_clock <= 0.0:
+		voice_clock = randf_range(3.4, 5.3)
+		station.sound_event.rpc("growl", eye_position())
 	footstep_clock -= delta
 	if direction.length() > .1 and footstep_clock <= 0.0:
-		footstep_clock = .48 if state == State.CHASE else .85
-		station.sound_event.rpc("entity_step", position)
+		footstep_clock = .18 if state == State.CHASE else .7
+		station.sound_event.rpc("crawl_impact" if state == State.CHASE else "entity_step", position)
 	if direction.length() > 0.1:
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 6.0)
 	net_position = position
 	net_rotation = rotation.y
 
 func change_state(next: int, destination: Vector3) -> void:
+	if next == State.CHASE and state != State.CHASE:
+		chase_started_at = station.elapsed
+		if voice_clock <= 0.0:
+			voice_clock = 4.0
+			station.sound_event.rpc("roar", position + Vector3.UP * 1.7)
 	state = next
 	state_time = 0.0
 	goal = destination
@@ -142,7 +198,7 @@ func _perceive() -> void:
 		var distance: float = position.distance_to(player.position)
 		if distance > (14.0 if player.lamp_on else (6.0 if player.crouched else 10.0)):
 			continue
-		if not station.can_see(position + Vector3.UP * 1.8, player, [get_rid()]):
+		if not station.can_see(eye_position(), player, [get_rid()]):
 			continue
 		last_known = player.position
 		target_id = player.peer_id

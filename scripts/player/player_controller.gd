@@ -76,8 +76,8 @@ func _ready() -> void:
 			for child: Node in model.find_children("*", "MeshInstance3D", true, false):
 				child.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	lamp = SpotLight3D.new()
-	lamp.light_color = Color("f3deb1")
-	lamp.light_energy = 4.0
+	lamp.light_color = Color("e4e9dc")
+	lamp.light_energy = 3.0
 	lamp.spot_range = 13.0
 	lamp.spot_angle = 34.0
 	lamp.position = Vector3(0.18, -0.12, -0.1)
@@ -161,7 +161,7 @@ func _physics_process(delta: float) -> void:
 		var moving: float = Input.get_vector("left", "right", "forward", "back").length() if input_enabled and health > 0 else 0.0
 		camera.position.y = sin(view_time * (11.0 if Input.is_action_pressed("sprint") else 7.0)) * .012 * moving
 		held_flashlight.rotation.z = -.12 + sin(view_time * 6.0) * .018 * moving
-		lamp.light_energy = 4.0 * (.6 + .4 * absf(sin(view_time * 19.0)) if battery < 15.0 else 1.0)
+		lamp.light_energy = 3.0 * (.6 + .4 * absf(sin(view_time * 19.0)) if battery < 15.0 else 1.0)
 
 func accept_input(direction: Vector2, look: Vector2, run: bool, duck: bool, use: bool) -> void:
 	if not direction.is_finite() or not look.is_finite():

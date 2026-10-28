@@ -81,7 +81,7 @@
   },
   {
     "model": "entity",
-    "triangles": 1200
+    "triangles": 7216
   },
   {
     "model": "radio_rack",
@@ -94,5 +94,25 @@
   {
     "model": "hand",
     "triangles": 240
+  },
+  {
+    "model": "rotary_phone",
+    "triangles": 608
+  },
+  {
+    "model": "wall_clock",
+    "triangles": 428
+  },
+  {
+    "model": "radiator",
+    "triangles": 556
+  },
+  {
+    "model": "fan_housing",
+    "triangles": 416
+  },
+  {
+    "model": "fan_blades",
+    "triangles": 220
   }
 ]

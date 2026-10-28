@@ -4,6 +4,7 @@ All dimensions and positions below use Godot coordinates (metres, Y up, -Z front
 No external assets, add-ons or downloads. A .blend library is saved outside res://.
 """
 import bpy
+import sys
 import math
 import random
 import json
@@ -12,6 +13,7 @@ from pathlib import Path
 from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'tools'))
 MODELS = ROOT / 'assets' / 'models'
 TEXTURES = ROOT / 'assets' / 'textures'
 SOURCE = ROOT / 'art-source'
@@ -52,6 +54,8 @@ mat('ivory', (0.56, 0.57, 0.46))
 mat('entity', (0.035, 0.039, 0.038))
 mat('eye', (0.73, 0.85, 0.68), emission=1.4)
 mat('glass', (0.22, 0.34, 0.32), 0.55)
+mat('bone', (0.29, 0.32, 0.275))
+mat('dark_cable', (0.055, 0.052, 0.035), .2)
 
 
 def coord(p):
@@ -334,40 +338,8 @@ def avatar():
 
 
 def entity():
-    ball('Torso', (0, 1.53, .06), (.25, .48, .15), 'entity', 2)
-    ball('Pelvis', (0, 1.02, .03), (.16, .2, .13), 'black')
-    for side in [-1, 1]:
-        hip = (.12 * side, 1.08, .03)
-        knee = (.19 * side, .54, -.07)
-        ankle = (.17 * side, .1, .08)
-        rod('Thigh', hip, knee, .082, 'entity', 7, .05)
-        rod('Shin', knee, ankle, .047, 'entity', 7, .025)
-        ball('Foot', (.17 * side, .045, -.055), (.07, .06, .19), 'black')
-        shoulder = (.24 * side, 1.83, .035)
-        elbow = (.43 * side, 1.18, -.045)
-        wrist = (.48 * side, .62, -.12)
-        rod('Upper arm', shoulder, elbow, .067, 'entity', 7, .04)
-        rod('Forearm', elbow, wrist, .04, 'ivory', 7, .023)
-        ball('Hand', (.48 * side, .57, -.12), (.055, .1, .045), 'entity')
-        for finger in range(4):
-            x = side * (.44 + finger * .025)
-            wire('Long finger', [(x, .54, -.12), (x + side * .025, .36 - finger * .02, -.17), (x + side * .01, .29 - finger * .02, -.24)], .009, 'ivory')
-    rod('Neck', (0, 1.89, .05), (.06, 2.1, -.02), .055, 'ivory', 8)
-    head = ball('Head', (.065, 2.2, -.045), (.135, .25, .13), 'ivory', 2)
-    head.rotation_euler.y = .16
-    for x in [.013, .115]:
-        ball('Eye socket', (x, 2.255, -.16), (.045, .055, .022), 'black', 2)
-        ball('Pale pinhole', (x, 2.25, -.181), (.012, .01, .006), 'eye')
-    ball('Mouth hollow', (.064, 2.085, -.163), (.055, .09, .015), 'black', 2)
-    for i in range(6):
-        x = .023 + i * .016
-        rod('Tooth', (x, 2.14, -.18), (x, 2.105 + (i % 2) * .008, -.18), .007, 'cream', 4, .001)
-    for i in range(7):
-        y = 1.35 + i * .065
-        wire('Rib cable', [(-.16, y, -.04), (0, y - .035, -.105), (.16, y, -.04)], .013, 'rust')
-    for i in range(8):
-        x = (i - 3.5) * .046
-        wire('Frayed shroud', [(x, 1.65, .15), (x * 1.25, 1.12, .18), (x * 1.6, .65 + (i % 3) * .13, .12)], .025, 'black')
+    from creature_art import build_creature
+    build_creature(globals())
 
 
 def radio_rack():
@@ -405,15 +377,75 @@ def hand():
     rod('Thumb', (-.065, 0, .04), (-.05, .065, -.01), .024, 'black', 8)
 
 
+def rotary_phone():
+    box('Telephone body', (0, .075, 0), (.42, .15, .31), 'black', .04)
+    rod('Dial plate', (0, .155, -.025), (0, .17, -.025), .104, 'steel', 20)
+    for i in range(10):
+        a = i * math.tau / 10
+        rod('Dial hole', (math.sin(a) * .074, .171, -.025 + math.cos(a) * .074),
+            (math.sin(a) * .074, .175, -.025 + math.cos(a) * .074), .012, 'black', 8)
+    wire('Receiver', [(-.17, .19, .1), (-.14, .26, .1), (.14, .26, .1), (.17, .19, .1)], .039, 'black')
+    for x in [-.17, .17]:
+        ball('Earpiece', (x, .19, .1), (.065, .055, .06), 'black', 2)
+    wire('Cord', [(-.2, .12, .1), (-.3, .09, .13), (-.33, -.06, .15), (-.31, -.14, .16)], .008, 'black')
+
+
+def wall_clock():
+    rod('Clock frame', (0, 0, .03), (0, 0, -.03), .3, 'steel', 32)
+    rod('Clock face', (0, 0, -.031), (0, 0, -.037), .275, 'cream', 32)
+    for i in range(12):
+        a = i * math.tau / 12
+        rod('Hour mark', (math.sin(a) * .23, math.cos(a) * .23, -.04),
+            (math.sin(a) * .255, math.cos(a) * .255, -.04), .007, 'black', 4)
+    rod('Hour hand', (0, 0, -.046), (-.07, .1, -.046), .012, 'black', 4)
+    rod('Minute hand', (0, 0, -.05), (.06, -.2, -.05), .008, 'black', 4)
+    rod('Second hand', (0, 0, -.055), (-.18, -.08, -.055), .004, 'red', 4)
+
+
+def radiator():
+    for i in range(9):
+        x = (i - 4) * .14
+        box('Cast iron section', (x, .37, 0), (.105, .68, .18), 'cream', .025)
+    for y in [.1, .64]:
+        rod('Manifold', (-.72, y, .01), (.72, y, .01), .045, 'rust')
+    wire('Inlet', [(.68, .64, .01), (.88, .64, .01), (.88, .85, .01)], .032, 'steel')
+    rod('Valve stem', (.77, .64, 0), (.77, .64, -.11), .018, 'steel')
+    rod('Valve wheel', (.77, .64, -.11), (.77, .64, -.13), .065, 'red', 10)
+
+
+def fan_housing():
+    box('Fan base', (0, 0, .04), (.75, .75, .09), 'enamel', .025)
+    rod('Dark opening', (0, 0, -.015), (0, 0, -.025), .32, 'black', 24)
+    for i in range(7):
+        p = (i - 3) * .09
+        rod('Grille', (-.33, p, -.12), (.33, p, -.12), .008, 'steel', 6)
+        rod('Grille', (p, -.33, -.12), (p, .33, -.12), .008, 'steel', 6)
+
+
+def fan_blades():
+    rod('Hub', (0, 0, -.03), (0, 0, -.1), .065, 'rust', 12)
+    for i in range(4):
+        a = i * math.pi / 2
+        blade = box('Blade', (math.sin(a) * .15, math.cos(a) * .15, -.06), (.12, .25, .025), 'steel', .015)
+        blade.rotation_euler.y = a
+
+
+def entity_rig(meshes):
+    from creature_art import rig_creature
+    return rig_creature(meshes, globals())
+
+
 builders = {name: globals()[name] for name in ['generator', 'transmitter', 'power', 'door',
     'cassette', 'fuel', 'fuse', 'key', 'battery', 'medkit', 'shelf', 'cot', 'locker',
     'barrel', 'desk', 'chair', 'crate', 'lamp', 'flashlight', 'avatar', 'entity',
-    'radio_rack', 'recorder', 'hand']}
+    'radio_rack', 'recorder', 'hand', 'rotary_phone', 'wall_clock', 'radiator',
+    'fan_housing', 'fan_blades']}
 catalog = []
 for index, (name, builder) in enumerate(builders.items()):
     before = set(bpy.data.objects)
     builder()
     meshes = [obj for obj in bpy.data.objects if obj not in before and obj.type == 'MESH']
+    rig = entity_rig(meshes) if name == 'entity' else None
     bpy.ops.object.select_all(action='DESELECT')
     for obj in meshes:
         obj.select_set(True)
@@ -423,12 +455,21 @@ for index, (name, builder) in enumerate(builders.items()):
     obj.name = name
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    if rig:
+        skin = obj.modifiers.new('Entity skin', 'ARMATURE')
+        skin.object = rig
+        obj.parent = rig
+        rig.select_set(True)
     triangles = sum(len(face.vertices) - 2 for face in obj.data.polygons)
     bpy.ops.export_scene.gltf(filepath=str(MODELS / f'{name}.glb'), export_format='GLB',
-                              use_selection=True, export_yup=True, export_animations=False,
+                              use_selection=True, export_yup=True, export_animations=bool(rig),
                               export_cameras=False, export_lights=False)
     catalog.append({'model': name, 'triangles': triangles})
-    obj.location = coord(((index % 5) * 4, 0, (index // 5) * 4))
+    if rig:
+        rig.location = coord(((index % 5) * 4, 0, (index // 5) * 4))
+        obj.location = (0, 0, 0)
+    else:
+        obj.location = coord(((index % 5) * 4, 0, (index // 5) * 4))
     print(f'ART_MODEL {name}: {triangles} triangles')
 
 
@@ -437,6 +478,7 @@ def texture(name, base, tile=False):
     image = bpy.data.images.new(name, n, n)
     pixels = array('f')
     rng = random.Random(173)
+    heights = []
     grids = [(frequency, amount, [rng.uniform(-1, 1) for _ in range(frequency * frequency)])
              for frequency, amount in [(4, .04), (16, .022), (64, .012)]]
     for y in range(n):
@@ -455,18 +497,45 @@ def texture(name, base, tile=False):
             if tile:
                 seam = x % 64 < 2 or y % 64 < 2
                 variation += -.12 if seam else (.017 if (x // 64 + y // 64) % 2 else -.017)
+            # Narrow mineral drips and chips replace the uniformly clean surfaces.
+            if name in ['plaster', 'paint']:
+                drip = max(0, math.sin(x / n * math.tau * 13 + math.sin(y / n * math.tau) * .08) - .97)
+                variation -= drip * (1.2 if name == 'plaster' else 2.0)
+            if name == 'muscle':
+                variation += math.sin(x * .7 + math.sin(y * .035) * 1.5) * .055
+            heights.append(variation)
             pixels.extend([max(.02, min(.95, c + variation)) for c in base] + [1])
     image.pixels.foreach_set(pixels)
     image.filepath_raw = str(TEXTURES / f'{name}.png')
     image.file_format = 'PNG'
     image.save()
     bpy.data.images.remove(image)
+    normal = array('f')
+    roughness = array('f')
+    for y in range(n):
+        for x in range(n):
+            dx = (heights[y * n + (x + 1) % n] - heights[y * n + (x - 1) % n]) * 1.7
+            dy = (heights[((y + 1) % n) * n + x] - heights[((y - 1) % n) * n + x]) * 1.7
+            v = Vector((-dx, -dy, 1)).normalized()
+            normal.extend([v.x * .5 + .5, v.y * .5 + .5, v.z * .5 + .5, 1])
+            r = max(.45, min(.98, .8 + heights[y * n + x] * 1.3))
+            roughness.extend([r, r, r, 1])
+    for suffix, data in [('_normal', normal), ('_roughness', roughness)]:
+        output = bpy.data.images.new(name + suffix, n, n)
+        output.colorspace_settings.name = 'Non-Color'
+        output.pixels.foreach_set(data)
+        output.filepath_raw = str(TEXTURES / f'{name}{suffix}.png')
+        output.file_format = 'PNG'
+        output.save()
+        bpy.data.images.remove(output)
 
 
 texture('plaster', (.57, .55, .46))
 texture('paint', (.19, .28, .25))
 texture('floor', (.29, .28, .24), tile=True)
 texture('concrete', (.3, .32, .3))
+texture('metal_wear', (.84, .81, .74))
+texture('muscle', (.88, .76, .7))
 (MODELS / 'catalog.json').write_text(json.dumps(catalog, indent=2), encoding='utf-8')
 bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE / 'station_assets.blend'))

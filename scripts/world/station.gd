@@ -166,7 +166,7 @@ func _build_station() -> void:
 	environment.background_color = Color("0c141b")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("91a6ac")
-	environment.ambient_light_energy = 0.18
+	environment.ambient_light_energy = 0.10
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	world_environment.environment = environment
 	add_child(world_environment)
@@ -207,7 +207,7 @@ func _build_station() -> void:
 		light.omni_range = 6.5
 		light.light_energy = 0.8
 		light.set_meta("base_energy", .8)
-		light.set_meta("standby", .32 if z == 8 else .14)
+		light.set_meta("standby", .23 if z == 8 else .08)
 		add_child(light)
 		lights.append(light)
 		sign_text(str(room[0]), Vector3(x, 2.35, z - 3.78), 0.0, 34)
@@ -225,7 +225,7 @@ func _build_station() -> void:
 		light.omni_range = 5.5
 		light.light_energy = 1.0
 		light.set_meta("base_energy", 1.0)
-		light.set_meta("standby", .7 if z == 6.0 else (.3 if z == -10 else .15))
+		light.set_meta("standby", .45 if z == 6.0 else (.16 if z == -10 else .08))
 		add_child(light)
 		lights.append(light)
 	sign_text("ВЫХОД ЗАБЛОКИРОВАН", Vector3(0, 2.1, 12.8), PI, 32)
@@ -373,11 +373,50 @@ func _physics_process(delta: float) -> void:
 	if event_clock <= 0.0 and objectives.result.is_empty():
 		event_clock = randf_range(22.0, 38.0)
 		flicker_event.rpc()
-		haunt_event.rpc(randi_range(0, 2), Vector3(0, 0, [-9.0, -3.0, 5.0].pick_random()))
+		_run_horror_event()
 	state_clock -= delta
 	if state_clock <= 0.0:
 		state_clock = 0.2
 		sync_state()
+
+func _run_horror_event() -> void:
+	if not multiplayer.is_server() or not objectives.result.is_empty():
+		return
+	var living: Array[Node3D] = []
+	for actor: Node3D in players.get_children():
+		if actor.health > 0:
+			living.append(actor)
+	if living.is_empty():
+		return
+	var focus: Node3D = living.pick_random()
+	var kind: int = randi_range(0, 2)
+	var at := Vector3(0, 0, -9)
+	var candidates: Array[Vector3] = [Vector3(0, 0, -9), Vector3(0, 0, -3), Vector3(0, 0, 5), Vector3(-7, 0, 0), Vector3(7, 0, -8), Vector3(-7, 0, -8)]
+	candidates.shuffle()
+	for candidate: Vector3 in candidates:
+		var distance: float = candidate.distance_to(focus.position)
+		if distance > 5.5 and distance < 12.0:
+			at = candidate
+			break
+	if kind == 0:
+		for object: Node3D in objects.values():
+			if object.kind != "door" or not object.opened or object.locked or object.position.distance_to(focus.position) > 10:
+				continue
+			var clear: bool = true
+			for actor: Node3D in players.get_children():
+				if actor.position.distance_to(object.position) < 2.4:
+					clear = false
+			if is_instance_valid(monster) and monster.position.distance_to(object.position) < 2.4:
+				clear = false
+			if clear:
+				object.opened = false
+				object.refresh()
+				_update_doors_navigation()
+				at = Vector3(object.position.x, 0, object.position.z)
+				sound_event.rpc("door", object.position)
+				sync_state()
+				break
+	haunt_event.rpc(kind, at)
 
 func interact_object(player: Node3D, object: Node3D) -> void:
 	# Revalidate geometry even for host-side callers. Object IDs are never accepted from clients.

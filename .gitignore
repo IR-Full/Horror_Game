@@ -1,0 +1,24 @@
+.godot/
+graphify-out/
+builds/
+test-results/
+*.tmp
+*.log
+
+# Local engine binaries, editor data, credentials and source backups.
+*.exe
+*.pck
+*.zip
+*.tpz
+/Godot/
+/tools/godot/
+/export_templates/
+/feature_profiles/
+/script_templates/
+/text_editor_themes/
+*.blend1
+*.blend2
+__pycache__/
+.env
+.env.*
+!.env.example

@@ -1,0 +1,98 @@
+[
+  {
+    "model": "generator",
+    "triangles": 508
+  },
+  {
+    "model": "transmitter",
+    "triangles": 1008
+  },
+  {
+    "model": "power",
+    "triangles": 312
+  },
+  {
+    "model": "door",
+    "triangles": 284
+  },
+  {
+    "model": "cassette",
+    "triangles": 212
+  },
+  {
+    "model": "fuel",
+    "triangles": 168
+  },
+  {
+    "model": "fuse",
+    "triangles": 156
+  },
+  {
+    "model": "key",
+    "triangles": 92
+  },
+  {
+    "model": "battery",
+    "triangles": 132
+  },
+  {
+    "model": "medkit",
+    "triangles": 92
+  },
+  {
+    "model": "shelf",
+    "triangles": 252
+  },
+  {
+    "model": "cot",
+    "triangles": 352
+  },
+  {
+    "model": "locker",
+    "triangles": 164
+  },
+  {
+    "model": "barrel",
+    "triangles": 336
+  },
+  {
+    "model": "desk",
+    "triangles": 128
+  },
+  {
+    "model": "chair",
+    "triangles": 304
+  },
+  {
+    "model": "crate",
+    "triangles": 92
+  },
+  {
+    "model": "lamp",
+    "triangles": 140
+  },
+  {
+    "model": "flashlight",
+    "triangles": 160
+  },
+  {
+    "model": "avatar",
+    "triangles": 656
+  },
+  {
+    "model": "entity",
+    "triangles": 1200
+  },
+  {
+    "model": "radio_rack",
+    "triangles": 1204
+  },
+  {
+    "model": "recorder",
+    "triangles": 412
+  },
+  {
+    "model": "hand",
+    "triangles": 240
+  }
+]

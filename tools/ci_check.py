@@ -1,5 +1,6 @@
 """Run native headless checks on Windows, Linux and macOS (Python stdlib only)."""
 import os
+import hashlib
 from pathlib import Path
 import platform
 import subprocess
@@ -13,16 +14,22 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     system = platform.system()
     variants = {
-        'Windows': ('win64.exe.zip', 'windows.64', 'Godot_v4.7.2-stable_win64_console.exe'),
-        'Linux': ('linux.x86_64.zip', 'linux.64', 'Godot_v4.7.2-stable_linux.x86_64'),
-        'Darwin': ('macos.universal.zip', 'macos.universal', 'Godot.app/Contents/MacOS/Godot'),
+        'Windows': ('win64.exe.zip', '731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953', 'Godot_v4.7.2-stable_win64_console.exe'),
+        'Linux': ('linux.x86_64.zip', 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4', 'Godot_v4.7.2-stable_linux.x86_64'),
+        'Darwin': ('macos.universal.zip', 'c58a24e31d720be9d62f60cb5627c4e695fb72f21b0cfe1bc9ccaa9a3b3ba63e', 'Godot.app/Contents/MacOS/Godot'),
     }
-    slug, target, binary = variants[system]
+    slug, digest, binary = variants[system]
     cache = Path(os.environ['RUNNER_TEMP']) / 'last-signal-engine'
     cache.mkdir(exist_ok=True)
     archive = cache / 'engine.zip'
-    url = f'https://downloads.godotengine.org/?version=4.7.2&flavor=stable&slug={slug}&platform={target}'
-    urllib.request.urlretrieve(url, archive)
+    # Official release mirror avoids the download router's datacenter HTTP 403.
+    url = f'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_{slug}'
+    request = urllib.request.Request(url, headers={'User-Agent': 'LastSignal-CI/0.6'})
+    with urllib.request.urlopen(request, timeout=120) as response, archive.open('wb') as output:
+        import shutil
+        shutil.copyfileobj(response, output)
+    if hashlib.sha256(archive.read_bytes()).hexdigest() != digest:
+        raise RuntimeError('Godot release archive checksum mismatch')
     with zipfile.ZipFile(archive) as package:
         package.extractall(cache)
     engine = cache / binary

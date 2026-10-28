@@ -1,4 +1,8 @@
 extends Node
+var settings_return: String = "menu"
+var voice_label: Label
+var microphone_meter: ProgressBar
+var microphone_status: Label
 var map_overlay: Control
 var canvas: CanvasLayer
 var ui: Control
@@ -68,6 +72,23 @@ func _ready() -> void:
 	if "--perf-check" in args:
 		var checker := Node.new()
 		checker.set_script(load("res://tests/performance_check.gd"))
+		add_child(checker)
+	if "--voice-preview" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/voice_preview.gd"))
+		add_child(checker)
+	if "--voice-audio-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/voice_audio_check.gd"))
+		add_child(checker)
+	for argument: String in args:
+		if argument.begins_with("--voice-test="):
+			var checker := Node.new()
+			checker.set_script(load("res://tests/voice_network_test.gd"))
+			add_child(checker)
+	if "--voice-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/voice_check.gd"))
 		add_child(checker)
 
 func _theme() -> Theme:
@@ -174,11 +195,12 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.7  /  Без микрофона", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.8  /  Голосовая связь", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
 	if not NetworkManager.in_match and not NetworkManager.loading and not NetworkManager.unloading:
+		if NetworkManager.active and screen_kind == "settings" and settings_return == "lobby": return
 		_show_lobby() if NetworkManager.active else _show_menu()
 
 func _show_lobby() -> void:
@@ -225,7 +247,9 @@ func _show_lobby() -> void:
 			button_in(column, "Учебный запуск одному", func(): NetworkManager.start_round(true))
 	else:
 		label_in(column, "Ожидайте, пока хост начнёт экспедицию.", 17)
+	button_in(column,"Настройки звука",func(): _show_settings(false,1))
 	button_in(column, "Выйти из комнаты", func(): NetworkManager.leave())
+	voice_label = label_in(column,"Удерживайте %s — голосовая связь" % SettingsManager.key_label("voice"),14,"8eb5a5")
 	_make_message_label()
 
 func _load_world() -> void:
@@ -356,9 +380,16 @@ func _resume() -> void:
 		player.input_enabled = true
 
 func _show_settings(from_game: bool, tab: int = 0) -> void:
+	if screen_kind != "settings": settings_return = "pause" if from_game else ("lobby" if NetworkManager.active else "menu")
 	rebind_action = ""
 	var column := _new_screen("settings", not from_game)
 	preload("res://scripts/ui/settings_panel.gd").build(self, column, from_game, tab)
+
+func finish_settings() -> void:
+	SettingsManager.save()
+	if settings_return == "lobby" and NetworkManager.active: _show_lobby()
+	elif settings_return == "pause" and NetworkManager.in_match: _show_pause()
+	else: _show_menu()
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_released("map"):
@@ -462,6 +493,15 @@ func open_map() -> void:
 	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\nG: генератор • P: питание • T: передача\nC: пульт • F: фильтрация",13,"ddbb86")
 
 func _process(delta: float) -> void:
+	if is_instance_valid(microphone_meter):
+		microphone_meter.value = linear_to_db(maxf(VoiceManager.local_level,.001))
+	if is_instance_valid(microphone_status):
+		microphone_status.text = "%s • %.0f дБ" % [VoiceManager.input_status if not VoiceManager.input_status.is_empty() else "Микрофон не передаёт",linear_to_db(maxf(VoiceManager.local_level,.001))]
+	if is_instance_valid(voice_label):
+		var names: PackedStringArray = VoiceManager.speakers()
+		voice_label.text = ("Вы в эфире" if VoiceManager.transmitting else "Удерживайте %s — голосовая связь" % SettingsManager.key_label("voice"))+(" • Говорят: "+", ".join(names) if not names.is_empty() else "")
+		if not SettingsManager.voice_enabled: voice_label.text = "Голосовой чат выключен"
+		elif SettingsManager.microphone_muted: voice_label.text = "Ваш микрофон выключен"+(" • "+", ".join(names) if not names.is_empty() else "")
 	if notice_time > 0.0:
 		notice_time -= delta
 		if notice_time <= 0.0 and is_instance_valid(message_label):

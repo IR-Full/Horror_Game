@@ -171,7 +171,9 @@ func _physics_process(delta: float) -> void:
 		gesture = "Roar" if randf() < .5 else "Bash"
 		gesture_left = 1.3
 		station.sound_event.rpc(("monster_voice" if randf()<.4 else "roar") if gesture == "Roar" else "smash", eye_position())
-	if lonely_time >= float(station.rules.sabotage_delay) and sabotage_cooldown <= 0 and state in [State.PATROL, State.SEARCH, State.INVESTIGATE] and station.objectives.emergency.is_empty():
+	# Follow a fresh audible lead before returning to unattended sabotage.
+	var fresh_noise: bool = state == State.INVESTIGATE and state_time < 3.0
+	if not fresh_noise and lonely_time >= float(station.rules.sabotage_delay) and sabotage_cooldown <= 0 and state in [State.PATROL, State.SEARCH, State.INVESTIGATE] and station.objectives.emergency.is_empty():
 		sabotage_target = "generator" if station.objectives.generator_on and randf() < .5 else "ventilation"
 		sabotage_striking = false
 		change_state(State.SABOTAGE, station.objects[sabotage_target].position + Vector3(0, 0, 1.7))

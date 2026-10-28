@@ -8,7 +8,7 @@ signal left_room
 
 const DEFAULT_PORT := 27840
 const MAX_PLAYERS := 4
-const PROTOCOL := 7
+const PROTOCOL := 8
 const RULES := preload("res://scripts/core/round_rules.gd")
 var difficulty: int = 1
 var last_puzzles: Dictionary = {}
@@ -92,6 +92,7 @@ func clean_name(value: String) -> String:
 	return value.strip_edges().replace("\n", " ").replace("\r", " ").left(20) if not value.strip_edges().is_empty() else "Техник"
 
 func leave(announce: bool = true) -> void:
+	VoiceManager.clear_session()
 	active = false
 	in_match = false
 	loading = false
@@ -270,6 +271,7 @@ func request_player_action(number: int, action: String, slot: int) -> void:
 		player.apply_action(action, slot)
 
 func _peer_disconnected(id: int) -> void:
+	VoiceManager.drop_peer(id)
 	if not multiplayer.is_server() or not members.has(id):
 		return
 	if in_match and is_instance_valid(GameManager.world):

@@ -16,6 +16,15 @@ func _draw() -> void:
 	var actor: Node3D = GameManager.local_player()
 	if not actor: return
 	var font: Font = ThemeDB.fallback_font
+	if VoiceManager.transmitting:
+		var text: String = "В ЭФИРЕ"+(" • ГРОМКО" if VoiceManager.local_level >= VoiceManager.LOUD_LEVEL else "")
+		var width: float = font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,15).x
+		draw_string(font,Vector2((size.x-width)*.5,28),text,HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("e6a17c") if VoiceManager.local_level >= VoiceManager.LOUD_LEVEL else Color("94d0b5"))
+	var speakers: PackedStringArray = VoiceManager.speakers()
+	if SettingsManager.voice_enabled and not speakers.is_empty():
+		var text: String = "Говорят: "+", ".join(speakers)
+		var width: float = font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,12).x
+		draw_string(font,Vector2((size.x-width)*.5,48),text,HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("b5dccb"))
 	var center := Vector2(size.x-460,size.y-45)
 	bar(Vector2(28,size.y-24),180,actor.stamina/100.0,"ВЫНОСЛИВОСТЬ • %d%%" % int(actor.stamina),Color("bd9269") if actor.exhausted else Color("90b5a0"))
 	if actor.healing_progress > 0 or actor.rescue_progress > 0:

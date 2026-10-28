@@ -14,11 +14,12 @@ def main():
     parser.add_argument('--players', type=int, choices=(2, 3, 4), default=2)
     parser.add_argument('--port', type=int, default=27941)
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--voice', action='store_true', help='Exercise voice relay with synthetic audio, without microphones')
     args = parser.parse_args()
     if not args.godot:
         parser.error('Set GODOT_BIN or pass --godot /path/to/Godot 4.7.2')
     root = Path(__file__).resolve().parents[1]
-    output = root / 'test-results' / f'lan-{args.players}'
+    output = root / 'test-results' / f'{"voice-lan" if args.voice else "lan"}-{args.players}'
     output.mkdir(parents=True, exist_ok=True)
     jobs = []
     try:
@@ -34,7 +35,7 @@ def main():
             path = output / f'{mode}-{index}.log'
             log = path.open('w', encoding='utf-8')
             command = [args.godot, '--headless', '--path', str(root), '--',
-                       f'--test={mode}', f'--players={args.players}', f'--port={args.port}',
+                       f'--{"voice-test" if args.voice else "test"}={mode}', f'--players={args.players}', f'--port={args.port}',
                        f'--test-user-dir={runtime}']
             if args.verbose:
                 command.insert(1, '--verbose')

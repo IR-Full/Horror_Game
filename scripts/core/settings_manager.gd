@@ -13,9 +13,15 @@ var applied_fullscreen: int = -1
 var music_volume: float = .45
 var effects_volume: float = .85
 var ambience_volume: float = .65
+var voice_enabled: bool = true
+var voice_volume: float = 1.0
+var microphone_muted: bool = false
+var microphone_gain: float = 1.0
+var microphone_gate: float = .008
+var microphone_device: String = "Default"
 var bindings: Dictionary = {}
-const DEFAULT_KEYS := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "sprint": KEY_SHIFT, "crouch": KEY_CTRL, "interact": KEY_E, "flashlight": KEY_F, "shout": KEY_V, "drop": KEY_G, "use_item": KEY_R, "slot": KEY_Q, "reload": KEY_T, "sos": KEY_H, "pause": KEY_ESCAPE, "map":KEY_M,"slot_1":KEY_1,"slot_2":KEY_2,"slot_3":KEY_3,"slot_4":KEY_4}
-const ACTION_LABELS := {"forward": "Вперёд", "back": "Назад", "left": "Влево", "right": "Вправо", "sprint": "Бег", "crouch": "Присесть", "interact": "Взаимодействие", "flashlight": "Фонарь", "shout": "Отвлечь шумом", "drop": "Положить предмет", "use_item": "Использовать предмет", "slot": "Следующая ячейка", "reload": "Перезарядить", "shoot": "Выстрел", "sos": "Позвать на помощь", "map":"Схема станции (удерживать)","slot_1":"Ячейка 1","slot_2":"Ячейка 2","slot_3":"Ячейка 3","slot_4":"Ячейка 4"}
+const DEFAULT_KEYS := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "sprint": KEY_SHIFT, "crouch": KEY_CTRL, "interact": KEY_E, "flashlight": KEY_F, "shout": KEY_V, "drop": KEY_G, "use_item": KEY_R, "slot": KEY_Q, "reload": KEY_T, "sos": KEY_H, "pause": KEY_ESCAPE, "map":KEY_M,"slot_1":KEY_1,"slot_2":KEY_2,"slot_3":KEY_3,"slot_4":KEY_4,"voice":KEY_B}
+const ACTION_LABELS := {"forward": "Вперёд", "back": "Назад", "left": "Влево", "right": "Вправо", "sprint": "Бег", "crouch": "Присесть", "interact": "Взаимодействие", "flashlight": "Фонарь", "shout": "Отвлечь шумом", "drop": "Положить предмет", "use_item": "Использовать предмет", "slot": "Следующая ячейка", "reload": "Перезарядить", "shoot": "Выстрел", "sos": "Позвать на помощь", "map":"Схема станции (удерживать)","slot_1":"Ячейка 1","slot_2":"Ячейка 2","slot_3":"Ячейка 3","slot_4":"Ячейка 4","voice":"Голос (удерживать)"}
 
 func _ready() -> void:
 	# CI/LAN processes get separate local files on every OS, including macOS.
@@ -33,9 +39,15 @@ func _ready() -> void:
 		music_volume = clampf(float(cfg.get_value("audio", "music", .45)), 0, 1)
 		effects_volume = clampf(float(cfg.get_value("audio", "effects", .85)), 0, 1)
 		ambience_volume = clampf(float(cfg.get_value("audio", "ambience", .65)), 0, 1)
+		voice_enabled = bool(cfg.get_value("voice","enabled",true))
+		voice_volume = clampf(float(cfg.get_value("voice","volume",1.0)),0,1.5)
+		microphone_muted = bool(cfg.get_value("voice","muted",false))
+		microphone_gain = clampf(float(cfg.get_value("voice","gain",1.0)),.25,3.0)
+		microphone_gate = clampf(float(cfg.get_value("voice","gate",.008)),.001,.06)
+		microphone_device = str(cfg.get_value("voice","device","Default"))
 		bindings = cfg.get_value("input", "bindings", {})
 	install_controls()
-	for bus_name: String in ["Music", "Effects", "Ambience"]:
+	for bus_name: String in ["Music", "Effects", "Ambience", "Voice"]:
 		if AudioServer.get_bus_index(bus_name) < 0:
 			AudioServer.add_bus()
 			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus_name)
@@ -78,7 +90,7 @@ func apply() -> void:
 	get_viewport().msaa_3d = Viewport.MSAA_DISABLED if quality == 0 else Viewport.MSAA_2X
 	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(volume, 0.001)))
 	AudioServer.set_bus_mute(0, volume <= 0)
-	for entry: Array in [["Music", music_volume], ["Effects", effects_volume], ["Ambience", ambience_volume]]:
+	for entry: Array in [["Music", music_volume], ["Effects", effects_volume], ["Ambience", ambience_volume], ["Voice",voice_volume]]:
 		var index: int = AudioServer.get_bus_index(entry[0])
 		if index >= 0:
 			AudioServer.set_bus_volume_db(index, linear_to_db(maxf(entry[1], .001)))
@@ -99,6 +111,12 @@ func save() -> void:
 	cfg.set_value("audio", "music", music_volume)
 	cfg.set_value("audio", "effects", effects_volume)
 	cfg.set_value("audio", "ambience", ambience_volume)
+	cfg.set_value("voice","enabled",voice_enabled)
+	cfg.set_value("voice","volume",voice_volume)
+	cfg.set_value("voice","muted",microphone_muted)
+	cfg.set_value("voice","gain",microphone_gain)
+	cfg.set_value("voice","gate",microphone_gate)
+	cfg.set_value("voice","device",microphone_device)
 	cfg.set_value("input", "bindings", bindings)
 	cfg.save(save_path)
 	apply()

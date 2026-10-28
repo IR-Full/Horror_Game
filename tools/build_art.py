@@ -76,7 +76,7 @@ def box(name, p, size, material, bevel=0):
     if bevel:
         mod = obj.modifiers.new('Worn edges', 'BEVEL')
         mod.width = bevel
-        mod.segments = 1
+        mod.segments = 3
         bpy.ops.object.modifier_apply(modifier=mod.name)
     return finish(obj, name, material)
 
@@ -89,7 +89,7 @@ def ball(name, p, size, material, detail=1):
     return finish(obj, name, material)
 
 
-def rod(name, a, b, radius, material, vertices=10, tip=None):
+def rod(name, a, b, radius, material, vertices=16, tip=None):
     a, b = coord(a), coord(b)
     direction = b - a
     bpy.ops.mesh.primitive_cone_add(vertices=vertices, radius1=radius,
@@ -178,13 +178,13 @@ def power():
 
 
 def door():
-    box('Door panel', (0, 0, 0), (.14, 2.45, 1.86), 'enamel', .025)
+    box('Door panel', (0, 0, 0), (.22, 2.87, 2.18), 'enamel', .018)
     for side in [-1, 1]:
-        for z in [-.82, .82]:
-            box('Door reinforcement', (side * .079, 0, z), (.025, 2.27, .06), 'steel')
-        for y in [-1.1, -.4, .4, 1.1]:
-            box('Door crossbar', (side * .079, y, 0), (.025, .06, 1.7), 'steel')
-        box('Handle plate', (side * .091, -.1, -.64), (.035, .25, .13), 'steel')
+        for z in [-1.04, 1.04]:
+            box('Door seal', (side * .12, 0, z), (.018, 2.83, .06), 'black')
+        for y in [-1.37, 1.37]:
+            box('Door seal', (side * .12, y, 0), (.018, .05, 2.08), 'black')
+        box('Handle plate', (side * .13, -.1, -.75), (.035, .25, .13), 'steel')
         rod('Door handle', (side * .17, -.1, -.64), (side * .17, -.1, -.43), .025, 'cream')
 
 
@@ -440,6 +440,8 @@ builders = {name: globals()[name] for name in ['generator', 'transmitter', 'powe
     'barrel', 'desk', 'chair', 'crate', 'lamp', 'flashlight', 'avatar', 'entity',
     'radio_rack', 'recorder', 'hand', 'rotary_phone', 'wall_clock', 'radiator',
     'fan_housing', 'fan_blades']}
+from equipment_art import register
+builders.update(register(globals()))
 catalog = []
 for index, (name, builder) in enumerate(builders.items()):
     before = set(bpy.data.objects)
@@ -503,6 +505,12 @@ def texture(name, base, tile=False):
                 variation -= drip * (1.2 if name == 'plaster' else 2.0)
             if name == 'muscle':
                 variation += math.sin(x * .7 + math.sin(y * .035) * 1.5) * .055
+            if name == 'wood':
+                variation += math.sin(x*.13 + math.sin(y*.018)*3 + math.sin(x*.03)*2)*.065
+            if name == 'fabric':
+                variation += ((x % 5 == 0) + (y % 5 == 0)) * -.025
+            if name == 'metal_wear':
+                variation -= max(0, math.sin(y*.27 + math.sin(x*.011))-.97)*1.2
             heights.append(variation)
             pixels.extend([max(.02, min(.95, c + variation)) for c in base] + [1])
     image.pixels.foreach_set(pixels)
@@ -536,6 +544,8 @@ texture('floor', (.29, .28, .24), tile=True)
 texture('concrete', (.3, .32, .3))
 texture('metal_wear', (.84, .81, .74))
 texture('muscle', (.88, .76, .7))
+texture('wood', (.7, .58, .42))
+texture('fabric', (.75, .73, .66))
 (MODELS / 'catalog.json').write_text(json.dumps(catalog, indent=2), encoding='utf-8')
 bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE / 'station_assets.blend'))

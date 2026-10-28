@@ -48,19 +48,32 @@ func _client() -> void:
 	var world: Node3D = GameManager.world
 	var player: Node3D = GameManager.local_player()
 	if not await until(func(): return world.players.get_child_count() == expected): return
-	check(player.role != "", "role replicated in spawn data")
+	check(player.role == NetworkManager.role_id(player.peer_id), "selected role exactly matches replicated character")
+	if player.role == "hunter":
+		check(player.loaded_shells == 1, "hunter starts with one replicated loaded shell")
 	var start: Vector3 = player.position
 	Input.action_press("forward")
 	await delay(0.85)
 	Input.action_release("forward")
 	await delay(0.25)
 	if not check(player.position.distance_to(start) > 0.8, "client input moves authoritative body and replicates back"): return
+	if player.role == "hunter":
+		NetworkManager.request_player_action.rpc_id(1, NetworkManager.round_id, "shoot", 0)
+		await delay(.25)
+		check(player.loaded_shells == 0, "client shot consumes server-owned ammunition")
 	# A stale-round command must be rejected before reaching any character.
 	NetworkManager.request_player_action.rpc_id(1, NetworkManager.round_id - 1, "flashlight", 0)
 	NetworkManager.request_role.rpc_id(1, 99)
 	report.rpc_id(1, "movement")
 	if not await until(func(): return world.objectives.generator_on, 20.0): return
 	check(world.objects.fuse.taken and world.objects.fuel.taken, "item and generator state replicated")
+	if not await until(func(): return world.objectives.emergency == "ventilation", 20.0): return
+	check(world.objectives.emergency_left > 110, "two-minute emergency countdown replicates")
+	if not await until(func(): return world.monster.state == world.monster.State.STUNNED): return
+	await delay(.15) # Presentation follows the received replicated state on the next frame.
+	check(world.monster.visible and world.monster.stunned_left > 50, "fallen monster remains visible on every peer")
+	report.rpc_id(1, "emergency")
+	if not await until(func(): return world.objectives.emergency.is_empty(), 12.0): return
 	if not await until(func(): return not world.objectives.result.is_empty(), 25.0): return
 	if not check(world.objectives.result.begins_with("Победа"), "cooperative win replicated"): return
 	report.rpc_id(1, "victory")
@@ -113,22 +126,53 @@ func _host() -> void:
 	await delay(0.65)
 	Input.action_release("forward")
 	check(player.position.z < 12.7, "outer wall blocks movement")
-	if not await pickup(player, world.objects.fuse, Vector3(-7, 0.05, 8.5)): return
+	place(player, Vector3(-7, .05, 9.7), world.objects.fuse_safe.position)
+	await delay(.1)
+	world.unlock_safe("fuse_safe", "000")
+	check(world.objects.fuse.concealed, "wrong safe code keeps fuse inaccessible")
+	world.unlock_safe("fuse_safe", "417")
+	await delay(.1)
+	if not await pickup(player, world.objects.fuse, Vector3(-7, .05, 9.7)): return
 	before = player.inventory.size()
 	world.items.pickup(player, world.objects.fuse)
 	check(player.inventory.size() == before, "same item cannot be picked up twice")
-	if not await pickup(player, world.objects.fuel, Vector3(-12, 0.05, 8.5)): return
+	place(player, Vector3(-10, .05, -18.4), world.objects.work_locker.position)
+	await delay(.1)
+	world.interact_object(player, world.objects.work_locker)
+	await delay(.1)
+	if not await pickup(player, world.objects.service_key, Vector3(-10, .05, -18.4)): return
+	place(player, Vector3(-12, .05, 9.8), world.objects.fuel_cage.position)
+	await delay(.1)
+	world.interact_object(player, world.objects.fuel_cage)
+	await delay(.1)
+	if not await pickup(player, world.objects.fuel, Vector3(-12, .05, 9.8)): return
 	place(player, Vector3(-10, 0.05, 2), world.objects.generator.position)
 	Input.action_press("interact")
 	if not await until(func(): return world.objectives.generator_on): return
 	Input.action_release("interact")
 	check(not "fuel" in player.inventory and not "fuse" in player.inventory, "generator consumes resources on host")
-	if not await pickup(player, world.objects.key, Vector3(-11, 0.05, -8.8)): return
+	player.inventory.erase("service_key")
+	place(player, Vector3(-8, .05, -7.4), world.objects.residence_locker.position)
+	await delay(.1)
+	world.interact_object(player, world.objects.residence_locker)
+	await delay(.1)
+	if not await pickup(player, world.objects.key, Vector3(-8, .05, -7.4)): return
 	place(player, Vector3(1.3, 0.05, 0), world.objects.door_9_0.position)
 	await delay(0.1)
 	world.interact_object(player, world.objects.door_9_0)
 	check(world.objects.door_9_0.opened and not world.objects.door_9_0.locked, "key unlocks archive")
-	if not await pickup(player, world.objects.cassette, Vector3(10, 0.05, 3.2)): return
+	place(player, Vector3(9, .05, 3.1), world.objects.archive_locker.position)
+	await delay(.1)
+	world.interact_object(player, world.objects.archive_locker)
+	await delay(.1)
+	if not await pickup(player, world.objects.cassette, Vector3(9, .05, 3.1)): return
+	for index: int in range(3):
+		var relay: Node3D = world.objects["relay_%d" % index]
+		place(player, relay.position + Vector3(0, -1.25, 1.8), relay.position)
+		await delay(.1)
+		for turn: int in range(world.objectives.RELAY_SOLUTION[index]):
+			world.interact_object(player, relay)
+	check(world.objectives.relay_values == world.objectives.RELAY_SOLUTION, "relay puzzle accepts the documented circuit")
 	# Perception unit checks run against real station collisions.
 	world.monster.position = Vector3(0, 0.05, -7)
 	world.monster.state = world.monster.State.PATROL
@@ -148,6 +192,18 @@ func _host() -> void:
 	player.inventory.append("battery")
 	world.items.use(player, player.inventory.size() - 1)
 	check(player.battery == 75.0, "battery item restores flashlight")
+	world.monster.neutralize()
+	world.objectives.sabotage("ventilation")
+	if not await until(func():
+		for id: int in client_reports:
+			if str(client_reports[id]) != "emergency": return false
+		return true
+	): return
+	place(player, Vector3(-10, .05, -42.2), world.objects.ventilation.position)
+	Input.action_press("interact")
+	if not await until(func(): return world.objectives.emergency.is_empty(), 12.0): return
+	Input.action_release("interact")
+	check(world.objectives.emergency_left == 0, "emergency repair cancels countdown for the team")
 	place(player, Vector3(10, 0.05, -6), world.objects.transmitter.position)
 	Input.action_press("interact")
 	await delay(1.0)
@@ -191,8 +247,9 @@ func _host() -> void:
 	if not await until(func(): return NetworkManager.in_match and GameManager.local_player() != null): return
 	for member: Node3D in GameManager.world.players.get_children():
 		member.health = 0.0
+		member.dead = true
 	GameManager.world.objectives.tick(0.1)
-	check(GameManager.world.objectives.result.begins_with("Все"), "entire downed team loses round")
+	check(GameManager.world.objectives.result.begins_with("Все"), "entire deceased team loses round")
 	print("TEST_PASS host: %s-player LAN lifecycle" % expected)
 	shutdown.rpc()
 

@@ -11,10 +11,12 @@ func _run() -> void:
 	await get_tree().create_timer(0.8).timeout
 	await shot("menu.png")
 	NetworkManager.host_room("Техник", 27948)
+	NetworkManager.choose_role(2)
 	NetworkManager.start_round(true)
 	await get_tree().create_timer(1.5).timeout
 	var player: Node3D = GameManager.local_player()
 	player.input_enabled = false
+	player.inventory = PackedStringArray(["fuse", "fuel", "key", "medkit"])
 	player.local_aim = Vector2.ZERO
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	await get_tree().create_timer(.3).timeout
@@ -66,9 +68,52 @@ func _run() -> void:
 	await get_tree().create_timer(.7).timeout
 	await shot("entity_crawl.png")
 	await shot("entity.png")
+	GameManager.world.monster.neutralize()
+	await get_tree().create_timer(1.3).timeout
+	await shot("entity_down.png")
+	player.position = Vector3(0, .05, -16)
+	player.net_position = player.position
+	player.local_aim = Vector2(0, .02)
+	await get_tree().create_timer(.5).timeout
+	await shot("north_wing.png")
+	player.position = Vector3(-10, .05, -41.5)
+	player.net_position = player.position
+	player.local_aim = Vector2(0, -.05)
+	await get_tree().create_timer(.5).timeout
+	GameManager.world.objectives.sabotage("ventilation")
+	await get_tree().create_timer(.3).timeout
+	await shot("vent_emergency.png")
+	GameManager.world.objectives.emergency = ""
+	GameManager.interface.show_notice("")
+	player.position = Vector3(0, .05, -16)
+	player.net_position = player.position
+	player.damage(100)
+	player.down_time = 75
+	await get_tree().create_timer(1.1).timeout
+	var observer := Camera3D.new()
+	GameManager.world.add_child(observer)
+	observer.position = player.position + Vector3(2.1, 1.9, 1.8)
+	observer.look_at(player.position + Vector3(0, .2, 0))
+	observer.make_current()
+	var qa_light := OmniLight3D.new()
+	qa_light.position = observer.position
+	qa_light.omni_range = 7
+	qa_light.light_energy = 1.2
+	GameManager.world.add_child(qa_light)
+	await get_tree().create_timer(.3).timeout
+	await shot("player_down.png")
+	player.revive()
+	player.camera.make_current()
+	qa_light.queue_free()
 	GameManager.interface._show_pause()
 	GameManager.interface._show_settings(true)
 	await get_tree().create_timer(0.3).timeout
 	await shot("settings.png")
+	GameManager.interface._show_settings(true, 1)
+	await get_tree().create_timer(.3).timeout
+	await shot("audio_settings.png")
+	GameManager.interface._show_settings(true, 2)
+	await get_tree().create_timer(.3).timeout
+	await shot("controls_settings.png")
 	NetworkManager.leave()
 	get_tree().quit()

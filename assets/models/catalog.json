@@ -1,27 +1,27 @@
 [
   {
     "model": "generator",
-    "triangles": 508
+    "triangles": 1108
   },
   {
     "model": "transmitter",
-    "triangles": 1008
+    "triangles": 1296
   },
   {
     "model": "power",
-    "triangles": 312
+    "triangles": 600
   },
   {
     "model": "door",
-    "triangles": 284
+    "triangles": 428
   },
   {
     "model": "cassette",
-    "triangles": 212
+    "triangles": 356
   },
   {
     "model": "fuel",
-    "triangles": 168
+    "triangles": 336
   },
   {
     "model": "fuse",
@@ -37,39 +37,39 @@
   },
   {
     "model": "medkit",
-    "triangles": 92
+    "triangles": 236
   },
   {
     "model": "shelf",
-    "triangles": 252
+    "triangles": 684
   },
   {
     "model": "cot",
-    "triangles": 352
+    "triangles": 736
   },
   {
     "model": "locker",
-    "triangles": 164
+    "triangles": 308
   },
   {
     "model": "barrel",
-    "triangles": 336
+    "triangles": 360
   },
   {
     "model": "desk",
-    "triangles": 128
+    "triangles": 272
   },
   {
     "model": "chair",
-    "triangles": 304
+    "triangles": 736
   },
   {
     "model": "crate",
-    "triangles": 92
+    "triangles": 236
   },
   {
     "model": "lamp",
-    "triangles": 140
+    "triangles": 284
   },
   {
     "model": "flashlight",
@@ -77,19 +77,19 @@
   },
   {
     "model": "avatar",
-    "triangles": 656
+    "triangles": 1376
   },
   {
     "model": "entity",
-    "triangles": 7216
+    "triangles": 30132
   },
   {
     "model": "radio_rack",
-    "triangles": 1204
+    "triangles": 1924
   },
   {
     "model": "recorder",
-    "triangles": 412
+    "triangles": 556
   },
   {
     "model": "hand",
@@ -97,7 +97,7 @@
   },
   {
     "model": "rotary_phone",
-    "triangles": 608
+    "triangles": 752
   },
   {
     "model": "wall_clock",
@@ -105,14 +105,54 @@
   },
   {
     "model": "radiator",
-    "triangles": 556
+    "triangles": 1924
   },
   {
     "model": "fan_housing",
-    "triangles": 416
+    "triangles": 560
   },
   {
     "model": "fan_blades",
-    "triangles": 220
+    "triangles": 796
+  },
+  {
+    "model": "shotgun",
+    "triangles": 2552
+  },
+  {
+    "model": "shell",
+    "triangles": 196
+  },
+  {
+    "model": "safe",
+    "triangles": 952
+  },
+  {
+    "model": "safe_door",
+    "triangles": 624
+  },
+  {
+    "model": "locker_shell",
+    "triangles": 1340
+  },
+  {
+    "model": "locker_door",
+    "triangles": 516
+  },
+  {
+    "model": "cage",
+    "triangles": 1108
+  },
+  {
+    "model": "cage_door",
+    "triangles": 388
+  },
+  {
+    "model": "vent_unit",
+    "triangles": 1280
+  },
+  {
+    "model": "vent_grate",
+    "triangles": 1972
   }
 ]

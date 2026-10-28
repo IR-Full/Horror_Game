@@ -78,6 +78,19 @@ func _create_player(data: Dictionary) -> Node:
 func spawn_players() -> void:
 	if not multiplayer.is_server():
 		return
+	var ammo_positions: Array = get_meta("ammo_positions")
+	ammo_positions.shuffle()
+	var repeated: bool = NetworkManager.last_shell_positions.size() == 4
+	for i: int in range(4):
+		if not ammo_positions[i] in NetworkManager.last_shell_positions:
+			repeated = false
+	if repeated:
+		var previous: Vector3 = ammo_positions[0]
+		ammo_positions[0] = ammo_positions[4]
+		ammo_positions[4] = previous
+	NetworkManager.last_shell_positions = ammo_positions.slice(0, 4)
+	for i: int in range(4):
+		objects["shell_%d" % i].position = ammo_positions[i]
 	var index: int = 0
 	for id: int in NetworkManager.members:
 		spawner.spawn({"id": id, "nickname": NetworkManager.members[id].name, "role": NetworkManager.role_id(id), "position": Vector3(-1.2 + (index % 2) * 2.0, 0.15, 10.5 - floori(index / 2.0) * 1.8)})
@@ -166,7 +179,7 @@ func _build_station() -> void:
 	environment.background_color = Color("0c141b")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("91a6ac")
-	environment.ambient_light_energy = 0.10
+	environment.ambient_light_energy = 0.075
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	world_environment.environment = environment
 	add_child(world_environment)
@@ -176,14 +189,15 @@ func _build_station() -> void:
 	block(Vector3(0, 3.4, 0), Vector3(30, 0.2, 26), "202c30")
 	for x: float in [-15.0, 15.0]:
 		block(Vector3(x, 1.6, 0), Vector3(0.3, 3.2, 26), "465354")
-	for z: float in [-13.0, 13.0]:
-		block(Vector3(0, 1.6, z), Vector3(30, 3.2, 0.3), "465354")
+	block(Vector3(0, 1.6, 13), Vector3(30, 3.2, .3), "465354")
+	for x: float in [-9, 9]:
+		block(Vector3(x, 1.6, -13), Vector3(12, 3.2, .3), "465354")
 	for x: float in [-3.0, 3.0]:
 		for z: float in [-11.0, -4.0, 4.0, 11.0]:
 			var depth: float = 3.8 if absf(z) == 11.0 else 5.8
 			block(Vector3(x, 1.6, z), Vector3(0.22, 3.2, depth), "4c5b58")
 		for z: float in [-8.0, 0.0, 8.0]:
-			block(Vector3(x, 2.95, z), Vector3(0.26, 0.7, 2.2), "45524f")
+			door_frame(x, z)
 	for z: float in [-4.0, 4.0]:
 		for x: float in [-9.0, 9.0]:
 			block(Vector3(x, 1.6, z), Vector3(12, 3.2, 0.22), "475653")
@@ -191,8 +205,8 @@ func _build_station() -> void:
 		# Thin walkway seams and wall trim add scale without extra textures.
 		block(Vector3(0, 0.008, z), Vector3(5.7, 0.012, 0.025), "17272c", false)
 	for x: float in [-2.82, 2.82]:
-		block(Vector3(x, 1.17, 0), Vector3(0.035, 0.045, 25.6), "807c5f", false)
-		block(Vector3(x, 2.72, 0), Vector3(0.045, 0.08, 25.6), "293e40", false)
+		for z: float in [-11, -4, 4, 11]:
+			block(Vector3(x, 1.17, z), Vector3(.035, .045, 3.8 if absf(z) == 11 else 5.8), "807c5f", false)
 	var rooms := [
 		["СКЛАД • 01", -9.0, 8.0], ["МЕДПУНКТ • 02", 9.0, 8.0],
 		["ГЕНЕРАТОРНАЯ • 03", -9.0, 0.0], ["АРХИВ • 04", 9.0, 0.0],
@@ -212,7 +226,7 @@ func _build_station() -> void:
 		lights.append(light)
 		sign_text(str(room[0]), Vector3(x, 2.35, z - 3.78), 0.0, 34)
 		var id := "door_%s_%s" % [int(x), int(z)]
-		var door := add_object(id, "door", "Дверь", Vector3(signf(x) * 3.0, 1.25, z))
+		var door := add_object(id, "door", "Дверь", Vector3(signf(x) * 3.0, 1.44, z))
 		door.opened = true
 		if x > 0 and z == 0.0:
 			door.opened = false
@@ -247,6 +261,12 @@ func _build_station() -> void:
 	add_object("generator", "generator", "ГЕНЕРАТОР • удерживать E", Vector3(-10, 0.6, 0))
 	add_object("transmitter", "transmitter", "ПЕРЕДАТЧИК • удерживать E", Vector3(10, 0.8, -8))
 	add_object("power", "power", "ЩИТ ПИТАНИЯ • удерживать E", Vector3(5.5, 1.2, -10.8))
+	preload("res://scripts/world/station_extension.gd").build(self)
+
+func door_frame(x: float, z: float) -> void:
+	block(Vector3(x, 3.09, z), Vector3(.32, .42, 2.28), "45524f")
+	for side: float in [-1, 1]:
+		block(Vector3(x, 1.44, z + side * 1.1), Vector3(.34, 2.88, .08), "293e40", false)
 
 func _prop_collision(pos: Vector3, size: Vector3) -> void:
 	var body := block(pos, size, "283d35")
@@ -285,17 +305,13 @@ func apply_quality() -> void:
 		light.distance_fade_length = 5.0
 
 func _build_navigation() -> void:
-	astar.region = Rect2i(-15, -13, 31, 27)
+	astar.region = Rect2i(-15, -51, 31, 65)
 	astar.cell_size = Vector2.ONE
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	astar.update()
 	for x: int in range(-15, 16):
-		for z: int in range(-13, 14):
-			var wall: bool = abs(x) >= 15 or abs(z) >= 13
-			if abs(x) == 3 and z not in [-8, 0, 8]:
-				wall = true
-			if abs(x) > 3 and abs(z) == 4:
-				wall = true
+		for z: int in range(-51, 14):
+			var wall: bool = abs(x) >= 15 or z <= -51 or z >= 13
 			for bounds: AABB in navigation_blocks:
 				if x > bounds.position.x - 0.3 and x < bounds.end.x + 0.3 and z > bounds.position.z - 0.3 and z < bounds.end.z + 0.3:
 					wall = true
@@ -309,15 +325,32 @@ func _update_doors_navigation() -> void:
 			for x: int in [4, 5]:
 				astar.set_point_solid(Vector2i(int(signf(object.position.x)) * x, roundi(object.position.z) + 1), object.opened)
 
-func find_path(from: Vector3, to: Vector3) -> PackedVector3Array:
-	var start := Vector2i(clampi(roundi(from.x), -14, 14), clampi(roundi(from.z), -12, 12))
-	var goal := Vector2i(clampi(roundi(to.x), -14, 14), clampi(roundi(to.z), -12, 12))
+func find_path(from: Vector3, to: Vector3, for_monster: bool = false) -> PackedVector3Array:
+	if for_monster:
+		for object: Node3D in objects.values():
+			if object.kind == "door" and not object.locked:
+				astar.set_point_solid(Vector2i(roundi(object.position.x), roundi(object.position.z)), false)
+	var start := _nearest_walkable(Vector2i(clampi(roundi(from.x), -14, 14), clampi(roundi(from.z), -50, 12)))
+	var goal := _nearest_walkable(Vector2i(clampi(roundi(to.x), -14, 14), clampi(roundi(to.z), -50, 12)))
 	var path := PackedVector3Array()
 	if astar.is_point_solid(start) or astar.is_point_solid(goal):
+		_update_doors_navigation()
 		return path
 	for point: Vector2 in astar.get_point_path(start, goal):
 		path.append(Vector3(point.x, 0.05, point.y))
+	if for_monster:
+		_update_doors_navigation()
 	return path
+
+func _nearest_walkable(point: Vector2i) -> Vector2i:
+	if not astar.is_point_solid(point):
+		return point
+	for radius: int in range(1, 3):
+		for offset: Vector2i in [Vector2i(radius, 0), Vector2i(-radius, 0), Vector2i(0, radius), Vector2i(0, -radius)]:
+			var candidate := point + offset
+			if astar.is_in_boundsv(candidate) and not astar.is_point_solid(candidate):
+				return candidate
+	return point
 
 func target_for(player: Node3D) -> Object:
 	var origin: Vector3 = player.eye_position()
@@ -357,7 +390,7 @@ func _physics_process(delta: float) -> void:
 					_revive_target(player, target, delta)
 				elif target.get("object_id") != null:
 					revive_progress.erase(id)
-					if target.kind in ["generator", "transmitter", "power"]:
+					if target.kind in ["generator", "transmitter", "power", "ventilation"]:
 						objectives.interact(player, target)
 					elif not bool(was_holding.get(id, false)):
 						interact_object(player, target)
@@ -371,7 +404,7 @@ func _physics_process(delta: float) -> void:
 	objectives.tick(delta)
 	event_clock -= delta
 	if event_clock <= 0.0 and objectives.result.is_empty():
-		event_clock = randf_range(22.0, 38.0)
+		event_clock = randf_range(12.0, 22.0)
 		flicker_event.rpc()
 		_run_horror_event()
 	state_clock -= delta
@@ -429,6 +462,8 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 				return
 			object.locked = false
 		if object.opened:
+			if monster.position.distance_to(object.position - Vector3.UP * 1.44) < 2.1:
+				return
 			for other: Node3D in players.get_children():
 				if absf(other.position.x - object.position.x) < 0.6 and absf(other.position.z - object.position.z) < 1.3:
 					return # Don't close a collision shape inside another player.
@@ -438,8 +473,77 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		make_noise(object.position, 7.0)
 		sound_event.rpc("door", object.position)
 		sync_state()
+	elif object.kind in ["locker_container", "safe", "cage"]:
+		if object.kind == "safe" and not object.opened:
+			container_prompt.rpc_id(player.peer_id, object.object_id)
+			return
+		if object.locked and not object.required_key in player.inventory:
+			tell(player.peer_id, "Заперто. Служебный ключ — в шкафчике мастерской, сектор 07.")
+			return
+		object.locked = false
+		object.opened = not object.opened
+		object.refresh()
+		refresh_containers()
+		sound_event.rpc("door", object.position)
+		sync_state()
+	elif object.kind == "note":
+		document_prompt.rpc_id(player.peer_id, object.title, object.description)
+	elif object.kind == "relay":
+		var index: int = int(object.object_id.trim_prefix("relay_"))
+		objectives.relay_values[index] = (int(objectives.relay_values[index]) + 1) % 4
+		tell(player.peer_id, "Реле %s: %d" % [["A", "B", "C"][index], objectives.relay_values[index]])
+		sound_event.rpc("knock", object.position)
+		sync_state()
+	elif object.kind == "hatch":
+		if player.crouched:
+			player.position = object.destination
+			player.net_position = player.position
+			make_noise(object.position, 20)
+			sound_event.rpc("scrape", object.position)
+		else:
+			tell(player.peer_id, "Присядьте, чтобы пролезть в вентканал.")
 	else:
 		items.pickup(player, object)
+
+func refresh_containers() -> void:
+	for object: Node3D in objects.values():
+		if not object.container_id.is_empty():
+			object.concealed = not objects[object.container_id].opened
+			object.refresh()
+
+@rpc("authority", "call_local", "reliable")
+func container_prompt(id: String) -> void:
+	GameManager.interface.open_safe(id)
+
+@rpc("any_peer", "call_local", "reliable")
+func unlock_safe(id: String, code: String) -> void:
+	if not multiplayer.is_server() or not NetworkManager.in_match or not objects.has(id):
+		return
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = 1
+	var player: Node3D = players.get_node_or_null(str(sender))
+	var object: Node3D = objects[id]
+	if not player or player.health <= 0 or not objectives.result.is_empty() or object.kind != "safe" or target_for(player) != object:
+		return
+	if code == object.code:
+		object.opened = true
+		object.refresh()
+		refresh_containers()
+		sync_state()
+	else:
+		tell(sender, "Неверный код. Листок кладовщика — в медпункте.")
+	make_noise(object.position, 10)
+
+@rpc("authority", "call_local", "reliable")
+func document_prompt(title: String, content: String) -> void:
+	GameManager.interface.show_document(title, content)
+
+@rpc("authority", "call_local", "reliable")
+func announce(message: String) -> void:
+	GameManager.notice(message)
+	if message.begins_with("АВАРИЯ"):
+		AudioManager.play_local("alarm")
 
 func _revive_target(player: Node3D, other: Node3D, delta: float) -> void:
 	if other.health > 0.0 or other.dead:
@@ -461,6 +565,12 @@ func make_noise(pos: Vector3, radius: float) -> void:
 @rpc("authority", "call_local", "unreliable", 2)
 func sound_event(kind: String, pos: Vector3) -> void:
 	AudioManager.play_at(kind, pos)
+
+@rpc("authority", "call_local", "reliable")
+func shot_event(id: int) -> void:
+	var player: Node3D = players.get_node_or_null(str(id))
+	if player:
+		player.show_shot()
 
 @rpc("authority", "call_local", "reliable")
 func flicker_event() -> void:
@@ -486,7 +596,7 @@ func sync_state() -> void:
 	var state: Dictionary = {}
 	for id: String in objects:
 		var object: Node3D = objects[id]
-		state[id] = [object.taken, object.opened, object.locked]
+		state[id] = [object.taken, object.opened, object.locked, object.position]
 	receive_state.rpc(objectives.snapshot(), state)
 
 @rpc("authority", "call_remote", "reliable")
@@ -497,4 +607,6 @@ func receive_state(goal: Dictionary, state: Dictionary) -> void:
 			objects[id].taken = bool(state[id][0])
 			objects[id].opened = bool(state[id][1])
 			objects[id].locked = bool(state[id][2])
+			objects[id].position = state[id][3]
 			objects[id].refresh()
+	refresh_containers()

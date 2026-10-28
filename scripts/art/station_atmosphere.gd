@@ -32,6 +32,7 @@ func build(world: Node3D) -> void:
 		generator_sound.stream = AudioManager.sounds.motor
 		generator_sound.position = Vector3(-10, .8, 0)
 		generator_sound.volume_db = -20
+		generator_sound.bus = "Ambience"
 		generator_sound.max_distance = 15
 		add_child(generator_sound)
 	SettingsManager.changed.connect(_quality_changed)
@@ -83,9 +84,9 @@ func _build_details() -> void:
 	var index: int = 0
 	for z: float in [8, 0, -8]:
 		for side: float in [-1, 1]:
-			var pos := Vector3(side * 2.83, 2.38, z)
-			station.block(pos, Vector3(.035, .29, 1.8), "1b302e", false)
-			station.sign_text(room_names[index], pos + Vector3(-side * .035, 0, 0), PI / 2 if side < 0 else -PI / 2, 16)
+			var pos := Vector3(side * 2.83, 2.20, z + 1.9)
+			station.block(pos, Vector3(.035, .29, 1.25), "1b302e", false)
+			station.sign_text(room_names[index], pos + Vector3(-side * .035, 0, 0), PI / 2 if side < 0 else -PI / 2, 11)
 			index += 1
 	for x: float in [-2.79, 2.79]:
 		for z: float in [-11, -4, 4, 11]:
@@ -125,10 +126,10 @@ func _build_details() -> void:
 		emergency_lights.append(red)
 		station.block(pos, Vector3(.16, .15, .22), "b85333", false, 1.2)
 	# Main dispatch board at the end of the corridor.
-	station.block(Vector3(0, 1.9, -12.77), Vector3(3.4, 1.5, .06), "172723", false)
-	station.sign_text("РАДИОСТАНЦИЯ РС–17", Vector3(0, 2.23, -12.71), 0, 27)
-	station.sign_text("СМЕНА НЕ ЗАКОНЧЕНА", Vector3(0, 1.83, -12.7), 0, 20)
-	station.sign_text("НЕ СЛУШАЙТЕ ЧАСТОТУ 17.4", Vector3(0, 1.47, -12.7), 0, 15)
+	station.block(Vector3(0, 1.9, -50.77), Vector3(3.4, 1.5, .06), "172723", false)
+	station.sign_text("РАДИОСТАНЦИЯ РС–17", Vector3(0, 2.23, -50.71), 0, 27)
+	station.sign_text("СМЕНА НЕ ЗАКОНЧЕНА", Vector3(0, 1.83, -50.7), 0, 20)
+	station.sign_text("НЕ СЛУШАЙТЕ ЧАСТОТУ 17.4", Vector3(0, 1.47, -50.7), 0, 15)
 	apparition = ART.model("entity")
 	apparition.hide()
 	add_child(apparition)
@@ -262,7 +263,7 @@ func _process(delta: float) -> void:
 	last_health = player.health
 	damage_flash = maxf(0, damage_flash - delta * .55)
 	var stress: float = 0.0
-	if is_instance_valid(station.monster) and station.monster.state != 0 and station.objectives.result.is_empty():
+	if is_instance_valid(station.monster) and station.monster.state not in [0, 6] and station.objectives.result.is_empty():
 		stress = clampf(1.0 - player.position.distance_to(station.monster.position) / 10.0, 0, 1)
 	overlay.set_shader_parameter("stress", stress)
 	overlay.set_shader_parameter("damage", maxf(damage_flash, .4 if player.health <= 0 else 0))

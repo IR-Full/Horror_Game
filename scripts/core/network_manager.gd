@@ -8,7 +8,9 @@ signal left_room
 
 const DEFAULT_PORT := 27840
 const MAX_PLAYERS := 4
-const PROTOCOL := 1
+const PROTOCOL := 4
+const ROLES := ["technician", "medic", "hunter"]
+const ROLE_LABELS := ["Техник", "Медик", "Охотник"]
 var members: Dictionary = {}
 var active: bool = false
 var in_match: bool = false
@@ -23,6 +25,7 @@ var unload_acks: Dictionary = {}
 var unload_notice: String = ""
 var unload_sent: bool = false
 var round_id: int = 0
+var last_shell_positions: Array = []
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_peer_connected)
@@ -120,8 +123,10 @@ func register_player(nickname: String, protocol: int) -> void:
 	for entry: Dictionary in members.values():
 		taken.append(int(entry.role))
 	var role: int = 0
-	while role in taken:
+	while role in taken and role < 2:
 		role += 1
+	if role in taken:
+		role = 0
 	members[sender] = {"name": clean_name(nickname), "role": role}
 	_sync_lobby.rpc(members)
 
@@ -139,13 +144,9 @@ func request_role(role: int) -> void:
 func _set_role(id: int, role: int) -> void:
 	if in_match or loading or unloading or not members.has(id):
 		return
-	var count: int = 2 if members.size() <= 2 else 4
+	var count: int = 3
 	if role < 0 or role >= count:
 		return
-	for other: int in members:
-		if other != id and int(members[other].role) == role:
-			members[other].role = int(members[id].role)
-			break
 	members[id].role = role
 	_sync_lobby.rpc(members)
 
@@ -156,16 +157,13 @@ func _sync_lobby(roster: Dictionary) -> void:
 
 func role_id(peer_id: int) -> String:
 	var index: int = int(members[peer_id].role)
-	return ["tech_scout", "med_operator"][mini(index, 1)] if members.size() <= 2 else ["technician", "scout", "medic", "operator"][index]
+	return ROLES[clampi(index, 0, 2)]
 
 func start_round(practice: bool = false) -> void:
 	if not multiplayer.is_server() or not active or loading or unloading or in_match:
 		return
 	if members.size() < 2 and not practice:
 		return
-	if members.size() == 1:
-		members[1].role = 0
-		_sync_lobby.rpc(members)
 	ready_peers.clear()
 	_prepare_round.rpc(round_id + 1)
 
@@ -235,12 +233,6 @@ func _mark_unloaded(id: int) -> void:
 		return
 	unload_acks[id] = true
 	if unload_acks.size() == members.size():
-		if members.size() <= 2:
-			var index: int = 0
-			for peer_id: int in members:
-				members[peer_id].role = index
-				index += 1
-			_sync_lobby.rpc(members)
 		_finish_lobby.rpc()
 
 @rpc("authority", "call_local", "reliable")
@@ -274,11 +266,6 @@ func _peer_disconnected(id: int) -> void:
 	if in_match and is_instance_valid(GameManager.world):
 		GameManager.world.remove_player(id)
 	members.erase(id)
-	if members.size() <= 2 and not in_match:
-		var index: int = 0
-		for peer_id: int in members:
-			members[peer_id].role = index
-			index += 1
 	_sync_lobby.rpc(members)
 	if loading:
 		abort_round("Загрузка отменена: игрок отключился.")

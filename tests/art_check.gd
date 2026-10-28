@@ -15,7 +15,7 @@ func check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var catalog: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/catalog.json"))
-	check(catalog.size() == 29, "all 29 authored models are catalogued")
+	check(catalog.size() == 39, "all 39 authored models are catalogued")
 	for entry: Dictionary in catalog:
 		var model := ART.model(str(entry.model))
 		var meshes: Array[Node] = model.find_children("*", "MeshInstance3D", true, false)
@@ -25,7 +25,7 @@ func _run() -> void:
 			var players: Array[Node] = model.find_children("*", "AnimationPlayer", true, false)
 			check(not players.is_empty(), "entity animation player imports")
 			if not players.is_empty():
-				check(players[0].get_animation_list().size() >= 5, "five creature clips import")
+				check(players[0].get_animation_list().size() >= 11, "eleven creature clips import")
 		model.free()
 	for kind: String in ["plaster", "paint", "floor", "concrete", "metal_wear"]:
 		check(ResourceLoader.exists("res://assets/textures/%s_normal.png" % kind), "normal map: " + kind)
@@ -34,7 +34,7 @@ func _run() -> void:
 	await get_tree().create_timer(.3).timeout
 	var world: Node3D = GameManager.world
 	var creature: Node3D = world.monster
-	check(creature.clip_names.has_all(["Idle", "Walk", "DropToCrawl", "Crawl", "Rise"]), "all creature animation states resolve")
+	check(creature.clip_names.has_all(["Idle", "Walk", "DropToCrawl", "Crawl", "Rise", "Roar", "Bash", "Fall", "FallCrawl", "Down", "GetUp"]), "all creature animation states resolve")
 	if creature.animation:
 		creature.set_process(false)
 		var skeletons: Array[Node] = creature.mesh.find_children("*", "Skeleton3D", true, false)
@@ -53,8 +53,8 @@ func _run() -> void:
 		creature.visual_mode = "Idle"
 		creature.set_process(true)
 	check(world.atmosphere.get_node("StationDressing").paper_count == 45, "batched papers built")
-	check(world.atmosphere.get_node("BloodTraces").pool_count == 6, "six authored blood pools built")
-	check(world.atmosphere.get_node("BloodTraces").message_count == 3, "blood writing built")
+	check(world.atmosphere.get_node("BloodTraces").pool_count == 10, "ten authored blood pools built")
+	check(world.atmosphere.get_node("BloodTraces").message_count == 4, "blood writing built")
 	var player: Node3D = GameManager.local_player()
 	player.input_enabled = false
 	check(world.find_path(Vector3(0, 0, 10), Vector3(-10, 0, 2)).size() > 1, "new props leave generator route open")
@@ -90,7 +90,7 @@ func _run() -> void:
 	check(creature.crawl_amount > .9 and creature.body_shape.shape.height < 1.3, "chase lowers authoritative collision body")
 	check(creature.visual_mode == "Crawl", "drop transitions into quadruped run")
 	check(creature.position.z > -1.5, "quadruped pursuit moves toward the victim")
-	for kind: String in ["whisper", "knock", "heartbeat", "motor", "breath", "scrape", "roar", "growl", "crawl_impact"]:
+	for kind: String in ["whisper", "knock", "heartbeat", "motor", "breath", "scrape", "roar", "growl", "crawl_impact", "smash", "shotgun", "pain", "sos", "alarm"]:
 		var sound: AudioStreamWAV = AudioManager._make_sound(kind)
 		check(sound.data.size() > 6000, "generated audio: " + kind)
 	NetworkManager.leave()

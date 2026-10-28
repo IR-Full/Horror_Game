@@ -5,6 +5,7 @@ Called by build_art.py inside Blender. Coordinates are Godot metres (Y up).
 import math
 import bpy
 from mathutils import Vector, Matrix
+from mathutils.kdtree import KDTree
 
 HIP = Vector((0, 1.22, .045))
 CHEST = Vector((0, 2.18, .02))
@@ -28,7 +29,12 @@ def build_creature(api):
         return obj
 
     def tissue(name, pos, size, material, bone, detail=2):
-        return tag(ball(name, pos, size, material, detail), bone)
+        obj = tag(ball(name, pos, size, material, max(2, detail)), bone)
+        for v in obj.data.vertices:
+            p = v.co
+            ripple = math.sin(p.x*47+p.z*19)*math.sin(p.y*39+p.z*13)
+            p *= 1 + ripple*.035
+        return obj
 
     def line(name, a, b, radius, material, bone, tip=None):
         return tag(rod(name, a, b, radius, material, 9, tip), bone)
@@ -36,7 +42,7 @@ def build_creature(api):
     def muscle(name, a, b, radius, bone):
         av, bv = coord(a), coord(b)
         direction = bv - av
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=1, location=(av + bv) * .5)
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=12, radius=1, location=(av + bv) * .5)
         obj = bpy.context.object
         obj.scale = (radius, radius * .85, direction.length * .54)
         obj.rotation_mode = 'QUATERNION'
@@ -96,7 +102,6 @@ def build_creature(api):
     for side in [-1, 1]:
         tissue('Temple bundle', (side * .105, 2.49, -.035), (.034, .12, .095), 'muscle_dark', 'Head')
         tissue('Eye cavity', (side * .055, 2.505 + side * .008, -.176), (.038, .024, .022), 'cavity', 'Head')
-        tissue('Small eye', (side * .055, 2.505 + side * .008, -.196), (.008, .005, .004), 'bone', 'Head')
         line('Cheek ridge', (side * .09, 2.47, -.15), (side * .055, 2.37, -.175), .016, 'tendon', 'Head')
     tissue('Mouth cavity', (0, 2.34, -.16), (.06, .09, .034), 'cavity', 'Head')
     tissue('Mouth blood', (.045, 2.27, -.152), (.045, .05, .018), 'clotted_blood', 'Head')
@@ -107,6 +112,59 @@ def build_creature(api):
     for i in range(8):
         y = 1.4 + i * .085
         tissue('Exposed spine', (0, y, .18), (.026, .025, .027), 'tendon', 'Spine', 1)
+    # Fuse the anatomy into one deforming surface, retaining the nearest anatomical
+    # weights. Separate bony edges, torn strands and clots remain layered details.
+    organic_surface(api)
+
+
+def organic_surface(api):
+    names = ('Pelvis', 'Ribcage core', 'Abdomen', 'Pectoral', 'Latissimus',
+             'Abdominal bundle', 'Deltoid', 'Upper arm', 'Forearm', 'Palm',
+             'Quadriceps', 'Calf', 'Foot', 'Skull muscle', 'Temple bundle', 'Neck core')
+    meshes = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.split('.')[0] in names and 'rig_bone' in o]
+    samples = []
+    for obj in meshes:
+        samples.extend((obj.matrix_world @ v.co, obj['rig_bone']) for v in obj.data.vertices)
+    tree = KDTree(len(samples))
+    for i, (p, _) in enumerate(samples): tree.insert(p, i)
+    tree.balance()
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in meshes: obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    bpy.ops.object.join()
+    obj = bpy.context.object
+    obj.name = 'Continuous exposed anatomy'
+    bpy.context.scene.cursor.location = (0, 0, 0)
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    remesh = obj.modifiers.new('Sculpt union', 'REMESH')
+    remesh.mode, remesh.voxel_size, remesh.adaptivity = 'VOXEL', .0105, .25
+    remesh.use_smooth_shade = True
+    bpy.ops.object.modifier_apply(modifier=remesh.name)
+    smooth = obj.modifiers.new('Relax anatomy', 'SMOOTH')
+    smooth.factor, smooth.iterations = .7, 4
+    bpy.ops.object.modifier_apply(modifier=smooth.name)
+    # Actual recessed sockets replace the earlier eyes stuck onto a rounded head.
+    for side in [-1, 1]:
+        cutter = api['ball']('Socket sculpt', (side*.055, 2.505+side*.008, -.183), (.047, .034, .046), 'cavity', 3)
+        bpy.context.view_layer.objects.active = obj
+        cut = obj.modifiers.new('Recessed orbit', 'BOOLEAN')
+        cut.operation, cut.object = 'DIFFERENCE', cutter
+        bpy.ops.object.modifier_apply(modifier=cut.name)
+        bpy.data.objects.remove(cutter, do_unlink=True)
+    obj.data.materials.clear()
+    obj.data.materials.append(api['M']['muscle'])
+    for face in obj.data.polygons:
+        face.material_index = 0
+        face.use_smooth = True
+    groups = {name: obj.vertex_groups.new(name=name) for name in set(b for _, b in samples)}
+    for v in obj.data.vertices:
+        nearby = tree.find_n(obj.matrix_world @ v.co, 4)
+        weights = {}
+        for _, index, distance in nearby:
+            bone = samples[index][1]
+            weights[bone] = weights.get(bone, 0) + 1/max(distance, .004)**2
+        total = sum(weights.values())
+        for bone, weight in weights.items(): groups[bone].add([v.index], weight/total, 'REPLACE')
 
 
 def rig_creature(meshes, api):
@@ -137,6 +195,8 @@ def rig_creature(meshes, api):
             bone.parent = data.edit_bones[parent]
     bpy.ops.object.mode_set(mode='OBJECT')
     for obj in meshes:
+        if obj.vertex_groups:
+            continue
         group = obj.vertex_groups.new(name=obj.get('rig_bone', 'Spine'))
         group.add(list(range(len(obj.data.vertices))), 1, 'REPLACE')
     lengths = {name: (Vector(tail) - Vector(head)).length for name, head, tail, _ in specs}
@@ -187,7 +247,7 @@ def rig_creature(meshes, api):
 
     bpy.context.scene.render.fps = 24
     actions = []
-    for clip, frames in [('Idle', 49), ('Walk', 25), ('DropToCrawl', 17), ('Crawl', 17), ('Rise', 17)]:
+    for clip, frames in [('Idle', 49), ('Walk', 25), ('DropToCrawl', 17), ('Crawl', 17), ('Rise', 17), ('Roar', 33), ('Bash', 29), ('Fall', 25), ('FallCrawl', 25), ('Down', 25), ('GetUp', 33)]:
         if rig.animation_data:
             rig.animation_data.action = None
         for frame in range(1, frames + 1, 2):
@@ -203,6 +263,32 @@ def rig_creature(meshes, api):
                 if clip == 'Idle':
                     a, b = pose['Head']
                     pose['Head'] = (a, b + Vector((math.sin(phase) * .015, 0, 0)))
+            if clip in ['Roar', 'Bash']:
+                lift = math.sin(t*math.pi)**2
+                a, b = pose['Head']
+                pose['Head'] = (a, b + Vector((.035*math.sin(phase*2), .035*lift, .12*lift)))
+                for side, suffix in [(1, 'L'), (-1, 'R')]:
+                    shoulder = pose['Arm_'+suffix][0]
+                    if clip == 'Bash':
+                        strike = max(0, min(1, (t-.48)*5))
+                        wrist = Vector((side*.35, 2.5*(1-strike)+.3*strike, -.5-.5*strike))
+                    else:
+                        wrist = Vector((side*(.44+.2*lift), .59+.45*lift, -.1))
+                    elbow, wrist = ik(shoulder, wrist, lengths['Arm_'+suffix], lengths['Forearm_'+suffix], (side, .1, .2))
+                    pose['Arm_'+suffix] = (shoulder, elbow)
+                    pose['Forearm_'+suffix] = (elbow, wrist)
+                    pose['Hand_'+suffix] = (wrist, wrist+Vector((0,-.22,-.13)))
+            if clip in ['Fall', 'FallCrawl', 'Down', 'GetUp']:
+                amount = 1 if clip == 'Down' else (t if clip in ['Fall', 'FallCrawl'] else 1-t)
+                amount = amount*amount*(3-2*amount)
+                rotation = Matrix.Rotation(math.pi*.5*amount, 3, 'X')
+                center = Vector((0, 1.19*(1-amount)+.22*amount, 0))
+                pose = {name: (center+rotation@(a-Vector((0,1.19,0))), center+rotation@(b-Vector((0,1.19,0)))) for name,(a,b) in targets(0,False).items()}
+                if clip == 'FallCrawl':
+                    fallen_center = Vector((0,.22,0))
+                    fallen_rotation = Matrix.Rotation(math.pi*.5, 3, 'X')
+                    low, upright = targets(0, True), targets(0, False)
+                    pose = {name: (low[name][0].lerp(fallen_center+fallen_rotation@(upright[name][0]-Vector((0,1.19,0))),amount), low[name][1].lerp(fallen_center+fallen_rotation@(upright[name][1]-Vector((0,1.19,0))),amount)) for name in low}
             for name, _, _, _ in specs:
                 head, tail = pose[name]
                 direction = coord(tail - head)

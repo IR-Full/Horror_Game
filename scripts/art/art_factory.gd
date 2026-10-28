@@ -16,23 +16,20 @@ static func model(kind: String) -> Node3D:
 			if original and original.resource_name in ["muscle", "muscle_dark", "tendon"]:
 				var flesh_key: String = "flesh_" + original.resource_name
 				if not worn_materials.has(flesh_key):
-					var flesh: StandardMaterial3D = original.duplicate()
-					flesh.albedo_texture = load("res://assets/textures/muscle.png")
-					flesh.normal_texture = load("res://assets/textures/muscle_normal.png")
-					flesh.normal_enabled = SettingsManager.quality > 0
-					flesh.normal_scale = .9
-					flesh.roughness = .58
-					flesh.uv1_triplanar = false
-					flesh.uv1_scale = Vector3(1.2, 1, 1)
+					var flesh := ShaderMaterial.new()
+					flesh.shader = preload("res://assets/shaders/flesh.gdshader")
+					flesh.set_shader_parameter("tint", original.albedo_color)
+					flesh.set_shader_parameter("detail", 1.0 if SettingsManager.quality > 0 else 0.0)
 					worn_materials[flesh_key] = flesh
 				child.set_surface_override_material(index, worn_materials[flesh_key])
 			if original and original.resource_name in ["enamel", "steel", "rust", "cream", "wood", "fabric", "red"]:
 				var key: String = original.resource_name
 				if not worn_materials.has(key):
 					var worn: StandardMaterial3D = original.duplicate()
-					worn.albedo_texture = load("res://assets/textures/metal_wear.png")
+					var texture_name: String = key if key in ["wood", "fabric"] else "metal_wear"
+					worn.albedo_texture = load("res://assets/textures/%s.png" % texture_name)
 					worn.normal_enabled = SettingsManager.quality > 0
-					worn.normal_texture = load("res://assets/textures/metal_wear_normal.png")
+					worn.normal_texture = load("res://assets/textures/%s_normal.png" % texture_name)
 					worn.normal_scale = .45
 					worn.uv1_triplanar = true
 					worn.uv1_scale = Vector3.ONE * 2.0
@@ -61,8 +58,11 @@ static func apply_quality() -> void:
 	for kind: String in surfaces:
 		surfaces[kind].normal_enabled = SettingsManager.quality > 0
 		surfaces[kind].roughness_texture = load("res://assets/textures/%s_roughness.png" % kind) if SettingsManager.quality > 0 else null
-	for material: StandardMaterial3D in worn_materials.values():
-		material.normal_enabled = SettingsManager.quality > 0
+	for material: Material in worn_materials.values():
+		if material is ShaderMaterial:
+			material.set_shader_parameter("detail", 1.0 if SettingsManager.quality > 0 else 0.0)
+		else:
+			material.normal_enabled = SettingsManager.quality > 0
 
 static func contact_shadow(parent: Node3D, at: Vector3, size: Vector2) -> Node3D:
 	var shadow := MeshInstance3D.new()

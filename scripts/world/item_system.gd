@@ -1,17 +1,24 @@
 extends Node
 ## Inventory mutations and pickups are called on the host only.
-const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка"}
+const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "service_key": "Служебный ключ", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка", "shell": "Патрон 12 калибра"}
 var station: Node3D
 var next_drop: int = 0
 
 func pickup(player: Node3D, object: Node3D) -> bool:
-	if not multiplayer.is_server() or object.taken or not NAMES.has(object.kind):
+	if not multiplayer.is_server() or object.taken or object.concealed or not NAMES.has(object.kind):
 		return false
+	if object.kind == "shell":
+		if player.role != "hunter":
+			station.tell(player.peer_id, "Патроны может забрать охотник.")
+			return false
+		player.reserve_shells += 1
+		object.taken = true
+		object.refresh()
+		station.sound_event.rpc("pickup", object.position)
+		station.sync_state()
+		return true
 	if player.inventory.size() >= player.capacity():
 		station.tell(player.peer_id, "Инвентарь заполнен. Q — выбрать предмет, G — положить.")
-		return false
-	if player.is_medic() and object.kind == "fuel" and station.living_player_count() > 1:
-		station.tell(player.peer_id, "Тяжёлую канистру должен нести напарник.")
 		return false
 	player.inventory.append(object.kind)
 	object.taken = true

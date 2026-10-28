@@ -1,33 +1,27 @@
 extends Node3D
 ## Original opaque blood meshes with small light bounds; no physics or extra lights.
-var floor_tool := SurfaceTool.new()
 var wall_tool := SurfaceTool.new()
 var pool_count: int = 0
 var message_count: int = 0
-var floor_material: StandardMaterial3D
 
 func build() -> void:
 	name = "BloodTraces"
-	for surface: SurfaceTool in [floor_tool, wall_tool]:
-		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-		var mat := StandardMaterial3D.new()
-		mat.vertex_color_use_as_albedo = true
-		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-		mat.roughness = .22 if surface == floor_tool else .85
-		mat.metallic_specular = .6
-		surface.set_material(mat)
-		if surface == floor_tool:
-			floor_material = mat
+	wall_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.roughness = .85
+	wall_tool.set_material(mat)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 170431
 	for data: Array in [[Vector3(1.45, .027, 1.9), Vector2(1.1, .55)], [Vector3(5.3, .027, -.8), Vector2(.7, .44)], [Vector3(10.4, .027, 9.7), Vector2(.9, .55)], [Vector3(-10.4, .027, -7.8), Vector2(.95, .55)], [Vector3(-12.7, .027, 1.1), Vector2(.7, .4)], [Vector3(8.2, .027, -6.8), Vector2(.65, .35)]]:
 		_pool(data[0], data[1], rng)
-		_flush_floor()
+	for data: Array in [[Vector3(9, .027, -20.4), Vector2(.9, .4)], [Vector3(-8.2, .027, -35.4), Vector2(.65, .4)], [Vector3(-10.9, .027, -43.4), Vector2(1.1, .55)], [Vector3(8.2, .027, -46.4), Vector2(1, .45)]]:
+		_pool(data[0], data[1], rng)
 	# Sparse drops lead out of sight, instead of filling every floor tile.
 	for i: int in range(25):
 		var pos := Vector3(1.3 + sin(i * .42) * .3, .027, 1.8 - i * .23)
 		_pool(pos, Vector2(rng.randf_range(.012, .045), rng.randf_range(.02, .07)), rng, false)
-	_flush_floor()
 	for side: float in [-1, 1]:
 		var x: float = side * 2.865
 		var z: float = 4.7 if side < 0 else -4.2
@@ -42,6 +36,7 @@ func build() -> void:
 	_message(Vector3(-2.853, 1.9, -4.3), PI / 2, "ОН СЛЫШИТ", .008)
 	_message(Vector3(2.853, 1.82, 4.7), -PI / 2, "НЕ БЕГИ", .009)
 	_message(Vector3(-9.5, 1.4, -12.7), 0, "МЫ НЕ ОДНИ", .008)
+	_message(Vector3(2.853, 1.8, -27.5), -PI/2, "ОН НЕ УМЕР", .008)
 	for side: float in [-1, 1]:
 		for i: int in range(7):
 			var z: float = (-4.3 if side < 0 else 4.7) + rng.randf_range(-.5, .5)
@@ -51,35 +46,25 @@ func build() -> void:
 	walls.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(walls)
 
-func _flush_floor() -> void:
-	# Small light bounds keep the local flashlight inside Compatibility's light budget.
+static func make_pool(at: Vector3, radius: Vector2, seed_value: float = 1.0) -> MeshInstance3D:
 	var object := MeshInstance3D.new()
-	object.mesh = floor_tool.commit()
+	var plane := PlaneMesh.new()
+	plane.size = radius * 2.25
+	object.mesh = plane
+	object.position = at
 	object.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(object)
-	floor_tool = SurfaceTool.new()
-	floor_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-	floor_tool.set_material(floor_material)
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://assets/shaders/blood_pool.gdshader")
+	mat.set_shader_parameter("seed", seed_value)
+	object.material_override = mat
+	return object
 
 func _pool(at: Vector3, radius: Vector2, rng: RandomNumberGenerator, count: bool = true) -> void:
 	if count:
 		pool_count += 1
-	var points: Array[Vector3] = []
-	var colors: Array[Color] = []
-	for i: int in range(18):
-		var angle: float = float(i) / 18.0 * TAU
-		var edge: float = rng.randf_range(.78, 1.08)
-		points.append(at + Vector3(cos(angle) * radius.x * edge, 0, sin(angle) * radius.y * edge))
-		colors.append(Color(.32, .025, .018).darkened(rng.randf_range(0, .08)))
-	points.append(points[0])
-	colors.append(colors[0])
-	for i: int in range(18):
-		var vertices: Array[Vector3] = [at, points[i], points[i + 1]]
-		var shades: Array[Color] = [Color(.20, .011, .008), colors[i], colors[i + 1]]
-		for vertex: int in range(3):
-			floor_tool.set_color(shades[vertex])
-			floor_tool.set_normal(Vector3.UP)
-			floor_tool.add_vertex(vertices[vertex])
+	var object := make_pool(at, radius, rng.randf_range(0, 100))
+	object.rotation.y = rng.randf_range(-PI, PI)
+	add_child(object)
 
 func _wall_streak(x: float, y: float, z: float, width: float, length: float, side: float) -> void:
 	var points: Array[Vector3] = [Vector3(x, y, z - width), Vector3(x, y + length, z - width * .6), Vector3(x, y + length * .9, z + width), Vector3(x, y - .05, z + width * .2)]

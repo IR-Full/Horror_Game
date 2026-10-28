@@ -40,7 +40,7 @@ func _weather() -> void:
 	rng.seed = 171741
 	# Irregular paint losses lie flush with the wall and share one mesh/material.
 	for side: float in [-1, 1]:
-		for center: float in [-11, -4, 4, 11]:
+		for center: float in [-47, -40, -35, -28, -23, -16, -11, -4, 4, 11]:
 			for chip: int in range(13):
 				var z: float = center + rng.randf_range(-1.3, 1.3)
 				var y: float = rng.randf_range(.15, 1.12)
@@ -87,7 +87,7 @@ func _prop(kind: String, at: Vector3, yaw: float = 0.0) -> Node3D:
 
 func _equipment() -> void:
 	_prop("rotary_phone", Vector3(9.1, 1.06, -10.3), .25)
-	_prop("wall_clock", Vector3(0, 2.95, -12.68), PI)
+	_prop("wall_clock", Vector3(0, 2.95, -50.78), PI)
 	for x: float in [-11, 11]:
 		_prop("radiator", Vector3(x, .02, -12.54), PI)
 	_prop("fan_housing", Vector3(-12.8, 2.4, -3.79), PI)
@@ -133,6 +133,6 @@ func _quality() -> void:
 func _process(delta: float) -> void:
 	if not is_instance_valid(station) or not NetworkManager.in_match:
 		return
-	if station.objectives.generator_on:
+	if station.objectives.generator_on and station.objectives.emergency != "ventilation":
 		fan_rotor.rotation.z += delta * 5.0
 	screens.set_shader_parameter("signal_strength", .9 if station.objectives.generator_on else .24)

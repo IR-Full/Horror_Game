@@ -2,25 +2,34 @@ extends Node
 ## Original synthesized sound design; no microphone or downloaded recordings.
 var sounds: Dictionary = {}
 var ambience: AudioStreamPlayer
+var music: AudioStreamPlayer
 
 func _ready() -> void:
 	# Headless LAN tests have no audio device and do not need playback resources.
 	if DisplayServer.get_name() == "headless":
 		return
-	for kind: String in ["step", "radio", "pickup", "door", "hurt", "power", "knock", "whisper", "heartbeat", "entity_step", "motor", "breath", "scrape", "roar", "growl", "crawl_impact"]:
+	for kind: String in ["step", "radio", "pickup", "door", "hurt", "power", "knock", "whisper", "heartbeat", "entity_step", "motor", "breath", "scrape", "roar", "growl", "crawl_impact", "smash", "shotgun", "reload", "pain", "sos", "alarm"]:
 		sounds[kind] = _make_sound(kind)
 	ambience = AudioStreamPlayer.new()
 	ambience.stream = _make_sound("hum")
 	ambience.volume_db = -25.0
+	ambience.bus = "Ambience"
 	add_child(ambience)
+	music = AudioStreamPlayer.new()
+	music.stream = _make_sound("score")
+	music.volume_db = -26
+	music.bus = "Music"
+	add_child(music)
 
 func _make_sound(kind: String) -> AudioStreamWAV:
 	var rate: int = 16000
-	var duration: float = 4.0 if kind in ["hum", "motor"] else (1.6 if kind == "whisper" else (1.0 if kind == "knock" else (.7 if kind in ["heartbeat", "radio"] else .22)))
+	var duration: float = 4.0 if kind in ["hum", "motor", "score"] else (1.6 if kind in ["whisper", "sos", "alarm"] else (1.0 if kind in ["knock", "pain"] else (.7 if kind in ["heartbeat", "radio", "smash", "shotgun"] else .22)))
 	if kind in ["breath", "scrape"]:
 		duration = 1.4
 	if kind in ["roar", "growl"]:
 		duration = 1.9 if kind == "roar" else 1.15
+	if kind == "sos":
+		duration = 2.7
 	var count := int(rate * duration)
 	var bytes := PackedByteArray()
 	bytes.resize(count * 2)
@@ -33,6 +42,18 @@ func _make_sound(kind: String) -> AudioStreamWAV:
 		var value: float
 		filtered = lerpf(filtered, rng.randf_range(-1, 1), .17)
 		match kind:
+			"score": value = (sin(TAU * 55 * t) * .19 + sin(TAU * 58.25 * t) * .1 + sin(TAU * 82.5 * t) * .12) * (.6 + .3 * cos(TAU * .25 * t))
+			"shotgun": value = tanh((rng.randf_range(-1, 1) * .9 + sin(TAU * 49 * t) * .7) * 2) * exp(-t * 12) + filtered * .3 * exp(-t * 4)
+			"smash": value = (sin(TAU * 61 * t) * .65 + sin(TAU * 183 * t) * .17 + filtered * .8) * exp(-t * 8)
+			"reload": value = filtered * .7 * (exp(-t * 80) + exp(-absf(t - .15) * 85))
+			"pain": value = (sin(TAU * 115 * t + sin(t * 29) * 2) * .24 + filtered * .3) * pow(sin(PI * float(i) / count), 2)
+			"sos":
+				var pulse: float = 0
+				for interval: Vector2 in [Vector2(0,.1), Vector2(.2,.3), Vector2(.4,.5), Vector2(.7,1), Vector2(1.1,1.4), Vector2(1.5,1.8), Vector2(2,2.1), Vector2(2.2,2.3), Vector2(2.4,2.5)]:
+					if t >= interval.x and t < interval.y:
+						pulse = minf(1, (t-interval.x)*200) * minf(1, (interval.y-t)*200)
+				value = sin(TAU * 780 * t) * .6 * pulse
+			"alarm": value = sin(TAU * (580 + 90 * sin(t * 8)) * t) * .4 * (.6 + .4 * sin(t * 13))
 			"hum": value = sin(TAU * 43.0 * t) * .17 + sin(TAU * 67.0 * t) * .09 + filtered * .3 * (.6 + .2 * sin(TAU * .25 * t))
 			"motor": value = (sin(TAU * 52 * t) * .45 + sin(TAU * 104 * t) * .16 + filtered * .26) * (.8 + sin(TAU * 7 * t) * .15)
 			"radio": value = (filtered * .8 + sin(TAU * 810.0 * t) * 0.03) * envelope
@@ -66,7 +87,7 @@ func _make_sound(kind: String) -> AudioStreamWAV:
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = rate
 	stream.data = bytes
-	if kind in ["hum", "motor"]:
+	if kind in ["hum", "motor", "score"]:
 		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
 		stream.loop_end = count
 	return stream
@@ -76,14 +97,17 @@ func set_ambience(enabled: bool) -> void:
 		return
 	if enabled and not ambience.playing:
 		ambience.play()
+		music.play()
 	elif not enabled:
 		ambience.stop()
+		music.stop()
 
 func play_local(kind: String) -> void:
 	if not sounds.has(kind):
 		return
 	var player := AudioStreamPlayer.new()
 	player.stream = sounds[kind]
+	player.bus = "Effects"
 	player.volume_db = -16.0
 	if kind == "heartbeat":
 		player.volume_db = -20.0
@@ -96,6 +120,7 @@ func play_at(kind: String, position: Vector3) -> void:
 		return
 	var player := AudioStreamPlayer3D.new()
 	player.stream = sounds[kind]
+	player.bus = "Effects"
 	player.volume_db = -10.0
 	if kind in ["whisper", "entity_step", "breath", "scrape"]:
 		player.volume_db = -15.0
@@ -103,6 +128,8 @@ func play_at(kind: String, position: Vector3) -> void:
 		player.volume_db = -1.0 if kind == "roar" else -5.0
 	if kind == "crawl_impact":
 		player.volume_db = -7.0
+	if kind in ["smash", "shotgun", "alarm"]:
+		player.volume_db = -2.0
 	player.max_distance = 24.0
 	GameManager.world.add_child(player)
 	player.global_position = position

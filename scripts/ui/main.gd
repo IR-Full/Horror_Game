@@ -9,13 +9,16 @@ var hint: Label
 var inventory_label: Label
 var message_label: Label
 var notice_time: float = 0.0
-var nickname: String = "Техник"
+var nickname: String = "Выживший"
 var address: String = "127.0.0.1"
 var port: int = 27840
 var paused: bool = false
 var displayed_result: bool = false
 var screen_kind: String = ""
 var test_mode: bool = false
+var rebind_action: String = ""
+var rebind_button: Button
+var controls_label: Label
 
 func _ready() -> void:
 	GameManager.interface = self
@@ -48,6 +51,10 @@ func _ready() -> void:
 	if "--art-check" in args:
 		var checker := Node.new()
 		checker.set_script(load("res://tests/art_check.gd"))
+		add_child(checker)
+	if "--feature-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/feature_check.gd"))
 		add_child(checker)
 
 func _theme() -> Theme:
@@ -154,7 +161,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.3  /  Без микрофона", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.4  /  Без микрофона", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -172,19 +179,19 @@ func _show_lobby() -> void:
 	label_in(column, ("IP хоста: " + (", ".join(ips) if not ips.is_empty() else "127.0.0.1")) if host else "Подключение к хосту", 16)
 	label_in(column, "UDP %d  •  %d / 4 игроков" % [NetworkManager.port, NetworkManager.members.size()], 16, "80aaa2")
 	var paired: bool = NetworkManager.members.size() <= 2
-	var roles: Array = ["Техник-разведчик", "Медик-оператор"] if paired else ["Техник", "Разведчик", "Медик", "Оператор"]
+	var roles: Array = NetworkManager.ROLE_LABELS
 	for id: int in NetworkManager.members:
 		var entry: Dictionary = NetworkManager.members[id]
 		label_in(column, "%s  —  %s%s" % [entry.name, roles[mini(int(entry.role), roles.size() - 1)], "  [хост]" if id == 1 else ""], 19)
 	if NetworkManager.members.has(multiplayer.get_unique_id()):
-		label_in(column, "Ваша роль (занятая — обмен ролями):", 16)
+		label_in(column, "Ваша роль:", 16)
 		var choice := OptionButton.new()
 		for role: String in roles:
 			choice.add_item(role)
 		choice.selected = int(NetworkManager.members[multiplayer.get_unique_id()].role)
 		choice.item_selected.connect(func(index: int): NetworkManager.choose_role(index))
 		column.add_child(choice)
-	label_in(column, "Вдвоём роли объединяются. С тремя игроками доступны\nчетыре отдельных роли; обязательных классов нет.", 16, "8fa9a0")
+	label_in(column, "Техник быстрее чинит. Медик быстрее поднимает.\nОхотник: дробовик и один патрон. Все роли доступны вдвоём.", 16, "8fa9a0")
 	if host:
 		var start := button_in(column, "НАЧАТЬ ЭКСПЕДИЦИЮ", func(): NetworkManager.start_round())
 		start.disabled = NetworkManager.members.size() < 2
@@ -246,12 +253,15 @@ func _build_hud() -> void:
 	task.offset_top = 25
 	task.offset_right = -20
 	task.offset_bottom = 155
-	inventory_label = label_in(hud, "", 17)
-	inventory_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	inventory_label.offset_left = 28
-	inventory_label.offset_top = -100
-	inventory_label.offset_right = 1150
-	inventory_label.offset_bottom = -65
+	var inventory_bar := Control.new()
+	inventory_bar.set_script(preload("res://scripts/ui/inventory_bar.gd"))
+	inventory_bar.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	inventory_bar.offset_left = -152
+	inventory_bar.offset_top = -82
+	inventory_bar.offset_right = 152
+	inventory_bar.offset_bottom = -12
+	inventory_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(inventory_bar)
 	hint = label_in(hud, "", 17, "e5c38e")
 	hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	hint.offset_left = -280
@@ -260,11 +270,12 @@ func _build_hud() -> void:
 	hint.offset_bottom = -120
 	hint.custom_minimum_size.x = 560
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var controls := label_in(hud, "WASD движение • Shift бег • Ctrl тихо • F фонарь • E удерживать\nQ предмет • G положить • R использовать • V шум • Esc меню", 14, "8ea69c")
+	var controls := label_in(hud, "E — взаимодействие • Q — ячейка\nЛКМ — выстрел • T — перезарядка\nH — SOS • Esc — меню", 14, "8ea69c")
+	controls_label = controls
 	controls.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	controls.offset_left = 28
-	controls.offset_right = 1150
-	controls.offset_top = -52
+	controls.offset_right = 395
+	controls.offset_top = -70
 	controls.offset_bottom = -10
 	_make_message_label()
 
@@ -320,47 +331,51 @@ func _resume() -> void:
 	if player:
 		player.input_enabled = true
 
-func _show_settings(from_game: bool) -> void:
+func _show_settings(from_game: bool, tab: int = 0) -> void:
+	rebind_action = ""
 	var column := _new_screen("settings", not from_game)
-	label_in(column, "НАСТРОЙКИ", 28, "e6c18a")
-	var quality := OptionButton.new()
-	for title: String in ["Быстрая графика", "Средняя графика", "Высокая графика"]:
-		quality.add_item(title)
-	quality.selected = SettingsManager.quality
-	quality.item_selected.connect(func(index: int): SettingsManager.quality = index)
-	column.add_child(quality)
-	label_in(column, "Compatibility: обычный туман и тени.\nОбъёмный туман и отражения — будущий Forward+ режим.", 15, "8fa9a0")
-	var scale_choice := OptionButton.new()
-	for title: String in ["Масштаб 3D: 50%", "Масштаб 3D: 75%", "Масштаб 3D: 100%"]:
-		scale_choice.add_item(title)
-	scale_choice.selected = [0.5, 0.75, 1.0].find(SettingsManager.resolution_scale)
-	scale_choice.item_selected.connect(func(index: int): SettingsManager.resolution_scale = [0.5, 0.75, 1.0][index])
-	column.add_child(scale_choice)
-	label_in(column, "Общая громкость", 16)
-	var volume := HSlider.new()
-	volume.min_value = 0.0
-	volume.max_value = 1.0
-	volume.step = 0.05
-	volume.value = SettingsManager.volume
-	volume.value_changed.connect(func(value: float): SettingsManager.volume = value)
-	column.add_child(volume)
-	label_in(column, "Чувствительность мыши", 16)
-	var sensitivity := HSlider.new()
-	sensitivity.min_value = 0.0005
-	sensitivity.max_value = 0.006
-	sensitivity.step = 0.0001
-	sensitivity.value = SettingsManager.sensitivity
-	sensitivity.value_changed.connect(func(value: float): SettingsManager.sensitivity = value)
-	column.add_child(sensitivity)
-	var fullscreen := CheckButton.new()
-	fullscreen.text = "Полный экран"
-	fullscreen.button_pressed = SettingsManager.fullscreen
-	fullscreen.toggled.connect(func(value: bool): SettingsManager.fullscreen = value)
-	column.add_child(fullscreen)
-	button_in(column, "Сохранить и вернуться", func():
-		SettingsManager.save()
-		_show_pause() if from_game else _show_menu()
-	)
+	preload("res://scripts/ui/settings_panel.gd").build(self, column, from_game, tab)
+
+func _input(event: InputEvent) -> void:
+	if rebind_action.is_empty() or not event.is_pressed() or event.is_echo():
+		return
+	if event is InputEventKey and event.physical_keycode == KEY_ESCAPE:
+		rebind_action = ""
+		_show_settings(NetworkManager.in_match, 2)
+		get_viewport().set_input_as_handled()
+		return
+	var value: Array = []
+	if event is InputEventKey:
+		value = ["key", event.physical_keycode]
+	elif event is InputEventMouseButton:
+		value = ["mouse", event.button_index]
+	if not value.is_empty():
+		SettingsManager.set_binding(rebind_action, value)
+		rebind_button.text = SettingsManager.ACTION_LABELS[rebind_action] + "  —  " + SettingsManager.key_label(rebind_action)
+		rebind_action = ""
+		get_viewport().set_input_as_handled()
+
+func open_safe(id: String) -> void:
+	paused = true
+	GameManager.local_player().input_enabled = false
+	var column := _new_screen("safe", false)
+	label_in(column, "КОДОВЫЙ ЗАМОК", 27, "e6c18a")
+	label_in(column, "Три цифры. Подсказка — в медпункте.", 18)
+	var entry := LineEdit.new()
+	entry.max_length = 3
+	entry.placeholder_text = "000"
+	column.add_child(entry)
+	entry.grab_focus()
+	button_in(column, "Открыть", func(): GameManager.world.unlock_safe.rpc_id(1, id, entry.text); _resume())
+	button_in(column, "Отойти", _resume)
+
+func show_document(title: String, content: String) -> void:
+	paused = true
+	GameManager.local_player().input_enabled = false
+	var column := _new_screen("document", false)
+	label_in(column, title.to_upper(), 27, "e6c18a")
+	label_in(column, content, 18)
+	button_in(column, "Закрыть", _resume)
 
 func _process(delta: float) -> void:
 	if notice_time > 0.0:
@@ -379,13 +394,13 @@ func _process(delta: float) -> void:
 		return
 	var seconds: int = int(goal.seconds_left)
 	stats.text = "%s / %s\nЗдоровье %d   •   Фонарь %d%%\n%02d:%02d  •  %d FPS" % [player.nickname, player.ROLE_NAMES.get(player.role, player.role), int(player.health), int(player.battery), seconds / 60, seconds % 60, Engine.get_frames_per_second()]
-	task.text = goal.task_text()
-	var slots := PackedStringArray()
-	for index: int in range(player.inventory.size()):
-		slots.append(("▸ " if index == player.selected_slot % maxi(1, player.inventory.size()) else "") + str(world.items.NAMES.get(player.inventory[index], "?")))
-	inventory_label.text = "ИНВЕНТАРЬ %d/%d  /  %s" % [player.inventory.size(), player.capacity(), " • ".join(slots)]
+	task.text = goal.task_text().replace(" E", " " + SettingsManager.key_label("interact"))
+	controls_label.text = "%s — взаимодействие • %s — ячейка\n%s — выстрел • %s — перезарядка\n%s — SOS • Esc — меню" % [SettingsManager.key_label("interact"), SettingsManager.key_label("slot"), SettingsManager.key_label("shoot"), SettingsManager.key_label("reload"), SettingsManager.key_label("sos")]
+	task.add_theme_color_override("font_color", Color("e47b65") if not goal.emergency.is_empty() else Color("e5c38e"))
+	if player.role == "hunter":
+		stats.text += "\nДробовик: %d / %d  %s" % [player.loaded_shells, player.reserve_shells, "ПЕРЕЗАРЯДКА" if player.reload_left > 0 else ""]
 	if player.health <= 0.0:
-		hint.text = "Вы погибли. Ждите исхода экспедиции." if player.dead else "Вы оглушены. Напарник может поднять вас: удерживать E."
+		hint.text = "Вы погибли. Ждите исхода экспедиции." if player.dead else "Вы ранены: %d сек. до гибели. Напарник: удерживать E.\n%s — SOS %s" % [maxi(0, ceili(120 - player.down_time)), SettingsManager.key_label("sos"), "готов" if player.sos_cooldown <= 0 else "через %d сек." % ceili(player.sos_cooldown)]
 		return
 	if paused or displayed_result:
 		return
@@ -399,12 +414,12 @@ func _process(delta: float) -> void:
 			object = object.get_parent()
 		if object.is_in_group("players"):
 			if object.health <= 0.0 and not object.dead:
-				hint.text = "Удерживайте E — поднять напарника"
+				hint.text = "Удерживайте %s — поднять напарника" % SettingsManager.key_label("interact")
 		elif object.get("title") != null:
-			hint.text = "[E] " + object.title
+			hint.text = "[%s] " % SettingsManager.key_label("interact") + object.title.replace(" E", " " + SettingsManager.key_label("interact"))
 			if object.kind == "door":
-				hint.text = "[E] " + ("Закрыть дверь" if object.opened else "Открыть дверь")
-	if player.role in ["scout", "tech_scout"] and world.monster.state != 0 and player.position.distance_to(world.monster.position) < 10.0:
+				hint.text = "[%s] " % SettingsManager.key_label("interact") + ("Закрыть дверь" if object.opened else "Открыть дверь")
+	if player.role == "hunter" and world.monster.state not in [0, 6] and player.position.distance_to(world.monster.position) < 10.0:
 		hint.text += "\nВы слышите присутствие сущности…"
 
 func _show_result(message: String) -> void:

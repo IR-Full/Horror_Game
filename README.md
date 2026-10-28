@@ -80,7 +80,7 @@
 
 ## Платформы и разработка
 
-Общий GDScript без нативных расширений, Compatibility, три пресета экспорта и проверки на трёх ОС в GitHub Actions. Локально проверены Windows, рендер Intel UHD и LAN на 2/4 процессах. Нативные проверки Linux/macOS отмечаются отдельно результатами Actions. Android/iOS, браузер и геймпад в эту настольную версию не входят.
+Общий GDScript без нативных расширений, Compatibility, три пресета экспорта и проверки на трёх ОС в GitHub Actions. Автоматические проверки импорта, механик и LAN-2 прошли нативно на Windows, Linux и macOS: [результат](https://github.com/IR-Full/Horror_Game/actions/runs/40720818297). Локально также проверены рендер Intel UHD, чистая копия без кеша и LAN на 2/4 процессах. Графический рендер Linux/macOS и смешанная LAN между физическими ПК отдельно не проверялись. Android/iOS, браузер и геймпад в эту настольную версию не входят.
 
 Для готового приложения без редактора установите Godot 4.7.2 export templates и используйте Project → Export. Для запуска исходного проекта они не нужны. [Официальная инструкция](https://docs.godotengine.org/en/stable/tutorials/export/exporting_projects.html).
 

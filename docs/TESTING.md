@@ -42,7 +42,7 @@ godot --headless --path . -- --feature-check
 
 ## Настольные платформы
 
-.github/workflows/desktop.yml скачивает официальный Godot и выполняет импорт, art/sector/feature и LAN-2 нативно на Windows, Linux и macOS. tools/ci_check.py не требует внешних Python-пакетов. Наличие workflow не означает, что все его задания уже прошли: проверяйте результат конкретного коммита в GitHub Actions.
+.github/workflows/desktop.yml скачивает официальный Godot и выполняет импорт, art/sector/feature и LAN-2 нативно на Windows, Linux и macOS. tools/ci_check.py не требует внешних Python-пакетов. На коммите 3b6f4ae447c702ea443b28a91f3d5814a023d502 все три нативных задания завершились success: [запуск 40720818297](https://github.com/IR-Full/Horror_Game/actions/runs/40720818297). Каждое выполнило импорт, ART_PASS, SECTOR_PASS, FEATURE_PASS и настоящий LAN-2. Это headless-проверки, не подтверждение графического рендера на Linux/macOS. Загрузка движка закреплена на официальном релизе godotengine/godot-builds с проверкой опубликованного SHA-256.
 
 Unix-скрипты проверяются sh -n и режимом --check, в том числе с кириллицей и пробелами в пути. Нативная графика Linux/macOS и смешанная LAN между ОС требуют отдельного запуска на соответствующих компьютерах. Мобильные платформы и браузер пока не поддерживаются.
 

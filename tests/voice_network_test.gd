@@ -1,5 +1,7 @@
 extends Node
 const TONES := preload("res://tests/voice_check.gd")
+const BURST_FRAMES: int = 100
+const MIN_RECEIVED: int = 50
 var mode: String = ""
 var expected: int = 2
 var port: int = 27955
@@ -53,7 +55,7 @@ func _run() -> void:
 	if not await until(func(): return ready_reports.size() == expected): return
 	start_audio.rpc()
 	if not await until(func(): return reports.size() == expected): return
-	check(accepted_own == 25,"all paced host audio frames pass the server rate limit in the lobby")
+	check(accepted_own == BURST_FRAMES,"all paced host audio frames pass the server rate limit in the lobby")
 	check(true,"all lobby voices relay to every other participant")
 	NetworkManager.start_round(true)
 	if not await until(func(): return NetworkManager.in_match and GameManager.local_player() != null): return
@@ -65,9 +67,12 @@ func _run() -> void:
 	host.position = Vector3(0,.05,0); host.net_position = host.position; host.input_enabled = false
 	begin_stage.rpc(1)
 	if not await until(func(): return ready_reports.size() == expected): return
+	# Scene readiness precedes the initial unreliable world snapshots. Let that traffic drain
+	# before measuring steady voice relay; a half-second utterance could be lost in startup.
+	await get_tree().create_timer(1.0).timeout
 	start_audio.rpc()
 	if not await until(func(): return reports.size() == expected): return
-	check(accepted_own == 25,"all paced host audio frames pass the server rate limit in the round")
+	check(accepted_own == BURST_FRAMES,"all paced host audio frames pass the server rate limit in the round")
 	check(world.monster.state == world.monster.State.INVESTIGATE,"network voice attracts the host-owned monster")
 	var matched: bool = false
 	for player: Node3D in world.players.get_children():
@@ -112,7 +117,7 @@ func stage_ready(number: int) -> void:
 
 @rpc("authority","call_local","reliable")
 func start_audio() -> void:
-	remaining = 25
+	remaining = BURST_FRAMES
 	next_send_ms = Time.get_ticks_msec()+50
 
 func _process(_delta: float) -> void:
@@ -124,9 +129,10 @@ func _process(_delta: float) -> void:
 		remaining -= 1
 		var hz: float = (multiplayer.get_unique_id()%5+1)*100
 		VoiceManager.send_frame(TONES.tone(.35,hz))
+		if remaining == 0: print("VOICE_BURST peer=",multiplayer.get_unique_id()," stage=",stage," receipts=",receipts," own_accepted=",accepted_own)
 	if remaining > 0 or reported: return
 	for id: int in NetworkManager.members:
-		if id != multiplayer.get_unique_id() and int(receipts.get(id,0)) < 12: return
+		if id != multiplayer.get_unique_id() and int(receipts.get(id,0)) < MIN_RECEIVED: return
 	reported = true
 	check(receipts.size() == expected-1,"receive voice from every other player, without local echo")
 	if multiplayer.is_server(): reports[1] = stage

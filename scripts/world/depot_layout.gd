@@ -16,13 +16,14 @@ static func build(s: Node3D) -> void:
 	s.environment.fog_light_color = Color("273641")
 	for rect: Rect2 in FLOORS:
 		s.block(Vector3(rect.get_center().x,-.2,rect.get_center().y),Vector3(rect.size.x,.4,rect.size.y),"313c3e")
-	# Roofed garage and workshops, exposed northern scrapyard and linking roads.
+	# All sectors and connecting passages are roofed; no bright void over corridors.
 	_shell(s,FLOORS[0],{"left":[Vector2(-21,-15)],"right":[Vector2(-21,-15)],"north":[Vector2(-4,4)],"south":[Vector2(-4,4)]},true)
 	_shell(s,FLOORS[1],{"right":[Vector2(-21,-15)]},true)
 	_shell(s,FLOORS[2],{"left":[Vector2(-21,-15)]},true)
-	_shell(s,FLOORS[3],{"south":[Vector2(-4,4)]},false)
+	_shell(s,FLOORS[3],{"south":[Vector2(-4,4)]},true)
 	_shell(s,FLOORS[4],{"north":[Vector2(-4,4)]},true)
 	for rect: Rect2 in FLOORS.slice(5):
+		s.block(Vector3(rect.get_center().x,3.4,rect.get_center().y),Vector3(rect.size.x+.1,.2,rect.size.y+.1),"202c30")
 		if rect.size.x < rect.size.y:
 			for x: float in [rect.position.x,rect.end.x]: _segment(s,true,x,rect.position.y,rect.end.y)
 		else:
@@ -65,11 +66,15 @@ static func build(s: Node3D) -> void:
 			s.add_child(wreck)
 			s._prop_collision(wreck.position+Vector3.UP*.7,Vector3(4.7,1.4,2.2))
 	s.add_object("escape_car","vehicle","МАШИНА • удерживать E: установить детали / завести",Vector3(0,.8,23))
-	var gate: Node3D = s.add_object("exit_gate","door","Выездные ворота • откроются при запуске",Vector3(0,1.44,30))
+	var gate: Node3D = s.add_object("exit_gate","door","Выездные ворота • откроются при запуске",Vector3(.75,1.44,30))
 	gate.rotation.y = PI/2; gate.locked = true
-	# The car cutscene opens the road gate. There is a walkable side gap for E.
-	gate.scale.z = 1.5
+	# Six-metre roller gate with closed jambs; the marked side passage remains usable.
+	gate.scale.z = 2.75
 	gate.gate_rule = "depot_exit"
+	for x: float in [-3.9,-2.375,3.875]:
+		s.block(Vector3(x,1.65,30),Vector3(.25,3.3,.42),"475653")
+	s.block(Vector3(0,3.08,30),Vector3(8.1,.44,.42),"475653")
+	s.sign_text("ПРОХОД",Vector3(-3.15,2.65,29.76),0,13)
 	s.add_object("generator","generator","Аварийный клапан топлива • удерживать E для ремонта",Vector3(-12,.6,17))
 	s.add_object("ventilation","ventilation","Аварийная система автобазы",Vector3(12,.9,17))
 	for i: int in range(3):

@@ -56,15 +56,30 @@ func _ready() -> void:
 	if kind == "door":
 		mesh = Node3D.new()
 		mesh.position.z = 1.09
-		var leaf := ART.model(kind)
+		var leaf := ART.model("garage_gate" if object_id=="exit_gate" else kind)
 		leaf.position.z = -1.09
 		mesh.add_child(leaf)
 	else:
-		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "car_key":"key", "yard_key":"key", "hospital_key":"key", "hospital_control":"power", "hospital_station":"hospital_console"}.get(kind, kind)
+		var model_name: String = {"note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "hospital_control":"power", "hospital_station":"hospital_console"}.get(kind, kind)
 		mesh = _paper() if kind == "note" else ART.model(model_name)
 		if kind in ["generator", "transmitter", "power", "circuit", "tuner"]:
 			mesh.rotation.y = PI
 	add_child(mesh)
+	if kind=="cage":
+		for x: float in [-.6,.6]:
+			for z: float in [-.4,.4]:
+				var foot:=MeshInstance3D.new();var pad:=BoxMesh.new();pad.size=Vector3(.075,.052,.075)
+				foot.mesh=pad;foot.position=Vector3(x,-.974,z);foot.material_override=ART.surface("metal_wear");add_child(foot)
+		for y: float in [-.915,-.48,.17]:
+			var shelf:=MeshInstance3D.new();var shelf_box:=BoxMesh.new();shelf_box.size=Vector3(1.08,.03,.7)
+			shelf.mesh=shelf_box;shelf.position=Vector3(0,y,0);shelf.material_override=ART.surface("metal_wear");add_child(shelf)
+	if kind in ["cage","safe","locker_container"]:
+		var levels: Array=[-.915,-.48,.17] if kind=="cage" else ([-.355] if kind=="safe" else [-1.02,-.45,.3,1.02])
+		for y: float in levels:
+			var support:=StaticBody3D.new();support.collision_layer=1;support.collision_mask=0
+			var support_shape:=CollisionShape3D.new();var shelf_shape:=BoxShape3D.new()
+			shelf_shape.size=Vector3(1.08,.03,.7) if kind=="cage" else (Vector3(.7,.02,.5) if kind=="safe" else Vector3(.82,.035,.55))
+			support_shape.shape=shelf_shape;support.add_child(support_shape);support.position.y=y;add_child(support)
 	if kind == "vehicle": mesh.position.y = -.8
 	if kind == "ventilation":
 		for y: float in [-.42, .42]:
@@ -147,13 +162,18 @@ func refresh() -> void:
 		cover_collider.rotation.y = -PI*.62 if opened else 0.0
 		cover_collider.position = cover.position + Basis(Vector3.UP, cover_collider.rotation.y) * Vector3(cover_width*.5, 0, 0)
 	if is_instance_valid(mesh) and kind == "door":
-		mesh.rotation.y = (-1.0 if position.x >= 0 else 1.0) * PI / 2 if opened else 0.0
-		collider.rotation.y = mesh.rotation.y
-		collider.position = mesh.position + Basis(Vector3.UP, mesh.rotation.y) * Vector3(0, 0, -1.09)
+		if object_id=="exit_gate":
+			collider.rotation.y=0
+			collider.position=Vector3(0,3.15 if opened else 0,0)
+		else:
+			mesh.rotation.y = (-1.0 if position.x >= 0 else 1.0) * PI / 2 if opened else 0.0
+			collider.rotation.y = mesh.rotation.y
+			collider.position = mesh.position + Basis(Vector3.UP, mesh.rotation.y) * Vector3(0, 0, -1.09)
 	if is_instance_valid(label) and kind == "door":
 		label.text = ("[E] Закрыть" if opened else "[E] Открыть") + (" • нужен ключ" if locked else "")
 
 func _process(delta: float) -> void:
+	if object_id=="exit_gate": mesh.position.y=move_toward(mesh.position.y,3.15 if opened else 0,delta*3.0)
 	if cover:
 		cover.rotation.y = lerp_angle(cover.rotation.y, -PI*.62 if opened else 0.0, minf(1, delta*10))
 	if not is_instance_valid(GameManager.world):

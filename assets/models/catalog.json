@@ -16,64 +16,12 @@
     "triangles": 428
   },
   {
-    "model": "cassette",
-    "triangles": 356
-  },
-  {
-    "model": "fuel",
-    "triangles": 336
-  },
-  {
-    "model": "fuse",
-    "triangles": 156
-  },
-  {
-    "model": "key",
-    "triangles": 92
-  },
-  {
-    "model": "battery",
-    "triangles": 132
-  },
-  {
-    "model": "medkit",
-    "triangles": 236
-  },
-  {
-    "model": "shelf",
-    "triangles": 684
-  },
-  {
-    "model": "cot",
-    "triangles": 736
-  },
-  {
     "model": "locker",
     "triangles": 308
   },
   {
-    "model": "barrel",
-    "triangles": 360
-  },
-  {
-    "model": "desk",
-    "triangles": 272
-  },
-  {
-    "model": "chair",
-    "triangles": 736
-  },
-  {
-    "model": "crate",
-    "triangles": 236
-  },
-  {
     "model": "lamp",
     "triangles": 284
-  },
-  {
-    "model": "flashlight",
-    "triangles": 160
   },
   {
     "model": "avatar",
@@ -84,16 +32,8 @@
     "triangles": 3584
   },
   {
-    "model": "radio_rack",
-    "triangles": 1924
-  },
-  {
     "model": "recorder",
     "triangles": 556
-  },
-  {
-    "model": "hand",
-    "triangles": 240
   },
   {
     "model": "rotary_phone",
@@ -114,14 +54,6 @@
   {
     "model": "fan_blades",
     "triangles": 796
-  },
-  {
-    "model": "shotgun",
-    "triangles": 2924
-  },
-  {
-    "model": "shell",
-    "triangles": 196
   },
   {
     "model": "safe",
@@ -164,40 +96,12 @@
     "triangles": 872
   },
   {
-    "model": "air_filter",
-    "triangles": 864
-  },
-  {
     "model": "entity_depot",
     "triangles": 23820
   },
   {
     "model": "escape_car",
     "triangles": 2988
-  },
-  {
-    "model": "car_battery",
-    "triangles": 336
-  },
-  {
-    "model": "spark_plugs",
-    "triangles": 480
-  },
-  {
-    "model": "drive_belt",
-    "triangles": 384
-  },
-  {
-    "model": "wheel",
-    "triangles": 120
-  },
-  {
-    "model": "sedative",
-    "triangles": 120
-  },
-  {
-    "model": "thermos",
-    "triangles": 120
   },
   {
     "model": "avatar_rigged",
@@ -216,30 +120,6 @@
     "triangles": 3448
   },
   {
-    "model": "scalpel",
-    "triangles": 2068
-  },
-  {
-    "model": "specimen_a",
-    "triangles": 496
-  },
-  {
-    "model": "specimen_b",
-    "triangles": 684
-  },
-  {
-    "model": "specimen_c",
-    "triangles": 872
-  },
-  {
-    "model": "hospital_badge",
-    "triangles": 376
-  },
-  {
-    "model": "hospital_console",
-    "triangles": 1696
-  },
-  {
     "model": "entity_doctor",
     "triangles": 11924
   },
@@ -250,5 +130,180 @@
   {
     "model": "hospital_curtain",
     "triangles": 5508
+  },
+  {
+    "model": "shotgun",
+    "triangles": 5292,
+    "detail_version": 13
+  },
+  {
+    "model": "flashlight",
+    "triangles": 6892,
+    "detail_version": 13
+  },
+  {
+    "model": "hand",
+    "triangles": 2428,
+    "detail_version": 13
+  },
+  {
+    "model": "shell",
+    "triangles": 796,
+    "detail_version": 13
+  },
+  {
+    "model": "medkit",
+    "triangles": 2636,
+    "detail_version": 13
+  },
+  {
+    "model": "battery",
+    "triangles": 1347,
+    "detail_version": 13
+  },
+  {
+    "model": "fuel",
+    "triangles": 940,
+    "detail_version": 13
+  },
+  {
+    "model": "fuse",
+    "triangles": 1315,
+    "detail_version": 13
+  },
+  {
+    "model": "cassette",
+    "triangles": 1371,
+    "detail_version": 13
+  },
+  {
+    "model": "air_filter",
+    "triangles": 2172,
+    "detail_version": 13
+  },
+  {
+    "model": "car_battery",
+    "triangles": 2072,
+    "detail_version": 13
+  },
+  {
+    "model": "spark_plugs",
+    "triangles": 4608,
+    "detail_version": 13
+  },
+  {
+    "model": "drive_belt",
+    "triangles": 1280,
+    "detail_version": 13
+  },
+  {
+    "model": "wheel",
+    "triangles": 3584,
+    "detail_version": 13
+  },
+  {
+    "model": "sedative",
+    "triangles": 784,
+    "detail_version": 13
+  },
+  {
+    "model": "thermos",
+    "triangles": 1384,
+    "detail_version": 13
+  },
+  {
+    "model": "scalpel",
+    "triangles": 824,
+    "detail_version": 13
+  },
+  {
+    "model": "hospital_badge",
+    "triangles": 800,
+    "detail_version": 13
+  },
+  {
+    "model": "desk",
+    "triangles": 1948,
+    "detail_version": 13
+  },
+  {
+    "model": "shelf",
+    "triangles": 3272,
+    "detail_version": 13
+  },
+  {
+    "model": "cot",
+    "triangles": 2080,
+    "detail_version": 13
+  },
+  {
+    "model": "chair",
+    "triangles": 928,
+    "detail_version": 13
+  },
+  {
+    "model": "radio_rack",
+    "triangles": 5308,
+    "detail_version": 13
+  },
+  {
+    "model": "crate",
+    "triangles": 2516,
+    "detail_version": 13
+  },
+  {
+    "model": "barrel",
+    "triangles": 1812,
+    "detail_version": 13
+  },
+  {
+    "model": "hospital_console",
+    "triangles": 1672,
+    "detail_version": 13
+  },
+  {
+    "model": "garage_gate",
+    "triangles": 6580,
+    "detail_version": 13
+  },
+  {
+    "model": "key",
+    "triangles": 1639,
+    "detail_version": 13
+  },
+  {
+    "model": "service_key",
+    "triangles": 1638,
+    "detail_version": 13
+  },
+  {
+    "model": "car_key",
+    "triangles": 1580,
+    "detail_version": 13
+  },
+  {
+    "model": "yard_key",
+    "triangles": 1635,
+    "detail_version": 13
+  },
+  {
+    "model": "hospital_key",
+    "triangles": 1638,
+    "detail_version": 13
+  },
+  {
+    "model": "specimen_a",
+    "triangles": 1330,
+    "detail_version": 13
+  },
+  {
+    "model": "specimen_b",
+    "triangles": 1332,
+    "detail_version": 13
+  },
+  {
+    "model": "specimen_c",
+    "triangles": 1334,
+    "detail_version": 13
   }
 ]

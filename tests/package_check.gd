@@ -2,6 +2,14 @@ extends SceneTree
 ## Run as an external script against an exported PCK, not the source directory.
 func _initialize() -> void:
 	var failures: int = 0
+	for path: String in ["res://scripts/player/equipment_view.gd","res://scripts/art/prop_placement.gd","res://assets/textures/props_materials_generated.png","res://assets/textures/props_detail_normal.png","res://assets/textures/props_detail_orm.png"]:
+		if not ResourceLoader.exists(path):
+			push_error("PACKAGE_FAIL missing detailed prop resource "+path)
+			failures+=1
+	for kind: String in load("res://scripts/world/item_system.gd").NAMES:
+		if not ResourceLoader.exists("res://assets/ui/items/%s.png" % kind):
+			push_error("PACKAGE_FAIL missing item image "+kind)
+			failures+=1
 	if not ResourceLoader.exists("res://scripts/art/monster_wounds.gd"):
 		push_error("PACKAGE_FAIL missing wound pool script")
 		failures += 1

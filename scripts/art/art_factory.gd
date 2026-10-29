@@ -15,6 +15,29 @@ static func model(kind: String) -> Node3D:
 			var original: StandardMaterial3D = child.mesh.surface_get_material(index)
 			child.visibility_range_end = 48.0
 			child.visibility_range_end_margin = 5.0
+			if original and original.resource_name.begins_with("Prop "):
+				var prop_key: String=original.resource_name
+				if not worn_materials.has(prop_key):
+					var prop: StandardMaterial3D=original.duplicate()
+					if prop_key in ["Prop Walnut","Prop Blued steel","Prop Paint","Prop Rubber"]:
+						prop.albedo_color=Color(.5,.5,.5) if prop_key=="Prop Rubber" else (Color(.75,.8,.85) if prop_key=="Prop Blued steel" else Color.WHITE)
+						prop.albedo_texture=load("res://assets/textures/props_materials_generated.png")
+						prop.normal_texture=load("res://assets/textures/props_detail_normal.png")
+						prop.normal_scale=.2
+						prop.roughness_texture=load("res://assets/textures/props_detail_orm.png")
+						prop.roughness_texture_channel=BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+						prop.roughness=1.0
+						prop.metallic_texture=load("res://assets/textures/props_detail_orm.png")
+						prop.metallic_texture_channel=BaseMaterial3D.TEXTURE_CHANNEL_BLUE
+						prop.metallic=1.0
+					if prop_key=="Prop Glass":
+						prop.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+						prop.albedo_color=Color(.55,.65,.66,.22)
+						prop.metallic=0
+					prop.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+					worn_materials[prop_key]=prop
+				child.set_surface_override_material(index,worn_materials[prop_key])
+				worn_materials[prop_key].normal_enabled=SettingsManager.quality>0 and worn_materials[prop_key].normal_texture!=null
 			if original and original.resource_name == "HGM_flesh":
 				if not worn_materials.has("HGM_flesh"): worn_materials["HGM_flesh"] = original.duplicate()
 				child.set_surface_override_material(index,worn_materials.HGM_flesh)
@@ -41,6 +64,7 @@ static func model(kind: String) -> Node3D:
 					worn.uv1_scale = Vector3.ONE * 2.0
 					worn_materials[key] = worn
 				child.set_surface_override_material(index, worn_materials[key])
+	node.set_meta("art_kind",kind)
 	return node
 
 static func surface(kind: String) -> StandardMaterial3D:

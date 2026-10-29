@@ -166,6 +166,11 @@ func _ready() -> void:
 	motion.set_script(preload("res://scripts/player/player_motion.gd"))
 	motion.actor = self
 	add_child(motion)
+	var equipment := Node.new()
+	equipment.name="EquipmentView"
+	equipment.set_script(preload("res://scripts/player/equipment_view.gd"))
+	equipment.actor=self
+	add_child(equipment)
 
 func _apply_quality() -> void:
 	lamp.shadow_enabled = SettingsManager.quality > 0 and is_local()

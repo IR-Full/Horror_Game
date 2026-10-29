@@ -2,6 +2,7 @@ extends Control
 ## Compact item pictograms, drawn locally; no per-frame 3D inventory viewports.
 var player: Node3D
 var signature: String = ""
+static var item_images: Dictionary={}
 
 func _process(_delta: float) -> void:
 	player = GameManager.local_player()
@@ -37,6 +38,13 @@ func _style(selected: bool) -> StyleBoxFlat:
 	return box
 
 func _icon(kind: String, c: Vector2) -> void:
+	if not item_images.has(kind):
+		var path: String="res://assets/ui/items/%s.png" % kind
+		item_images[kind]=load(path) if ResourceLoader.exists(path) else null
+	var rendered: Texture2D=item_images[kind]
+	if rendered:
+		draw_texture_rect(rendered,Rect2(c-Vector2(27,24),Vector2(54,48)),false)
+		return
 	var cream := Color("c6bb96")
 	var metal := Color("8bada4")
 	match kind:

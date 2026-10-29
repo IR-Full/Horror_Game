@@ -1,3 +1,15 @@
+# Материалы предметов 0.13
+
+`assets/textures/props_materials_generated.png`, фактический размер **1254×1254**, создан встроенным imagegen 29 октября 2026. CLI/API-ключ не использовались. PNG скопирован из каталога генератора в репозиторий без растровой правки. Это синтетические фактуры четырёх материалов, а не фотографии или измеренные PBR-данные.
+
+Верх слева — орех, верх справа — воронёная сталь, низ слева — окрашенный металл, низ справа — резина. UV в Blender размещаются внутри нужного квадранта с отступом. GLB не дублируют изображение: ArtFactory назначает общий ресурс. `props_detail_normal.png` и `props_detail_orm.png` (512×512) созданы независимо алгоритмом микрорельефа в tools/build_detailed_props.py; они не являются оценкой глубины/физических свойств сгенерированного изображения. Значки `assets/ui/items/*.png` отрисованы настоящим Godot из проектных GLB, без imagegen.
+
+Полный промпт встроенного инструмента (запрошен размер 2048, получен 1254):
+
+> Create a production-ready square 2048x2048 PBR BASE COLOR MATERIAL ATLAS for close-up realistic survival-horror game props. One image with EXACTLY four equal square quadrants, edge to edge, no gaps or borders, flat orthographic uniform diffuse illumination, NO highlights or shadows baked in. Upper-left quadrant: rich dark brown oiled walnut gunstock wood, fine long organic longitudinal grain, subtle pores and hand-polished wear, no knots, not orange. Upper-right quadrant: aged dark charcoal blue-black gunmetal blued steel, faint fine directional machining scratches, restrained patina, small rubbed silver flecks, NOT rusty, NOT cracked paint. Lower-left quadrant: dark desaturated olive-grey painted industrial metal, irregular chipped paint revealing dull silver steel, small scratches, believable restrained grime, 85 percent paint intact. Lower-right quadrant: matte near-black hard rubber/plastic with fine dense grip grain, faint scuffs and finger wear, low contrast texture. Every quadrant is a continuous flat surface material swatch, absolutely NO depicted objects, weapon, people, labels, text, logos, perspective, embossing, grid lines, lighting gradients or cast shadows. Photographically credible microtexture and material realism. The four swatches must fill exact 2x2 square quadrants. This will be UV-mapped onto detailed Blender geometry; it is not a product image.
+
+---
+
 # Ткань хирурга 0.11
 
 Сохранена в `assets/textures/hospital_cloth_generated.png`. Создана встроенным imagegen 29 октября 2026, без CLI/API-ключа. Исходный PNG скопирован в проект без растровой правки; это синтетическое изображение. Blender уменьшает копию в памяти до 1024×1024 и упаковывает в GLB, исходный файл не меняет. Материал применяется к халату, фартуку, маске и медицинским подушкам. Процедурные normal/color остаются запасными. Игроку imagegen не нужен.

@@ -8,7 +8,7 @@ signal left_room
 
 const DEFAULT_PORT := 27840
 const MAX_PLAYERS := 4
-const PROTOCOL := 12
+const PROTOCOL := 13
 const RULES := preload("res://scripts/core/round_rules.gd")
 var difficulty: int = 1
 var map_id: int = 0

@@ -26,6 +26,7 @@ var was_holding: Dictionary = {}
 var revive_progress: Dictionary = {}
 var materials: Dictionary = {}
 var navigation_blocks: Array[AABB] = []
+var support_surfaces: Array[AABB]=[]
 var atmosphere: Node3D
 var sectors: Node
 var drainage: Node
@@ -81,6 +82,7 @@ func _ready() -> void:
 	atmosphere.set_script(preload("res://scripts/art/station_atmosphere.gd"))
 	add_child(atmosphere)
 	atmosphere.build(self)
+	preload("res://scripts/art/prop_placement.gd").settle(self)
 	if map_id == 0:
 		for i: int in range(3):
 			var kind: String = "sedative" if i < 2 else "thermos"
@@ -169,14 +171,28 @@ func _ground_loose_items() -> void:
 	if not multiplayer.is_server(): return
 	await get_tree().physics_frame
 	for object: Node3D in objects.values():
-		if object.kind not in ["battery","medkit","shell","sedative","thermos"] or not object.container_id.is_empty(): continue
+		if not items.NAMES.has(object.kind) and object.kind!="note": continue
 		var bottom: float = INF
 		for part: Node3D in object.mesh.find_children("*","MeshInstance3D",true,false):
 			var bounds: AABB = part.global_transform*part.get_aabb()
 			bottom = minf(bottom,bounds.position.y)
-		var ray := PhysicsRayQueryParameters3D.create(object.position+Vector3.UP*.03,object.position-Vector3.UP*2.0,1|4,[object.get_rid()])
-		var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(ray)
-		if not hit.is_empty() and is_finite(bottom): object.position.y += hit.position.y+.008-bottom
+		var height: float=support_height(object.position)
+		if not object.container_id.is_empty() and objects.has(object.container_id):
+			var storage: Node3D=objects[object.container_id]
+			var levels: Array=[]
+			match storage.kind:
+				"locker_container": levels=[-1.0025,-.4325,.3175,1.0375]
+				"safe": levels=[-.345]
+				"cage": levels=[-.90,-.465,.185]
+			if not levels.is_empty():
+				height=storage.position.y+float(levels[0])
+				var nearest: float=INF
+				for level: float in levels:
+					var shelf: float=storage.position.y+level
+					if absf(shelf-bottom)<nearest:nearest=absf(shelf-bottom);height=shelf
+				if storage.kind=="cage":
+					var local: Vector3=storage.to_local(object.global_position);local.z=.17;object.global_position=storage.to_global(local)
+		if is_finite(bottom): object.position.y+=height+.008-bottom
 	if NetworkManager.in_match: sync_state()
 
 func _register_equipment_obstacles() -> void:
@@ -253,6 +269,7 @@ func block(pos: Vector3, size: Vector3, color: String, solid: bool = true, glow:
 		lower.set_meta("architecture",true)
 		root.add_child(lower)
 	if solid:
+		if size.y<2.0: support_surfaces.append(AABB(pos-size*.5,size))
 		if pos.y + size.y * 0.5 > 0.2 and pos.y - size.y * 0.5 < 1.0:
 			navigation_blocks.append(AABB(pos - size * 0.5, size))
 		var collider := CollisionShape3D.new()
@@ -261,6 +278,12 @@ func block(pos: Vector3, size: Vector3, color: String, solid: bool = true, glow:
 		collider.shape = shape
 		root.add_child(collider)
 	return root
+
+func support_height(at: Vector3) -> float:
+	var height: float=0
+	for box: AABB in support_surfaces:
+		if at.x>=box.position.x-.01 and at.x<=box.end.x+.01 and at.z>=box.position.z-.01 and at.z<=box.end.z+.01 and box.end.y<=at.y+.1: height=maxf(height,box.end.y)
+	return height
 
 func sign_text(text: String, pos: Vector3, yaw: float = 0.0, size: int = 40) -> void:
 	var label := Label3D.new()
@@ -375,6 +398,7 @@ func door_frame(x: float, z: float) -> void:
 
 func _prop_collision(pos: Vector3, size: Vector3) -> void:
 	var body := block(pos, size, "283d35")
+	body.set_meta("prop_proxy",true)
 	for child: Node in body.get_children():
 		if child is MeshInstance3D:
 			child.hide()
@@ -395,11 +419,11 @@ func add_object(id: String, kind: String, title: String, pos: Vector3) -> Node3D
 func create_drop(id: String, kind: String, pos: Vector3) -> void:
 	if not objects.has(id):
 		add_object(id, kind, items.NAMES.get(kind, kind), pos)
+		_ground_loose_items.call_deferred()
 
 func apply_quality() -> void:
 	environment.fog_enabled = true
-	environment.fog_light_color = Color("334851")
-	if map_id==2: environment.fog_light_color = Color("0a1312")
+	environment.fog_light_color = Color("0a1312") if map_id==2 else Color("091014")
 	environment.fog_density = [.005, .009, .013][SettingsManager.quality]
 	# Compatibility supports depth fog; volumetric fog/SSR require Forward+.
 	environment.volumetric_fog_enabled = false
@@ -468,6 +492,7 @@ func _update_doors_navigation() -> void:
 					if base_navigation.has(cell): astar.set_point_solid(cell, base_navigation[cell])
 	for object: Node3D in objects.values():
 		if object.kind != "door": continue
+		if object.object_id=="exit_gate" and object.opened:continue
 		var shape: BoxShape3D = object.collider.shape
 		var bounds: AABB = object.collider.global_transform * AABB(-shape.size*.5, shape.size)
 		bounds = bounds.grow(.35)

@@ -47,6 +47,12 @@ func _ready() -> void:
 	NetworkManager.match_started.connect(_show_game)
 	NetworkManager.left_room.connect(_clear_world)
 	_show_menu()
+	for flag: String in ["--props-check","--props-preview","--map-finish-check","--map-finish-preview"]:
+		if flag in args:
+			var prop_runner:=Node.new()
+			var source: String={"--props-check":"props_check","--props-preview":"props_preview","--map-finish-check":"map_finish_check","--map-finish-preview":"map_finish_preview"}[flag]
+			prop_runner.set_script(load("res://tests/%s.gd" % source))
+			add_child(prop_runner)
 	if "--horror-check" in args:
 		var horror_runner:=Node.new(); horror_runner.set_script(load("res://tests/horror_check.gd")); add_child(horror_runner)
 	if "--horror-preview" in args:
@@ -234,7 +240,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.12  /  Голосовая связь", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.13  /  Голосовая связь", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:

@@ -13,6 +13,7 @@ var left_hand: Node3D
 var left_sleeve: MeshInstance3D
 var right_sleeve: MeshInstance3D
 var last_yaw: float = 0
+var ankle_height: float=.14
 
 func _ready() -> void:
 	var found: Array[Node] = actor.body_mesh.find_children("*","Skeleton3D",true,false)
@@ -23,6 +24,7 @@ func _ready() -> void:
 			bones[key] = i
 			base_positions[key] = skeleton.get_bone_pose_position(i)
 			base_rotations[key] = skeleton.get_bone_pose_rotation(i)
+		ankle_height=minf(skeleton.get_bone_global_pose(bones.Foot_L).origin.y,skeleton.get_bone_global_pose(bones.Foot_R).origin.y)
 	if not actor.is_local(): return
 	for part: Node3D in actor.body_mesh.find_children("*","MeshInstance3D",true,false):
 		if str(part.name).begins_with("SelfHead") or str(part.name).begins_with("SelfArm") or str(part.name) in ["Jacket","Pack","Chest panel","Belt","Pelvis"]: part.hide()
@@ -33,10 +35,10 @@ func _ready() -> void:
 	for node: Node in originals:
 		if node is Node3D and node != view_root:
 			node.reparent(view_root)
-			if str(node.name) == "Hand": node.position = Vector3(.24,-.24,-.36)
+			if str(node.name) == "Hand": node.position = Vector3(.18,-.30,-.28) if actor.role=="hunter" else Vector3(.24,-.30,-.31)
 	left_hand = preload("res://scripts/art/art_factory.gd").model("hand")
 	left_hand.position = Vector3(-.25,-.28,-.42)
-	left_hand.rotation.z = PI
+	left_hand.rotation.z = 0
 	view_root.add_child(left_hand)
 	left_sleeve = sleeve(); right_sleeve = sleeve()
 	view_root.add_child(left_sleeve); view_root.add_child(right_sleeve)
@@ -66,15 +68,18 @@ func _process(delta: float) -> void:
 	rotate_bone("Chest",Vector3(0,sin(phase)*blend*.045,0))
 	for side: String in ["L","R"]:
 		var wave: float = swing*(1 if side == "L" else -1)
-		var thigh: float = wave*(.2 if actor.crouched else (.88 if running else .46))-(.95 if actor.crouched else 0.0)
+		var thigh: float = wave*(.2 if actor.crouched else (.62 if running else .46))+(.95 if actor.crouched else 0.0)
 		var knee: float = maxf(0,-wave)*(.25 if actor.crouched else (1.25 if running else .7))+(1.9 if actor.crouched else .04)
 		rotate_bone("Thigh_"+side,Vector3(thigh,0,0))
-		rotate_bone("Shin_"+side,Vector3(knee,0,0))
-		rotate_bone("Foot_"+side,Vector3(-knee*.5-thigh*.3,0,0))
+		rotate_bone("Shin_"+side,Vector3(-knee,0,0))
+		rotate_bone("Foot_"+side,Vector3(knee*.5-thigh*.3,0,0))
 		rotate_bone("UpperArm_"+side,Vector3(-wave*(.75 if running else .36)-(.25 if actor.role == "hunter" else 0),0,0))
-		rotate_bone("Forearm_"+side,Vector3(-1.25 if running else (-.9 if actor.role == "hunter" else -.25),0,0))
-	var pelvis_drop: float = -.32 if actor.crouched else (absf(sin(phase))*blend*.025 if running else -(1-cos(swing*.46))*.73)
-	if skeleton and bones.has("Hips"): skeleton.set_bone_pose_position(int(bones.Hips),base_positions.Hips+Vector3(0,pelvis_drop,0))
+		rotate_bone("Forearm_"+side,Vector3(1.25 if running else (.9 if actor.role == "hunter" else .25),0,0))
+	if skeleton and bones.has("Hips"):
+		skeleton.set_bone_pose_position(int(bones.Hips),base_positions.Hips)
+		skeleton.force_update_all_bone_transforms()
+		var lowest: float=minf(skeleton.get_bone_global_pose(bones.Foot_L).origin.y,skeleton.get_bone_global_pose(bones.Foot_R).origin.y)
+		skeleton.set_bone_pose_position(int(bones.Hips),base_positions.Hips+Vector3(0,clampf(ankle_height-lowest,-.42,.04),0))
 	if not is_instance_valid(view_root): return
 	view_root.visible = actor.health > 0 and actor.vent_time <= 0 and not actor.in_vehicle
 	var yaw_delta: float = angle_difference(last_yaw,actor.local_aim.x)
@@ -86,10 +91,10 @@ func _process(delta: float) -> void:
 	actor.camera.position.y = absf(sin(phase))*blend*(.025 if running else .01)
 	actor.camera.rotation.z = .18*actor.fall_amount+swing*blend*.006
 	var wrist: Vector3 = Vector3(-.25,-.28,-.42)+Vector3(0,-wave_value(swing,running),swing*.07*blend)
-	if actor.role == "hunter": wrist = Vector3(-.12,-.32,-.5)
+	if actor.role == "hunter": wrist = Vector3(-.25,-.30,-.34)
 	left_hand.position = wrist
 	place_sleeve(left_sleeve,Vector3(-.32,-.52,-.04),wrist)
-	place_sleeve(right_sleeve,Vector3(.32,-.52,-.04),Vector3(.24,-.24,-.36))
+	place_sleeve(right_sleeve,Vector3(.32,-.52,-.04),Vector3(.18,-.30,-.28) if actor.role=="hunter" else Vector3(.24,-.30,-.31))
 
 func wave_value(wave: float,running: bool) -> float:
 	return maxf(0,wave)*(.06 if running else .015)

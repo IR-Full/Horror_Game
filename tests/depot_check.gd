@@ -20,8 +20,9 @@ func pickup(kind: String) -> void:
 	var box: Node3D = world.objects[item.container_id]
 	place(Vector3(box.position.x,.05,box.position.z+1.7),box.position)
 	await frames()
-	if box.kind == "safe": world.unlock_safe(box.object_id,box.code)
-	else: world.interact_object(actor,box)
+	if not box.opened:
+		if box.kind == "safe": world.unlock_safe(box.object_id,box.code)
+		else: world.interact_object(actor,box)
 	await frames()
 	place(Vector3(box.position.x,.05,box.position.z+1.7),item.position)
 	await frames()

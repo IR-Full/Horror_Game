@@ -6,7 +6,8 @@ var port: int = 27955
 var selected_map: int = 0
 var stage: int = -1
 var remaining: int = 0
-var send_clock: float = 0
+var next_send_ms: int = 0
+var accepted_own: int = 0
 var receipts: Dictionary = {}
 var reports: Dictionary = {}
 var ready_reports: Dictionary = {}
@@ -36,7 +37,7 @@ func until(predicate: Callable) -> bool:
 	var deadline: int = Time.get_ticks_msec()+15000
 	while not predicate.call():
 		if Time.get_ticks_msec() > deadline:
-			print("VOICE_TIMEOUT stage=",stage," reports=",reports," ready=",ready_reports," receipts=",receipts," remaining=",remaining)
+			print("VOICE_TIMEOUT stage=",stage," reports=",reports," ready=",ready_reports," receipts=",receipts," remaining=",remaining," own_accepted=",accepted_own)
 			return check(false,"timeout waiting for voice peers")
 		await get_tree().process_frame
 	return true
@@ -52,6 +53,7 @@ func _run() -> void:
 	if not await until(func(): return ready_reports.size() == expected): return
 	start_audio.rpc()
 	if not await until(func(): return reports.size() == expected): return
+	check(accepted_own == 25,"all paced host audio frames pass the server rate limit in the lobby")
 	check(true,"all lobby voices relay to every other participant")
 	NetworkManager.start_round(true)
 	if not await until(func(): return NetworkManager.in_match and GameManager.local_player() != null): return
@@ -65,6 +67,7 @@ func _run() -> void:
 	if not await until(func(): return ready_reports.size() == expected): return
 	start_audio.rpc()
 	if not await until(func(): return reports.size() == expected): return
+	check(accepted_own == 25,"all paced host audio frames pass the server rate limit in the round")
 	check(world.monster.state == world.monster.State.INVESTIGATE,"network voice attracts the host-owned monster")
 	var matched: bool = false
 	for player: Node3D in world.players.get_children():
@@ -84,7 +87,8 @@ func begin_stage(number: int) -> void:
 	print("VOICE_STAGE peer=",multiplayer.get_unique_id()," stage=",number)
 	stage = number
 	remaining = 0
-	send_clock = .05
+	next_send_ms = Time.get_ticks_msec()+50
+	accepted_own = 0
 	receipts.clear()
 	reported = false
 	if multiplayer.is_server():
@@ -100,13 +104,14 @@ func stage_ready(number: int) -> void:
 @rpc("authority","call_local","reliable")
 func start_audio() -> void:
 	remaining = 25
-	send_clock = .05
+	next_send_ms = Time.get_ticks_msec()+50
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if stage < 0 or failed or not NetworkManager.active: return
-	send_clock -= delta
-	if remaining > 0 and send_clock <= 0:
-		send_clock += .02
+	var now: int = Time.get_ticks_msec()
+	if remaining > 0 and now >= next_send_ms:
+		# A stalled frame must not become a catch-up burst rejected by the voice limiter.
+		next_send_ms = now+20
 		remaining -= 1
 		var hz: float = (multiplayer.get_unique_id()%5+1)*100
 		VoiceManager.send_frame(TONES.tone(.35,hz))
@@ -121,7 +126,10 @@ func _process(delta: float) -> void:
 		report.rpc_id(1,stage)
 
 func _received(speaker: int, _sequence: int, pcm: PackedByteArray) -> void:
-	if stage < 0 or speaker == multiplayer.get_unique_id(): return
+	if stage < 0: return
+	if speaker == multiplayer.get_unique_id():
+		accepted_own += 1
+		return
 	var hz: float = (speaker%5+1)*100
 	if pcm != TONES.tone(.35,hz):
 		check(false,"relayed PCM preserves sender identity and samples")

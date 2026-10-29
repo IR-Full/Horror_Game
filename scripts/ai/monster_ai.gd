@@ -43,6 +43,17 @@ var stuck_position := Vector3.ZERO
 var front_shape: CollisionShape3D
 var fell_crawling: bool = false
 var recovery_left: float = 0.0
+var fall_elapsed: float = 0.0
+var fall_direction := Vector3.FORWARD
+var fall_speed: float = 0.0
+var fall_yaw: float = 0.0
+var fall_center := Vector3.ZERO
+var fall_cleared: bool = true
+var blood_anchor := Vector3.ZERO
+var hit_serial: int = 0
+var impact_played: bool = false
+var fall_probe: BoxShape3D
+var wounds: Node3D
 var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vector3(-8, 0, 0), Vector3(0, 0, -22), Vector3(-45, 0, -32), Vector3(-54, 0, -43), Vector3(45, 0, -32), Vector3(54, 0, -43), Vector3(0, 0, -44), Vector3(0, 0, -84), Vector3(-7, 0, -8),Vector3(0,0,35),Vector3(-12,0,46),Vector3(12,0,60)]
 var patrol_index: int = 0
 
@@ -78,11 +89,13 @@ func _ready() -> void:
 		_play_clip("Idle")
 	preload("res://scripts/art/art_factory.gd").contact_shadow(self, Vector3.ZERO, Vector2(1.1, .85))
 	last_visual_position = position
+	fall_probe=BoxShape3D.new(); fall_probe.size=Vector3(1.1,.65,2.8)
+	wounds=Node3D.new(); wounds.name="Wounds"; wounds.set_script(preload("res://scripts/art/monster_wounds.gd")); wounds.actor=self; add_child(wounds)
 	var sync := MultiplayerSynchronizer.new()
 	sync.name = "StateSync"
 	sync.replication_interval = 0.1
 	var config := SceneReplicationConfig.new()
-	for property: String in ["net_position", "net_rotation", "state", "crawl_amount", "stunned_left", "gesture", "gesture_left", "fell_crawling"]:
+	for property: String in ["net_position", "net_rotation", "state", "crawl_amount", "stunned_left", "gesture", "gesture_left", "fell_crawling", "fall_elapsed", "blood_anchor", "hit_serial", "recovery_left"]:
 		var property_path := NodePath(".:" + property)
 		config.add_property(property_path)
 		config.property_set_replication_mode(property_path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -101,12 +114,14 @@ func _process(delta: float) -> void:
 	body_shape.shape.height = lerpf(2.67, 1.15, crawl_amount)
 	body_shape.position.y = body_shape.shape.height * .5
 	front_shape.position = Vector3(0, lerpf(2.28, .67, crawl_amount), lerpf(-.10, -.43, crawl_amount))
-	body_shape.disabled = state == State.STUNNED
-	front_shape.disabled = state == State.STUNNED
+	body_shape.disabled = (state == State.STUNNED and fall_elapsed>=1.05) or recovery_left>0
+	front_shape.disabled = state == State.STUNNED or recovery_left>0
 	if animation:
 		if state == State.STUNNED:
-			if visual_mode not in ["Fall", "FallCrawl", "Down"]:
+			if fall_elapsed>=fall_duration(): _play_clip("Down")
+			elif visual_mode not in ["Fall", "FallCrawl", "Down"]:
 				_play_clip("FallCrawl" if fell_crawling else "Fall", false)
+				animation.seek(minf(fall_elapsed,fall_duration()),true)
 			elif visual_mode in ["Fall", "FallCrawl"] and not animation.is_playing():
 				_play_clip("Down")
 			return
@@ -161,11 +176,12 @@ func _physics_process(delta: float) -> void:
 	speech_clock -= delta
 	gesture_left = maxf(0, gesture_left - delta)
 	if state == State.STUNNED:
+		_tick_fall(delta)
 		stunned_left = maxf(0, stunned_left - delta)
 		if stunned_left <= 0:
 			change_state(State.SEARCH, position)
-			recovery_left = 1.35
-			gesture_left = 1.1
+			recovery_left = 2.4
+			gesture_left = 2.3
 			gesture = "GetUp"
 		return
 	if recovery_left > 0:
@@ -183,7 +199,7 @@ func _physics_process(delta: float) -> void:
 	if state not in [State.DORMANT,State.RETREAT] and speech_clock <= 0 and gesture_left <= 0 and voice_clock <= 0:
 		speech_clock = randf_range(10,17) if state != State.CHASE else randf_range(8,12)
 		station.monster_speech.rpc(eye_position(),next_speech_take())
-		voice_clock = 7
+		voice_clock = maxf(7,AudioManager.sounds.monster_voice[last_speech_take].get_length()+.5)
 	# Follow a fresh audible lead before returning to unattended sabotage.
 	var fresh_noise: bool = state == State.INVESTIGATE and state_time < 3.0
 	if not fresh_noise and lonely_time >= float(station.rules.sabotage_delay) and sabotage_cooldown <= 0 and state in [State.PATROL, State.SEARCH, State.INVESTIGATE] and station.objectives.emergency.is_empty():
@@ -377,12 +393,61 @@ func neutralize() -> void:
 	if not multiplayer.is_server() or state == State.STUNNED:
 		return
 	stunned_left = 60.0
-	fell_crawling = crawl_amount > .5
+	fell_crawling = crawl_amount > .5 or recovery_left>0
+	fall_elapsed=0; hit_serial+=1; impact_played=false
+	fall_speed=clampf(Vector2(velocity.x,velocity.z).length(),1.6,4.2)
+	fall_yaw=rotation.y
+	fall_center=position
+	var found: bool=false
+	for shift: Vector3 in [Vector3.ZERO,Vector3.LEFT*.45,Vector3.RIGHT*.45,Vector3.FORWARD*.45,Vector3.BACK*.45,Vector3.LEFT*.9,Vector3.RIGHT*.9,Vector3.FORWARD*.9,Vector3.BACK*.9]:
+		for offset: float in [0.0,PI/2,-PI/2,PI]:
+			if _fall_space_clear(position+shift,rotation.y+offset):
+				fall_yaw=rotation.y+offset; fall_center=position+shift; found=true; break
+		if found: break
+	fall_direction=Vector3.FORWARD.rotated(Vector3.UP,fall_yaw)
+	fall_cleared=position.distance_to(fall_center)<.06
+	blood_anchor=position+Vector3.UP*.028
+	recovery_left=0
 	gesture_left = 0
-	crawl_amount = 0
 	velocity = Vector3.ZERO
 	change_state(State.STUNNED, position)
-	station.sound_event.rpc("roar", position)
+	station.sound_event.rpc("monster_hurt", position)
+	visual_mode=""
+
+func fall_duration() -> float: return 44.0/24 if fell_crawling else 2.5
+
+func _fall_space_clear(at: Vector3,yaw: float) -> bool:
+	for corner: Vector2 in [Vector2(-.55,-1.4),Vector2(.55,-1.4),Vector2(-.55,1.4),Vector2(.55,1.4)]:
+		var offset: Vector3=Vector3(corner.x,0,corner.y).rotated(Vector3.UP,yaw)
+		var on_floor: bool=false
+		for floor_rect: Rect2 in station.layout.FLOORS:
+			if floor_rect.has_point(Vector2(at.x+offset.x,at.z+offset.z)): on_floor=true; break
+		if not on_floor: return false
+	var query:=PhysicsShapeQueryParameters3D.new()
+	query.shape=fall_probe; query.transform=Transform3D(Basis(Vector3.UP,yaw),at+Vector3.UP*.38)
+	query.collision_mask=1|4; query.exclude=[get_rid()]
+	return get_world_3d().direct_space_state.intersect_shape(query,1).is_empty()
+
+func _tick_fall(delta: float) -> void:
+	fall_elapsed=minf(fall_duration(),fall_elapsed+delta)
+	rotation.y=lerp_angle(rotation.y,fall_yaw,minf(1,delta*8))
+	var effort: float=maxf(0,1-fall_elapsed/1.0)
+	var moving: Vector3=fall_direction*fall_speed*effort*(.7 if fell_crawling else 1.0)
+	var clearance_shift: Vector3=fall_center-position; clearance_shift.y=0
+	if clearance_shift.length()<=.06: fall_cleared=true
+	var clearing_wall: bool=effort>0 and not fall_cleared
+	if clearing_wall: moving=clearance_shift.normalized()*minf(2.4,clearance_shift.length()/maxf(delta,.001))
+	if effort>0 and (clearing_wall or _fall_space_clear(position+moving*delta,fall_yaw)):
+		velocity=Vector3(moving.x,-.5,moving.z); move_and_slide()
+	else: velocity=Vector3.ZERO
+	if fall_elapsed<=fall_duration()-.25:
+		var at: Vector3=position+fall_direction*.15
+		var query:=PhysicsRayQueryParameters3D.create(at+Vector3.UP*.6,at-Vector3.UP*2,1|4,[get_rid()])
+		var hit: Dictionary=get_world_3d().direct_space_state.intersect_ray(query)
+		blood_anchor=(hit.position if not hit.is_empty() else at)+Vector3.UP*.028
+	elif not impact_played:
+		impact_played=true; station.sound_event.rpc("crawl_impact",blood_anchor)
+	net_position=position; net_rotation=rotation.y
 
 func _try_relocate() -> void:
 	var candidate: Vector3 = patrol_points.pick_random()

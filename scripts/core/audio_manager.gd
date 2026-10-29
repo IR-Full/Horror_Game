@@ -5,9 +5,11 @@ var ambience: AudioStreamPlayer
 var music: AudioStreamPlayer
 var alert: AudioStreamPlayer
 var last_take: Dictionary = {}
+var speech_captions: Array = []
 
 func _ready() -> void:
 	var bank: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/bank.json"))
+	speech_captions=bank.get("speech",{}).get("captions_ru",[])
 	for kind: String in bank.sounds:
 		var takes: Array[AudioStream] = []
 		for path: String in bank.sounds[kind]:
@@ -167,8 +169,7 @@ func play_at(kind: String, position: Vector3, volume_offset: float = 0.0, take: 
 	player.stream = sounds[kind][take] if take >= 0 and take < sounds[kind].size() else stream_for(kind)
 	player.bus = "Room"
 	player.pitch_scale = randf_range(.97,1.03) if kind in ["step","step_metal","step_gravel","growl","pain","hurt"] else 1.0
-	if GameManager.world.map_id == 1 and kind in ["monster_voice","roar","growl"]: player.pitch_scale *= .84
-	if GameManager.world.map_id == 2 and kind in ["monster_voice","roar","growl"]: player.pitch_scale *= .93
+	if kind in ["monster_voice","roar","growl","monster_hurt"]: player.pitch_scale=1.0
 	player.volume_db = -10.0
 	if kind in ["whisper", "entity_step", "breath", "scrape"]:
 		player.volume_db = -15.0

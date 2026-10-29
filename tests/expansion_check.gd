@@ -147,7 +147,7 @@ func _run() -> void:
 	var old_order: Array = d.order.duplicate()
 	d.randomize_round()
 	check(d.order != old_order and w.objects.drain_note.description.contains(d.BUTTONS[int(d.order[0])]),"pump code changes with matching in-world clue")
-	check(AudioManager.sounds.monster_voice.size() == 18,"eighteen baked neural speech variations load")
+	check(AudioManager.sounds.monster_voice.size() == 18,"eighteen downloaded actor voice variations load")
 	var spoken: Array[int] = []
 	w.monster.speech_bag.clear()
 	for i: int in range(18):

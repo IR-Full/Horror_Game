@@ -11,6 +11,8 @@ var hud: Control
 var stats: Label
 var task: Label
 var hint: Label
+var monster_caption: Label
+var monster_caption_left: float=0
 var inventory_label: Label
 var message_label: Label
 var notice_time: float = 0.0
@@ -45,6 +47,13 @@ func _ready() -> void:
 	NetworkManager.match_started.connect(_show_game)
 	NetworkManager.left_room.connect(_clear_world)
 	_show_menu()
+	if "--horror-check" in args:
+		var horror_runner:=Node.new(); horror_runner.set_script(load("res://tests/horror_check.gd")); add_child(horror_runner)
+	if "--horror-preview" in args:
+		var horror_preview:=Node.new(); horror_preview.set_script(load("res://tests/horror_preview.gd")); add_child(horror_preview)
+	for argument: String in args:
+		if argument.begins_with("--horror-test="):
+			var horror_network:=Node.new(); horror_network.set_script(load("res://tests/horror_network_test.gd")); add_child(horror_network)
 	for flag: String in ["--hospital-check","--hospital-preview"]:
 		if flag in args:
 			var hospital_runner := Node.new()
@@ -225,7 +234,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.11  /  Голосовая связь", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.12  /  Голосовая связь", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -369,7 +378,18 @@ func _build_hud() -> void:
 	hint.offset_bottom = -120
 	hint.custom_minimum_size.x = 560
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	monster_caption=label_in(hud,"",18,"ddc4b3")
+	monster_caption.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	monster_caption.offset_left=-470; monster_caption.offset_right=470
+	monster_caption.offset_top=-220; monster_caption.offset_bottom=-185
+	monster_caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	monster_caption.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	_make_message_label()
+
+func show_monster_caption(text: String,duration: float) -> void:
+	if not is_instance_valid(monster_caption): return
+	monster_caption.text="Монстр: "+text
+	monster_caption_left=clampf(duration+1,2,9)
 
 func _make_message_label() -> void:
 	if is_instance_valid(message_label):
@@ -540,6 +560,8 @@ func open_map() -> void:
 	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\n"+symbols,13,"ddbb86")
 
 func _process(delta: float) -> void:
+	monster_caption_left=maxf(0,monster_caption_left-delta)
+	if is_instance_valid(monster_caption): monster_caption.visible=monster_caption_left>0 and SettingsManager.monster_captions
 	if is_instance_valid(microphone_meter):
 		microphone_meter.value = linear_to_db(maxf(VoiceManager.local_level,.001))
 	if is_instance_valid(microphone_status):

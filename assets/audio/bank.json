@@ -25,13 +25,16 @@
     "roar": [
       "res://assets/audio/clips/roar_01.ogg",
       "res://assets/audio/clips/roar_02.ogg",
-      "res://assets/audio/clips/roar_03.ogg"
+      "res://assets/audio/clips/roar_03.ogg",
+      "res://assets/audio/clips/roar_04.ogg"
     ],
     "breath": [
       "res://assets/audio/clips/breath_01.ogg"
     ],
     "whisper": [
-      "res://assets/audio/clips/whisper_01.ogg"
+      "res://assets/audio/clips/whisper_01.ogg",
+      "res://assets/audio/clips/whisper_02.ogg",
+      "res://assets/audio/clips/whisper_03.ogg"
     ],
     "scrape": [
       "res://assets/audio/clips/scrape_01.ogg"
@@ -141,6 +144,11 @@
     ],
     "player_breath_heavy": [
       "res://assets/audio/clips/player_breath_heavy_01.ogg"
+    ],
+    "monster_hurt": [
+      "res://assets/audio/clips/monster_hurt_01.ogg",
+      "res://assets/audio/clips/monster_hurt_02.ogg",
+      "res://assets/audio/clips/monster_hurt_03.ogg"
     ]
   },
   "loops": [
@@ -271,76 +279,6 @@
       "sha256": "45f8a832d4390c1aad959aee90c9f43c232763a1e805bf8bf8dc9175bc547370"
     },
     {
-      "file": "growl_01.ogg",
-      "sources": [
-        "darsycho_snarls.ogg"
-      ],
-      "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
-      "seconds": 3.643,
-      "peak_dbfs": -1.51,
-      "sha256": "557689e8f825c43f66bdbacbeb0541b41eda6dc2785209f65c17d1bf38dc5fbd"
-    },
-    {
-      "file": "growl_02.ogg",
-      "sources": [
-        "darsycho_snarls.ogg"
-      ],
-      "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
-      "seconds": 3.376,
-      "peak_dbfs": -1.51,
-      "sha256": "82a67320bf379af0303867190f2334f0f1605c171e9e8e0b45404576799159f8"
-    },
-    {
-      "file": "growl_03.ogg",
-      "sources": [
-        "darsycho_snarls.ogg"
-      ],
-      "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
-      "seconds": 0.687,
-      "peak_dbfs": -1.51,
-      "sha256": "6ebde006a8a9aa40269d044b810d10231c251cddccae159f61b549e35d666b35"
-    },
-    {
-      "file": "growl_04.ogg",
-      "sources": [
-        "darsycho_snarls.ogg"
-      ],
-      "processing": "Isolated snarl, pitch 0.90, EQ and level matching",
-      "seconds": 2.932,
-      "peak_dbfs": -1.51,
-      "sha256": "09b332cbb19efb1f3acb8f96f4b51fe35ff33371c1b7a6306221c50c986cdd8d"
-    },
-    {
-      "file": "roar_01.ogg",
-      "sources": [
-        "rubber_roar_02.ogg"
-      ],
-      "processing": "Human creature vocal, layered pitched takes 0.78 and 0.61",
-      "seconds": 1.258,
-      "peak_dbfs": -1.51,
-      "sha256": "615954f311deb1cccc4b8ef85e83322d940223d7b94494e6a76bca726b75eabc"
-    },
-    {
-      "file": "roar_02.ogg",
-      "sources": [
-        "rubber_scream_01.ogg"
-      ],
-      "processing": "Human creature vocal, layered pitched takes 0.78 and 0.61",
-      "seconds": 1.49,
-      "peak_dbfs": -1.51,
-      "sha256": "8ef86fc12c27fbb4bb7e7a6f1d3f0c199a3e36cdd594181acb415f1922a9c968"
-    },
-    {
-      "file": "roar_03.ogg",
-      "sources": [
-        "rubber_scream_02.ogg"
-      ],
-      "processing": "Human creature vocal, layered pitched takes 0.78 and 0.61",
-      "seconds": 1.489,
-      "peak_dbfs": -1.51,
-      "sha256": "6610d5edc42eb051d495aa5835dcb1abdacec484176793403e4d78d1e424408f"
-    },
-    {
       "file": "breath_01.ogg",
       "sources": [
         "rubber_breath.ogg"
@@ -349,16 +287,6 @@
       "seconds": 0.454,
       "peak_dbfs": -1.51,
       "sha256": "bf9ee45ed2a02b210e643c105210ac7fc3aa45b6446cb2d39ecd2e0475727946"
-    },
-    {
-      "file": "whisper_01.ogg",
-      "sources": [
-        "rubber_breath.ogg"
-      ],
-      "processing": "Close breath, original recorded vocal texture",
-      "seconds": 0.493,
-      "peak_dbfs": -1.51,
-      "sha256": "9575e4420e527759e01f528d2edcf264007f62ad7b05dc62e47146e6b0999fe7"
     },
     {
       "file": "scrape_01.ogg",
@@ -820,186 +748,6 @@
       "sha256": "7a496cc5013a2ae82be10a6472bc5f694c5a430292b27ffe9727ef5a46caadfc"
     },
     {
-      "file": "monster_voice_01.ogg",
-      "sources": [
-        "monster_neural_00.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.339,
-      "peak_dbfs": -1.51,
-      "sha256": "49153fa6782e2e5f434950948e6bbe951fd5caa8d8ec55f604bd9ddf4289b345"
-    },
-    {
-      "file": "monster_voice_02.ogg",
-      "sources": [
-        "monster_neural_01.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.686,
-      "peak_dbfs": -1.51,
-      "sha256": "c50a50979c00d132c1b60ce3015e9fb0d8846ff1b38568b30b82c6ae6437c3cb"
-    },
-    {
-      "file": "monster_voice_03.ogg",
-      "sources": [
-        "monster_neural_02.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.609,
-      "peak_dbfs": -1.51,
-      "sha256": "0178404dcc2d0f27565373b9b4c6781476c18ed8f87c5288ca1e2f74262edc58"
-    },
-    {
-      "file": "monster_voice_04.ogg",
-      "sources": [
-        "monster_neural_03.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.754,
-      "peak_dbfs": -1.51,
-      "sha256": "5b6092c60a185ed5d9056d42288db98235e3f537b41fc6de80e4e84827ca72c1"
-    },
-    {
-      "file": "monster_voice_05.ogg",
-      "sources": [
-        "monster_neural_04.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.214,
-      "peak_dbfs": -1.51,
-      "sha256": "cb34330e5dceb9ef9cbb1797a440d9d09ac4910e11aeab407c4704fb864f47b5"
-    },
-    {
-      "file": "monster_voice_06.ogg",
-      "sources": [
-        "monster_neural_05.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.338,
-      "peak_dbfs": -1.51,
-      "sha256": "4a16fa552ea1c393ddb383153d2db6b25df51b4983bc6df9bbfcd5ac8ab0e399"
-    },
-    {
-      "file": "monster_voice_07.ogg",
-      "sources": [
-        "monster_neural_06.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.027,
-      "peak_dbfs": -1.51,
-      "sha256": "a40b4203b332becb914c396faaa0478a2e9b188718a98151b026411c5f858269"
-    },
-    {
-      "file": "monster_voice_08.ogg",
-      "sources": [
-        "monster_neural_07.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.208,
-      "peak_dbfs": -1.51,
-      "sha256": "38122e1eaa8eeba9da6c331f3ea307b46f2631f25fa37d32977e1f06d44eb80f"
-    },
-    {
-      "file": "monster_voice_09.ogg",
-      "sources": [
-        "monster_neural_08.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.335,
-      "peak_dbfs": -1.51,
-      "sha256": "650b23cef3acc1794fa3570d85d932b671aafb63a0b2148f8a4851408ac0c7ea"
-    },
-    {
-      "file": "monster_voice_10.ogg",
-      "sources": [
-        "monster_neural_09.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.406,
-      "peak_dbfs": -1.51,
-      "sha256": "68c00006e488b35720002018734f7d2a95caa3e06f3310ceafc60986e0e7db03"
-    },
-    {
-      "file": "monster_voice_11.ogg",
-      "sources": [
-        "monster_neural_10.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.615,
-      "peak_dbfs": -1.51,
-      "sha256": "0bbdf7fd2356aef6ca4f8f52e3ead727bf9c5c4fc60d6cf25ffc38c456df6e8b"
-    },
-    {
-      "file": "monster_voice_12.ogg",
-      "sources": [
-        "monster_neural_11.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.366,
-      "peak_dbfs": -1.51,
-      "sha256": "cdd07eb52ee2ee7200b7c3167b6b91cb158a789c7d43e98b043e5fd3dae5edb9"
-    },
-    {
-      "file": "monster_voice_13.ogg",
-      "sources": [
-        "monster_neural_12.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.96,
-      "peak_dbfs": -1.51,
-      "sha256": "b1cde49931e2e3aae48fc517a2f916c9e49b2b81c654ad020f2b1fcea7f8a7fd"
-    },
-    {
-      "file": "monster_voice_14.ogg",
-      "sources": [
-        "monster_neural_13.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.67,
-      "peak_dbfs": -1.51,
-      "sha256": "020ec68283d0472d515cfb370b42236a38673b693ad2e83306e21570c4f89a7a"
-    },
-    {
-      "file": "monster_voice_15.ogg",
-      "sources": [
-        "monster_neural_14.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 1.826,
-      "peak_dbfs": -1.51,
-      "sha256": "8337f1e7446e2e9922509a09bab6d94f5149618fc359c6c3832945df9b563913"
-    },
-    {
-      "file": "monster_voice_16.ogg",
-      "sources": [
-        "monster_neural_15.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.345,
-      "peak_dbfs": -1.51,
-      "sha256": "1d1a8fd2450075c195da0cac7381c53059f5e88e04510f40a8bb4378e02fa910"
-    },
-    {
-      "file": "monster_voice_17.ogg",
-      "sources": [
-        "monster_neural_16.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.722,
-      "peak_dbfs": -1.51,
-      "sha256": "14923b8a462f7ff92bda06f9155cd4b0a31efc08f1492935eb0f6601b519c078"
-    },
-    {
-      "file": "monster_voice_18.ogg",
-      "sources": [
-        "monster_neural_17.wav"
-      ],
-      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
-      "seconds": 2.187,
-      "peak_dbfs": -1.51,
-      "sha256": "a208fc2578485c99ec98dd1f7fd2819868c9213527e4bd6f33a4e24666d6a603"
-    },
-    {
       "file": "alarm_01.ogg",
       "sources": [
         "ez_alarm.ogg"
@@ -1070,6 +818,352 @@
       "peak_dbfs": -2.5,
       "rms_dbfs": -22.57,
       "sha256": "4ecb407748a42d17e6def6a0cbe01026ceb913a7237802de2c76d4186ca2b436"
+    },
+    {
+      "file": "monster_voice_01.ogg",
+      "sources": [
+        "timrockk_dl_nowhere_to_run.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.144,
+      "peak_dbfs": -1.51,
+      "sha256": "62776209f417e89cefcb41055aaad460faf47307639dca6fb171414bd3b47275"
+    },
+    {
+      "file": "monster_voice_02.ogg",
+      "sources": [
+        "timrockk_dl_search_everywhere.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.744,
+      "peak_dbfs": -1.51,
+      "sha256": "325f94707142d6d3c604a94379eeead3006ebca4106c138b6027ceea2cce4f0a"
+    },
+    {
+      "file": "monster_voice_03.ogg",
+      "sources": [
+        "timrockk_dl_time_is_up.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.843,
+      "peak_dbfs": -1.51,
+      "sha256": "6a5335e62693f8bdfd73db30af53766b41f9bede9458d9ba652e69fecda6532e"
+    },
+    {
+      "file": "monster_voice_04.ogg",
+      "sources": [
+        "timrockk_dl_weapons_are_useless.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.559,
+      "peak_dbfs": -1.51,
+      "sha256": "654997056663617f46e29d025ce28561cc1372d124eccac03c1491235f31cb9e"
+    },
+    {
+      "file": "monster_voice_05.ogg",
+      "sources": [
+        "timrockk_dl_not_welcome.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.2,
+      "peak_dbfs": -1.51,
+      "sha256": "f3c4bfd75eb805af41c8e6011126e77a3a36d46416f0118af0de4d5d1a4878f5"
+    },
+    {
+      "file": "monster_voice_06.ogg",
+      "sources": [
+        "timrockk_dl_nothing_to_fear.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.577,
+      "peak_dbfs": -1.51,
+      "sha256": "abab115a79671eeaa96d57ff4d8567d7c91b2382ceb3f4ceb93e011ef429403c"
+    },
+    {
+      "file": "monster_voice_07.ogg",
+      "sources": [
+        "timrockk_dl_visitor.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.987,
+      "peak_dbfs": -1.51,
+      "sha256": "641306d399df7c12eb1754ec32706d3384a0f8ad68ab45e72719eefd57ac2827"
+    },
+    {
+      "file": "monster_voice_08.ogg",
+      "sources": [
+        "timrockk_dl_silence.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.323,
+      "peak_dbfs": -3.79,
+      "sha256": "71691bcd0df200f12a0d426c2e6e04fd059ef86537266a56a8d0ff6cd1a84e31"
+    },
+    {
+      "file": "monster_voice_09.ogg",
+      "sources": [
+        "timrockk_dl_wrong_place_wrong_time.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 6.098,
+      "peak_dbfs": -1.51,
+      "sha256": "a87f002491125d9966c14e271ff0de50c1a3faacdcce703de95e06208e9d3a96"
+    },
+    {
+      "file": "monster_voice_10.ogg",
+      "sources": [
+        "timrockk_dl_stay_and_converse.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 4.221,
+      "peak_dbfs": -1.51,
+      "sha256": "39f22cc479e9dbd2839d3124228c4b3d5ed9ddc60ce90c7ab745ee474fce14d6"
+    },
+    {
+      "file": "monster_voice_11.ogg",
+      "sources": [
+        "timrockk_dl_stay_for_dinner.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.888,
+      "peak_dbfs": -1.51,
+      "sha256": "6e564814c76d5b6263eeac163dd0dd7541c19f8c1210e0f7865edcbf610e0034"
+    },
+    {
+      "file": "monster_voice_12.ogg",
+      "sources": [
+        "timrockk_dl_dinnertime.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.672,
+      "peak_dbfs": -1.51,
+      "sha256": "399ec16475d8273bfdd8c59122813604c6847f9729c72dcd74daa615c57d4689"
+    },
+    {
+      "file": "monster_voice_13.ogg",
+      "sources": [
+        "timrockk_dl_be_afraid.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 4.144,
+      "peak_dbfs": -1.51,
+      "sha256": "9276c5141dc2b1af5d3f04977c3ba4c6aba23d4c5a66c475857bdbc09371aa92"
+    },
+    {
+      "file": "monster_voice_14.ogg",
+      "sources": [
+        "timrockk_dl_welcome.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.67,
+      "peak_dbfs": -2.83,
+      "sha256": "e6468c6fbf1393ebf1cd925d562df2119bbb7fbcaabda2f26ccf710d998a77cd"
+    },
+    {
+      "file": "monster_voice_15.ogg",
+      "sources": [
+        "timrockk_dl_mercy.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.173,
+      "peak_dbfs": -1.51,
+      "sha256": "91f063f811968deb0e15e51200949083feff554c0a6e056e6818c73e4a681941"
+    },
+    {
+      "file": "monster_voice_16.ogg",
+      "sources": [
+        "timrockk_dl_wait_he_s_mine.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 3.077,
+      "peak_dbfs": -1.51,
+      "sha256": "b2465399bc7aea89af95af06e05b5ec595c8795644b9ba067b55a2f8316991c5"
+    },
+    {
+      "file": "monster_voice_17.ogg",
+      "sources": [
+        "timrockk_dl_demon_snigger_1.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.08,
+      "peak_dbfs": -1.51,
+      "sha256": "2c7edf8187170672ad291d29b9b142e78fe107b398602ba855522ead0863f3fe"
+    },
+    {
+      "file": "monster_voice_18.ogg",
+      "sources": [
+        "timrockk_dl_demon_laughs.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 5.793,
+      "peak_dbfs": -2.19,
+      "sha256": "3aac254b2bdad2306f70a0f1a391a2870676a9f12c9fb13a690875d8ed418b68"
+    },
+    {
+      "file": "roar_01.ogg",
+      "sources": [
+        "timrockk_dl_demon_snarl_1.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.556,
+      "peak_dbfs": -1.51,
+      "sha256": "97a976946f3556575c0d0a6fc4c1af2472a639a1b81a45c1e0d91284abf0fe7a"
+    },
+    {
+      "file": "roar_02.ogg",
+      "sources": [
+        "timrockk_dl_demon_snarl_2.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.585,
+      "peak_dbfs": -1.51,
+      "sha256": "81dd798f467e6c949727ae0a0f69400b307c084eb72f98ed6ed31327c90f458e"
+    },
+    {
+      "file": "roar_03.ogg",
+      "sources": [
+        "timrockk_dl_demon_snarl_3.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 0.65,
+      "peak_dbfs": -4.19,
+      "sha256": "4214e55ab84a9de736c21f5765e4d9fc0a91b5abc3f61df892e193f8f649fec8"
+    },
+    {
+      "file": "roar_04.ogg",
+      "sources": [
+        "timrockk_dl_demon_moohaaa_laugh.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 4.112,
+      "peak_dbfs": -6.34,
+      "sha256": "48594e86a1de542bfe5957bd49cfef05ab8bc3ba43b8c81cfc6caf437fd73aef"
+    },
+    {
+      "file": "growl_01.ogg",
+      "sources": [
+        "timrockk_dl_demon_growl_1.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.266,
+      "peak_dbfs": -4.82,
+      "sha256": "acd3cdd44552227813344bed8dbd9d332f5d2d067de30c34f2bd45df45d64895"
+    },
+    {
+      "file": "growl_02.ogg",
+      "sources": [
+        "timrockk_dl_demon_growl_2.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 0.94,
+      "peak_dbfs": -1.96,
+      "sha256": "7587010b0dae5c00f4e11b7a4020560d35b9adaf02c4431a66432136ba2cf2e3"
+    },
+    {
+      "file": "growl_03.ogg",
+      "sources": [
+        "timrockk_dl_demon_growl_3.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.324,
+      "peak_dbfs": -1.51,
+      "sha256": "633c9984dbc50a37614ee2285cd22ec2a567441dd29ce28d8b394005b1b939ee"
+    },
+    {
+      "file": "growl_04.ogg",
+      "sources": [
+        "timrockk_dl_demon_growl_4.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.926,
+      "peak_dbfs": -1.51,
+      "sha256": "62bbfade7f1fb57a3f94c6a1c83127cde88e598d7946bcb4fb30ad00a0513fe3"
+    },
+    {
+      "file": "monster_hurt_01.ogg",
+      "sources": [
+        "timrockk_dl_demon_fight_grunt_1.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 0.686,
+      "peak_dbfs": -1.51,
+      "sha256": "b4ce68f0d54056b4b62172a089af95031d3bed0d5427b9bc4dda7e61addd0f7d"
+    },
+    {
+      "file": "monster_hurt_02.ogg",
+      "sources": [
+        "timrockk_dl_demon_fight_grunt_2.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 0.766,
+      "peak_dbfs": -2.03,
+      "sha256": "27f4aaced195f5dc6a6c8eda7faf4ee68ff05bac1e24be88814dd8cc12a0b2b8"
+    },
+    {
+      "file": "monster_hurt_03.ogg",
+      "sources": [
+        "timrockk_dl_demon_dies.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 4.913,
+      "peak_dbfs": -1.51,
+      "sha256": "2864530a47401165d12274b893c18112c135f6a4cf3f33524138c482efbe17ac"
+    },
+    {
+      "file": "whisper_01.ogg",
+      "sources": [
+        "timrockk_dl_nothing_to_fear.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 2.577,
+      "peak_dbfs": -1.51,
+      "sha256": "61399e42d0e7bd56738c7d5782ecad2020b7b2bccf9d5652e1890511ae040d59"
+    },
+    {
+      "file": "whisper_02.ogg",
+      "sources": [
+        "timrockk_dl_silence.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.323,
+      "peak_dbfs": -3.79,
+      "sha256": "52b1cd8d7ad88964f572ec7d7ac4fe27eff575b73311e81b9074e57972b96c38"
+    },
+    {
+      "file": "whisper_03.ogg",
+      "sources": [
+        "timrockk_dl_visitor.wav"
+      ],
+      "processing": "Recorded Tim Rockk voice, original source pitch; mono 32kHz, mild 45Hz high-pass, RMS/peak matching; no TTS, pitch shift, double voice or ring modulation",
+      "seconds": 1.987,
+      "peak_dbfs": -1.51,
+      "sha256": "775921fe14c46fa46489daff706120a3dc47cfb3412c34099ba09033f0ab0968"
     }
-  ]
+  ],
+  "speech": {
+    "actor": "Tim Rockk",
+    "language": "en",
+    "synthesized": false,
+    "source": "https://opengameart.org/content/demon-voice",
+    "captions_ru": [
+      "Тебе некуда бежать.",
+      "Обыщите всё.",
+      "Твоё время вышло.",
+      "Твоё оружие бесполезно.",
+      "Тебе здесь не рады.",
+      "Здесь нечего бояться.",
+      "У нас гость.",
+      "Тихо!",
+      "Ты оказался не в том месте и не в то время.",
+      "Останься и поговори со мной.",
+      "Останься на ужин.",
+      "Пора ужинать.",
+      "Бойся. Очень бойся.",
+      "Добро пожаловать.",
+      "Пощада — для слабых.",
+      "Подождите. Он мой.",
+      "[Хриплый смешок]",
+      "[Зловещий смех]"
+    ]
+  }
 }

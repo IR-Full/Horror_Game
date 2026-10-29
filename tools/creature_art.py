@@ -246,8 +246,46 @@ def rig_creature(meshes, api):
         return pose
 
     bpy.context.scene.render.fps = 24
+    def blend_pose(a, b, t):
+        t=max(0,min(1,t)); t=t*t*(3-2*t)
+        return {name:(a[name][0].lerp(b[name][0],t),a[name][1].lerp(b[name][1],t)) for name in a}
+
+    def prone_pose(phase=0):
+        hip=Vector((0,.26,.18)); chest=Vector((0,.27+math.sin(phase)*.006,-.66))
+        pose={'Root':(hip,hip+Vector((0,-.02,-.28))), 'Spine':(hip,chest),
+              'Head':(chest,chest+Vector((.025,.055,-.5)))}
+        for side,suffix in [(1,'L'),(-1,'R')]:
+            shoulder=chest+Vector((side*.28,.015,.03))
+            elbow=Vector((side*.72,.13,-.35)); wrist=Vector((side*.68,.09,-1.02))
+            knee=Vector((side*.22,.14,.77)); ankle=Vector((side*.24,.09,1.27))
+            pose.update({'Arm_'+suffix:(shoulder,elbow),'Forearm_'+suffix:(elbow,wrist),
+                         'Hand_'+suffix:(wrist,wrist+Vector((side*.025,-.025,-.28))),
+                         'Thigh_'+suffix:(hip+Vector((side*.15,0,0)),knee),
+                         'Shin_'+suffix:(knee,ankle),'Foot_'+suffix:(ankle,ankle+Vector((0,-.04,.21)))})
+        return pose
+
+    def brace_pose():
+        hip=Vector((0,.67,.22)); chest=Vector((0,.72,-.48))
+        pose={'Root':(hip,hip+Vector((0,.16,-.22))),'Spine':(hip,chest),
+              'Head':(chest,chest+Vector((0,.2,-.42)))}
+        for side,suffix in [(1,'L'),(-1,'R')]:
+            shoulder=chest+Vector((side*.28,0,0)); elbow=Vector((side*.56,.32,-.75)); wrist=Vector((side*.49,.1,-1.12))
+            knee=Vector((side*.19,.14,-.12)); ankle=Vector((side*.19,.11,.65))
+            pose.update({'Arm_'+suffix:(shoulder,elbow),'Forearm_'+suffix:(elbow,wrist),
+                         'Hand_'+suffix:(wrist,wrist+Vector((0,-.025,-.28))),
+                         'Thigh_'+suffix:(hip+Vector((side*.15,0,0)),knee),
+                         'Shin_'+suffix:(knee,ankle),'Foot_'+suffix:(ankle,ankle+Vector((0,-.04,.2)))})
+        return pose
+
+    def stumbling(t,crawl=False):
+        if crawl: return targets(t*math.tau*2,True)
+        pose=targets(t*math.tau*2.1,False)
+        # Two uneven strides and a forward lurch precede the knee/hand catch.
+        lean=Matrix.Rotation(-(.08+.32*t),3,'X'); pivot=Vector((0,1.19,0))
+        return {name:(pivot+lean@(a-pivot),pivot+lean@(b-pivot)) for name,(a,b) in pose.items()}
+
     actions = []
-    for clip, frames in [('Idle', 49), ('Walk', 25), ('DropToCrawl', 17), ('Crawl', 17), ('Rise', 17), ('Roar', 33), ('Bash', 29), ('Fall', 25), ('FallCrawl', 25), ('Down', 25), ('GetUp', 33)]:
+    for clip, frames in [('Idle', 49), ('Walk', 25), ('DropToCrawl', 17), ('Crawl', 17), ('Rise', 17), ('Roar', 33), ('Bash', 29), ('Fall', 61), ('FallCrawl', 45), ('Down', 49), ('GetUp', 57)]:
         if rig.animation_data:
             rig.animation_data.action = None
         for frame in range(1, frames + 1, 2):
@@ -279,16 +317,14 @@ def rig_creature(meshes, api):
                     pose['Forearm_'+suffix] = (elbow, wrist)
                     pose['Hand_'+suffix] = (wrist, wrist+Vector((0,-.22,-.13)))
             if clip in ['Fall', 'FallCrawl', 'Down', 'GetUp']:
-                amount = 1 if clip == 'Down' else (t if clip in ['Fall', 'FallCrawl'] else 1-t)
-                amount = amount*amount*(3-2*amount)
-                rotation = Matrix.Rotation(math.pi*.5*amount, 3, 'X')
-                center = Vector((0, 1.19*(1-amount)+.22*amount, 0))
-                pose = {name: (center+rotation@(a-Vector((0,1.19,0))), center+rotation@(b-Vector((0,1.19,0)))) for name,(a,b) in targets(0,False).items()}
-                if clip == 'FallCrawl':
-                    fallen_center = Vector((0,.22,0))
-                    fallen_rotation = Matrix.Rotation(math.pi*.5, 3, 'X')
-                    low, upright = targets(0, True), targets(0, False)
-                    pose = {name: (low[name][0].lerp(fallen_center+fallen_rotation@(upright[name][0]-Vector((0,1.19,0))),amount), low[name][1].lerp(fallen_center+fallen_rotation@(upright[name][1]-Vector((0,1.19,0))),amount)) for name in low}
+                if clip=='Down': pose=prone_pose(phase)
+                elif clip=='GetUp':
+                    pose=blend_pose(prone_pose(),brace_pose(),t/.45) if t<.45 else blend_pose(brace_pose(),targets(0,False),(t-.45)/.55)
+                elif clip=='FallCrawl':
+                    pose=stumbling(t/.25,True) if t<.25 else blend_pose(targets(math.tau*2,True),prone_pose(),(t-.25)/.65)
+                elif t<.38: pose=stumbling(t/.38)
+                elif t<.72: pose=blend_pose(stumbling(1),brace_pose(),(t-.38)/.34)
+                else: pose=blend_pose(brace_pose(),prone_pose(),(t-.72)/.24)
             for name, _, _, _ in specs:
                 head, tail = pose[name]
                 direction = coord(tail - head)

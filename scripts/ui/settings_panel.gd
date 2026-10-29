@@ -43,6 +43,11 @@ static func build(ui: Node, column: VBoxContainer, from_game: bool, tab: int) ->
 			slider.value = SettingsManager.get(data[1])
 			slider.value_changed.connect(func(value: float): SettingsManager.set(data[1], value); SettingsManager.apply())
 			body.add_child(slider)
+		var captions := CheckButton.new()
+		captions.text="Русские субтитры реплик монстра"
+		captions.button_pressed=SettingsManager.monster_captions
+		captions.toggled.connect(func(value: bool): SettingsManager.monster_captions=value; SettingsManager.apply())
+		body.add_child(captions)
 		ui.label_in(body,"ГОЛОСОВАЯ СВЯЗЬ",21,"e6c18a")
 		ui.label_in(body,"Удерживайте %s, чтобы говорить в лобби и игре.\nГромкий голос привлекает сущность рядом с говорящим." % SettingsManager.key_label("voice"),15)
 		var enabled := CheckButton.new()

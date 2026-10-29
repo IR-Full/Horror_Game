@@ -9,7 +9,8 @@ from mathutils import Vector
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'assets/models'
 CAT=json.loads((OUT/'catalog.json').read_text(encoding='utf-8'))
-shutil.copy2(ROOT/'art-source/legacy/entity_bento_v06.glb',OUT/'entity_depot.glb')
+if not (OUT/'entity_depot.glb').exists():
+    shutil.copy2(ROOT/'art-source/legacy/entity_bento_v06.glb',OUT/'entity_depot.glb')
 if not any(entry['model']=='entity_depot' for entry in CAT):
     CAT.append({'model':'entity_depot','triangles':23820})
 M={}

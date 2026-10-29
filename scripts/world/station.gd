@@ -772,6 +772,9 @@ func monster_speech(pos: Vector3, take: int) -> void:
 	if take < 0 or take >= AudioManager.sounds.get("monster_voice",[]).size(): return
 	last_speech_take = take
 	AudioManager.play_at("monster_voice",pos,0,take)
+	var listener: Node3D=GameManager.local_player()
+	if listener and listener.eye_position().distance_to(pos)<=40 and take<AudioManager.speech_captions.size():
+		GameManager.interface.show_monster_caption(str(AudioManager.speech_captions[take]),AudioManager.sounds.monster_voice[take].get_length())
 
 @rpc("authority", "call_local", "unreliable", 2)
 func player_step(at: Vector3, yaw: float, left: bool, bloody: bool, quiet: bool) -> void:
@@ -783,7 +786,11 @@ func player_step(at: Vector3, yaw: float, left: bool, bloody: bool, quiet: bool)
 	atmosphere.get_node("Footprints").stamp(at+Vector3.UP*.034, yaw, left, bloody)
 
 func is_bloody(at: Vector3) -> bool:
-	for pool: Node3D in atmosphere.get_node("BloodTraces").get_children():
+	var pools: Array=atmosphere.get_node("BloodTraces").get_children()
+	if is_instance_valid(monster) and is_instance_valid(monster.wounds):
+		for pool: Node3D in monster.wounds.pools:
+			if pool.visible: pools.append(pool)
+	for pool: Node3D in pools:
 		if pool.has_meta("blood_radius"):
 			var radius: Vector2 = pool.get_meta("blood_radius")
 			var delta: Vector3 = at-pool.global_position

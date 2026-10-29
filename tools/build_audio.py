@@ -1,4 +1,4 @@
-"""Build the shipped sound bank from CC0 recordings and locally generated Russian speech.
+"""Build the shipped sound bank from CC0 recordings, including Tim Rockk voice acting.
 
 Requires numpy and soundfile for development only. No network calls. Sources and
 their provenance are kept under assets/audio/sources (excluded from Godot import).
@@ -15,10 +15,12 @@ OUTPUT.mkdir(parents=True, exist_ok=True)
 RATE = 32000
 voice_only = '--voices-only' in sys.argv
 bank, metadata = {}, []
+loops = ['motor','hum']
 if voice_only:
     previous_bank = json.loads((OUTPUT.parent/'bank.json').read_text(encoding='utf-8'))
     bank = {kind: paths for kind, paths in previous_bank['sounds'].items() if kind != 'monster_voice'}
     metadata = [entry for entry in previous_bank['clips'] if not entry['file'].startswith('monster_voice_')]
+    loops = previous_bank.get('loops', loops)
 
 def read(name, trim=True):
     x, rate = sf.read(SOURCE/name, always_2d=True)
@@ -115,8 +117,8 @@ for take,index in enumerate(selected):
         emit('entity_step',pitch(x,.75),['sardin_concrete.wav'],'Heavy recorded contact')
         emit('step_gravel',layer(x,read('tiny_gravel.ogg')*.55),['sardin_concrete.wav','tiny_gravel.ogg'],'Natural shoe plus recorded gravel')
         emit('crawl_impact',layer(pitch(x,.78),read('bmac_lightclunk2.wav')*.2),['sardin_concrete.wav','bmac_lightclunk2.wav'],'Heavy recorded hand impact')
-# Male neural speech with restrained processing; no ring modulation or octave doubling.
-for file in sorted(SOURCE.glob('monster_neural_*.wav')):
+# Legacy fallback for old source sets; the shipped source set uses the actor builder below.
+for file in ([] if any(SOURCE.glob('timrockk_*.wav')) else sorted(SOURCE.glob('monster_neural_*.wav'))):
     x=pitch(read(file.name),.94)
     x=np.tanh(x*1.15)
     delayed=np.zeros(len(x)+int(.075*RATE));delayed[:len(x)]+=x
@@ -132,5 +134,8 @@ for kind,file in [('motor','loop_generator_1.mp3'),('hum','qubodup-edev.flac')]:
     seam=x[-overlap:]*(1-np.linspace(0,1,overlap))+x[:overlap]*np.linspace(0,1,overlap)
     x=np.concatenate([seam,x[overlap:-overlap]])
     emit(kind,x,[file],'Loop seam crossfade 250 ms, EQ, mono')
-(OUTPUT.parent/'bank.json').write_text(json.dumps({'sounds':bank,'loops':['motor','hum'],'clips':metadata},indent=2),encoding='utf-8')
+(OUTPUT.parent/'bank.json').write_text(json.dumps({'sounds':bank,'loops':loops,'clips':metadata},indent=2),encoding='utf-8')
 print('AUDIO_BUILD',len(metadata),'clips;',len(bank),'events;',sum(p.stat().st_size for p in OUTPUT.glob('*.ogg')),'bytes')
+if any(SOURCE.glob('timrockk_*.wav')):
+    import runpy
+    runpy.run_path(str(ROOT/'tools/build_actor_voice.py'),run_name='__main__')

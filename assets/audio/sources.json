@@ -448,5 +448,295 @@
     "download_url": "https://bigsoundbank.com/UPLOAD/bwf-en/1103.wav",
     "license": "CC0-1.0",
     "sha256": "ad2080e418bb13ebe79ddcde296cf122bf7f09cc30778cedca7c878545a82bf8"
+  },
+  {
+    "file": "timrockk_dl_nowhere_to_run.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL NOWHERE TO RUN.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "aca1f9575d347be33f17e8292fdaba15fb5b0baa5cdc1881aa6de92ac1717b7c"
+  },
+  {
+    "file": "timrockk_dl_search_everywhere.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL SEARCH EVERYWHERE.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "5c5b77b3c93ee412bb96aa87a163530bd27fb0c0ac33fb3554b875dbda8b8fbf"
+  },
+  {
+    "file": "timrockk_dl_time_is_up.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL TIME IS UP.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "745b3e37e9bf9fe94e74e64891a8685fa82f27bc610bd4d9ea0647338cbde5fd"
+  },
+  {
+    "file": "timrockk_dl_weapons_are_useless.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL WEAPONS ARE USELESS.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "8faf65e6b0cc36a848e5a9a01691320e7eb42d97a90b545bdd776e22aa18228e"
+  },
+  {
+    "file": "timrockk_dl_not_welcome.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL NOT WELCOME.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "e70245c0ee4f0aa291eaf2529e1fdc252a8ffde8a56fa5d1c9439325bf788959"
+  },
+  {
+    "file": "timrockk_dl_wrong_place_wrong_time.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL WRONG PLACE WRONG TIME.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "8b564c99ddfac7a7e5b05f44b98c83d5334f09df851971b44ca96b016ec1bd05"
+  },
+  {
+    "file": "timrockk_dl_stay_and_converse.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL STAY AND CONVERSE.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "7c9b618e3b2e0a71af41c419d5f2296cf3eaaed06d71da3d8e63e52efcbdab93"
+  },
+  {
+    "file": "timrockk_dl_stay_for_dinner.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL STAY FOR DINNER.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "d3e506c53ac9502e2b76d56e0748f511ecb36624118228d0062eae0bf48db601"
+  },
+  {
+    "file": "timrockk_dl_dinnertime.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DINNERTIME.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "a20c276fcc5c91356a7d579fe8f0d7a0bf11c7061c961ee50f2ae0b976c281d3"
+  },
+  {
+    "file": "timrockk_dl_be_afraid.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL BE AFRAID.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "a62e60168486981b2c5666b94eedc25507ad4501f5fd8adcf80e3e794eb63d1c"
+  },
+  {
+    "file": "timrockk_dl_welcome.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL WELCOME.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "bc2ce543410113cffe9d063a075436cb882c96a5778ab9e216a1cc6b572c1fc4"
+  },
+  {
+    "file": "timrockk_dl_mercy.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL MERCY.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "36a98171289a5221352041846dd7db0e30e153a4b90b5e1c128bf9403e136035"
+  },
+  {
+    "file": "timrockk_dl_wait_he_s_mine.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL WAIT HE'S MINE.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "c439027ec29379efe190ec1a275c70f6d1d243121dc89b8505309bfe20718aa1"
+  },
+  {
+    "file": "timrockk_dl_demon_snigger_1.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON SNIGGER 1.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "e7ffc4ff6649d9fa5560af7012056b7b82aed16c83f7f1a4726188215fe0f82d"
+  },
+  {
+    "file": "timrockk_dl_demon_laughs.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON LAUGHS.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "4dcad3b6c27561e2cd3f60d94799e302b15b2ceb36167fea6ee2e295dfdfc5f0"
+  },
+  {
+    "file": "timrockk_dl_demon_snarl_1.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON SNARL 1.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "4d176af953fd8c0dae5c8672719a11edeb8cf1a73b7d57d80a73bf93a8a43500"
+  },
+  {
+    "file": "timrockk_dl_demon_snarl_2.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON SNARL 2.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "90f768ca515c6953fcf92264c43eb7e0bf7d4eaf85960bc34c1c2aaca80061a7"
+  },
+  {
+    "file": "timrockk_dl_demon_snarl_3.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON SNARL 3.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "31e9edabfdab514cb87748c10f9136cf3d853444abe7c809b2c8e47f1365fd99"
+  },
+  {
+    "file": "timrockk_dl_demon_moohaaa_laugh.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON MOOHAAA LAUGH.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "0785dd4e13b5b01354e326987ab1942698614952ea3185e5b619458ec6b00581"
+  },
+  {
+    "file": "timrockk_dl_demon_growl_1.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON GROWL 1.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "8934008f6290201ed87bfe0a442376b5c442b40da5e4e7ddc53b6d0073524ef7"
+  },
+  {
+    "file": "timrockk_dl_demon_growl_2.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON GROWL 2.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "172a6131fd407c8970006337d5ac3bc1c4dc49ab75aa88ea7a88e52a94c8b142"
+  },
+  {
+    "file": "timrockk_dl_demon_growl_3.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON GROWL 3.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "58ffbb946c3cc484ace5ac92e3a204a4e4ffa26eff54459e317215db4a8d6250"
+  },
+  {
+    "file": "timrockk_dl_demon_growl_4.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON GROWL 4.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "9de76b5ad215b2f264e9325f70626d20a7751aea3abdd7f17281be0a2521bd65"
+  },
+  {
+    "file": "timrockk_dl_demon_fight_grunt_1.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON FIGHT GRUNT 1.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "4ea36d604bf9c7b40c5afa5ed4b4af384db3b429fbb169c90461f651fff880e4"
+  },
+  {
+    "file": "timrockk_dl_demon_fight_grunt_2.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON FIGHT GRUNT 2.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "84e5046be3af5a7d72d9acc4b7f7de625f9b3f8b6e7a9c91e7b0bfbe1a9375ad"
+  },
+  {
+    "file": "timrockk_dl_demon_dies.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL DEMON DIES.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "56dc65d765892cc219c27ba7b9a24c21e1bf665d0c20589d05d69fc36a01cc46"
+  },
+  {
+    "file": "timrockk_dl_nothing_to_fear.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL NOTHING TO FEAR.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "d0e2aee245360addadaf3352266b7b7dab4afc8d1aed7960534860fdc9d86949"
+  },
+  {
+    "file": "timrockk_dl_silence.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL SILENCE.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "7d22f31299329d6d408a1b78894d8ff61e14f54d9669d8ad5ff0e2a3ec677683"
+  },
+  {
+    "file": "timrockk_dl_visitor.wav",
+    "author": "Tim Rockk",
+    "source": "https://opengameart.org/content/demon-voice",
+    "download_url": "https://opengameart.org/sites/default/files/all_demon_lord_audio_files_0.zip",
+    "member": "DL VISITOR.wav",
+    "license": "CC0-1.0",
+    "performance": "Human voice acting; source has author-applied effects",
+    "sha256": "47d24967dc1bcc60229eefc225f2e0a32e4a86f505292b9d24284c5111b545f2"
   }
 ]

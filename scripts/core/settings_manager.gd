@@ -13,6 +13,7 @@ var applied_fullscreen: int = -1
 var music_volume: float = .45
 var effects_volume: float = .85
 var ambience_volume: float = .65
+var monster_captions: bool = true
 var voice_enabled: bool = true
 var voice_volume: float = 1.0
 var microphone_muted: bool = false
@@ -39,6 +40,7 @@ func _ready() -> void:
 		music_volume = clampf(float(cfg.get_value("audio", "music", .45)), 0, 1)
 		effects_volume = clampf(float(cfg.get_value("audio", "effects", .85)), 0, 1)
 		ambience_volume = clampf(float(cfg.get_value("audio", "ambience", .65)), 0, 1)
+		monster_captions=bool(cfg.get_value("audio","monster_captions",true))
 		voice_enabled = bool(cfg.get_value("voice","enabled",true))
 		voice_volume = clampf(float(cfg.get_value("voice","volume",1.0)),0,1.5)
 		microphone_muted = bool(cfg.get_value("voice","muted",false))
@@ -111,6 +113,7 @@ func save() -> void:
 	cfg.set_value("audio", "music", music_volume)
 	cfg.set_value("audio", "effects", effects_volume)
 	cfg.set_value("audio", "ambience", ambience_volume)
+	cfg.set_value("audio","monster_captions",monster_captions)
 	cfg.set_value("voice","enabled",voice_enabled)
 	cfg.set_value("voice","volume",voice_volume)
 	cfg.set_value("voice","muted",microphone_muted)

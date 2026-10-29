@@ -82,7 +82,7 @@ func _run() -> void:
 	place(player, Vector3(0, .05, 6), Vector3(0, 1.4, 1))
 	await delay(.1)
 	player.apply_action("shoot", 0)
-	await delay(1.2)
+	await delay(creature.fall_duration()+.2)
 	check(creature.state == creature.State.STUNNED and creature.visible and creature.visual_mode == "Down", "shot monster falls and remains visible on the floor")
 	check(creature.stunned_left == 60, "neutralization lasts one minute, without despawning")
 	creature.stunned_left = .02

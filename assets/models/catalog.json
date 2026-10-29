@@ -242,5 +242,13 @@
   {
     "model": "entity_doctor",
     "triangles": 11924
+  },
+  {
+    "model": "hospital_shroud",
+    "triangles": 4096
+  },
+  {
+    "model": "hospital_curtain",
+    "triangles": 5508
   }
 ]

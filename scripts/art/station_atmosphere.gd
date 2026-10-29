@@ -55,7 +55,7 @@ func _build_details() -> void:
 	for z: float in [-10.5, -5.4]:
 		prop("cot", Vector3(-11, 0, z))
 	for x: float in [7.0, 10.0, 13.0]:
-		prop("locker", Vector3(x, 0, -2.4), PI)
+		station.add_object("archive_empty_%d" % int(x),"locker_container","Шкаф архива • осмотреть",Vector3(x,1.05,-2.4))
 	prop("desk", Vector3(9.5, 0, -10.3), PI)
 	prop("desk", Vector3(12, 0, -10.3), PI)
 	prop("recorder", Vector3(11.5, 1.145, -10.3))
@@ -116,8 +116,8 @@ func _build_details() -> void:
 	var bed := prop("cot", Vector3(11.5, 0, 6.3))
 	bed.scale.x = .8
 	_collision_box(Vector3(11.5, .35, 6.3), Vector3(2.5, .7, 1.2))
-	prop("locker", Vector3(13.7, 0, 5.3), PI / 2)
-	_collision_box(Vector3(13.7, 1.1, 5.3), Vector3(.65, 2.2, .9))
+	var medical_locker: Node3D = station.add_object("medical_empty_locker","locker_container","Медицинский шкаф • осмотреть",Vector3(13.7,1.05,5.3))
+	medical_locker.rotation.y = -PI/2
 	for pos: Vector3 in [Vector3(-2.65, 2.75, -5), Vector3(2.65, 2.75, 9)]:
 		var red := OmniLight3D.new()
 		red.position = pos

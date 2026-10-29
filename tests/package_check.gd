@@ -2,9 +2,9 @@ extends SceneTree
 ## Run as an external script against an exported PCK, not the source directory.
 func _initialize() -> void:
 	var failures: int = 0
-	for path: String in ["res://scripts/core/voice_manager.gd", "res://scripts/core/voice_codec.gd", "res://scripts/core/voice_jitter.gd"]:
+	for path: String in ["res://scripts/core/voice_manager.gd", "res://scripts/core/voice_codec.gd", "res://scripts/core/voice_jitter.gd", "res://scripts/world/drainage_system.gd", "res://scripts/world/south_layout.gd", "res://scripts/world/loot_spawns.gd"]:
 		if not ResourceLoader.exists(path):
-			push_error("PACKAGE_FAIL missing voice script " + path)
+			push_error("PACKAGE_FAIL missing gameplay script " + path)
 			failures += 1
 	if not ProjectSettings.get_setting("audio/driver/enable_input", false):
 		push_error("PACKAGE_FAIL microphone input disabled")

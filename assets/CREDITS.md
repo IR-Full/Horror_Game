@@ -27,8 +27,8 @@
 
 ## Звук
 
-73 OGG-клипа. Сохранены 31 исходная запись **CC0 1.0** с OpenGameArt и BigSoundBank и три локально синтезированные русские реплики. Новая боль — **Lasse Bührmann / EmoPreben**, новые контакты обуви — **Joseph SARDIN**. Реплики созданы установленным Microsoft Irina Desktop через SAPI и обработаны в проекте; они не обозначены как сторонние записи CC0. В игру входят только готовые записи, движок синтеза и файлы голоса не распространяются. Авторы: **HaelDB, rubberduck, Darsycho, Brian MacIntosh (BMacZero), TinyWorlds, EZduzziteh, Tabasco, SpringySpringo, YCbCr, qubodup**.
+88 OGG-клипов. Сохранены 31 исходная запись **CC0 1.0** с OpenGameArt и BigSoundBank и 18 активных локально синтезированных русских реплик (прежние три SAPI WAV сохранены в архиве исходников). Новая боль — **Lasse Bührmann / EmoPreben**, новые контакты обуви — **Joseph SARDIN**. Реплики подготовлены локально через Piper Dmitri medium: датасет CC0 по [карточке модели](https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD), репозиторий модели MIT. Тексты и обработка созданы в проекте; синтез не выдаётся за актёрскую запись. В игру входят только готовые записи, движок синтеза и файлы голоса не распространяются. Авторы: **HaelDB, rubberduck, Darsycho, Brian MacIntosh (BMacZero), TinyWorlds, EZduzziteh, Tabasco, SpringySpringo, YCbCr, qubodup**.
 
-[Полные источники и обработка](../docs/AUDIO_SOURCES.md), [пофайловые лицензии и SHA-256](audio/sources.json). Неизменённые оригиналы сохранены в `audio/sources/`, исключены из импорта и готовой сборки. В синтезе остаются музыка, радио, SOS и сердцебиение. Запись микрофона игрока не используется.
+[Полные источники и обработка](../docs/AUDIO_SOURCES.md), [пофайловые лицензии и SHA-256](audio/sources.json). Неизменённые оригиналы сохранены в `audio/sources/`, исключены из импорта и готовой сборки. В синтезе остаются музыка, радио, SOS и сердцебиение. Микрофоны игроков используются только для голосового чата: звук не записывается на диск и не становится игровым ассетом.
 
 Для запуска Blender, Audacity, Python и загрузка дополнительных ассетов не нужны.

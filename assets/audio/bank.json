@@ -104,7 +104,22 @@
     "monster_voice": [
       "res://assets/audio/clips/monster_voice_01.ogg",
       "res://assets/audio/clips/monster_voice_02.ogg",
-      "res://assets/audio/clips/monster_voice_03.ogg"
+      "res://assets/audio/clips/monster_voice_03.ogg",
+      "res://assets/audio/clips/monster_voice_04.ogg",
+      "res://assets/audio/clips/monster_voice_05.ogg",
+      "res://assets/audio/clips/monster_voice_06.ogg",
+      "res://assets/audio/clips/monster_voice_07.ogg",
+      "res://assets/audio/clips/monster_voice_08.ogg",
+      "res://assets/audio/clips/monster_voice_09.ogg",
+      "res://assets/audio/clips/monster_voice_10.ogg",
+      "res://assets/audio/clips/monster_voice_11.ogg",
+      "res://assets/audio/clips/monster_voice_12.ogg",
+      "res://assets/audio/clips/monster_voice_13.ogg",
+      "res://assets/audio/clips/monster_voice_14.ogg",
+      "res://assets/audio/clips/monster_voice_15.ogg",
+      "res://assets/audio/clips/monster_voice_16.ogg",
+      "res://assets/audio/clips/monster_voice_17.ogg",
+      "res://assets/audio/clips/monster_voice_18.ogg"
     ],
     "alarm": [
       "res://assets/audio/clips/alarm_01.ogg"
@@ -799,32 +814,182 @@
     {
       "file": "monster_voice_01.ogg",
       "sources": [
-        "monster_line_0.wav"
+        "monster_neural_00.wav"
       ],
-      "processing": "Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback",
-      "seconds": 1.346,
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.339,
       "peak_dbfs": -1.51,
-      "sha256": "2b8ffe4ea235018bd96a3b93615db003870f0c7c9845babade4c424182283f86"
+      "sha256": "49153fa6782e2e5f434950948e6bbe951fd5caa8d8ec55f604bd9ddf4289b345"
     },
     {
       "file": "monster_voice_02.ogg",
       "sources": [
-        "monster_line_1.wav"
+        "monster_neural_01.wav"
       ],
-      "processing": "Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback",
-      "seconds": 3.018,
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.686,
       "peak_dbfs": -1.51,
-      "sha256": "fb4a5fc42d124a591e57ded33d400fcdf48ebe7252529acca94a453b0603ace0"
+      "sha256": "c50a50979c00d132c1b60ce3015e9fb0d8846ff1b38568b30b82c6ae6437c3cb"
     },
     {
       "file": "monster_voice_03.ogg",
       "sources": [
-        "monster_line_2.wav"
+        "monster_neural_02.wav"
       ],
-      "processing": "Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback",
-      "seconds": 8.103,
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.609,
       "peak_dbfs": -1.51,
-      "sha256": "5654da90f3174a68b011a5a2d83a3d916ecfae947cd7c40f66fdb2162f066dfa"
+      "sha256": "0178404dcc2d0f27565373b9b4c6781476c18ed8f87c5288ca1e2f74262edc58"
+    },
+    {
+      "file": "monster_voice_04.ogg",
+      "sources": [
+        "monster_neural_03.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.754,
+      "peak_dbfs": -1.51,
+      "sha256": "5b6092c60a185ed5d9056d42288db98235e3f537b41fc6de80e4e84827ca72c1"
+    },
+    {
+      "file": "monster_voice_05.ogg",
+      "sources": [
+        "monster_neural_04.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.214,
+      "peak_dbfs": -1.51,
+      "sha256": "cb34330e5dceb9ef9cbb1797a440d9d09ac4910e11aeab407c4704fb864f47b5"
+    },
+    {
+      "file": "monster_voice_06.ogg",
+      "sources": [
+        "monster_neural_05.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.338,
+      "peak_dbfs": -1.51,
+      "sha256": "4a16fa552ea1c393ddb383153d2db6b25df51b4983bc6df9bbfcd5ac8ab0e399"
+    },
+    {
+      "file": "monster_voice_07.ogg",
+      "sources": [
+        "monster_neural_06.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.027,
+      "peak_dbfs": -1.51,
+      "sha256": "a40b4203b332becb914c396faaa0478a2e9b188718a98151b026411c5f858269"
+    },
+    {
+      "file": "monster_voice_08.ogg",
+      "sources": [
+        "monster_neural_07.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.208,
+      "peak_dbfs": -1.51,
+      "sha256": "38122e1eaa8eeba9da6c331f3ea307b46f2631f25fa37d32977e1f06d44eb80f"
+    },
+    {
+      "file": "monster_voice_09.ogg",
+      "sources": [
+        "monster_neural_08.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.335,
+      "peak_dbfs": -1.51,
+      "sha256": "650b23cef3acc1794fa3570d85d932b671aafb63a0b2148f8a4851408ac0c7ea"
+    },
+    {
+      "file": "monster_voice_10.ogg",
+      "sources": [
+        "monster_neural_09.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.406,
+      "peak_dbfs": -1.51,
+      "sha256": "68c00006e488b35720002018734f7d2a95caa3e06f3310ceafc60986e0e7db03"
+    },
+    {
+      "file": "monster_voice_11.ogg",
+      "sources": [
+        "monster_neural_10.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.615,
+      "peak_dbfs": -1.51,
+      "sha256": "0bbdf7fd2356aef6ca4f8f52e3ead727bf9c5c4fc60d6cf25ffc38c456df6e8b"
+    },
+    {
+      "file": "monster_voice_12.ogg",
+      "sources": [
+        "monster_neural_11.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.366,
+      "peak_dbfs": -1.51,
+      "sha256": "cdd07eb52ee2ee7200b7c3167b6b91cb158a789c7d43e98b043e5fd3dae5edb9"
+    },
+    {
+      "file": "monster_voice_13.ogg",
+      "sources": [
+        "monster_neural_12.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.96,
+      "peak_dbfs": -1.51,
+      "sha256": "b1cde49931e2e3aae48fc517a2f916c9e49b2b81c654ad020f2b1fcea7f8a7fd"
+    },
+    {
+      "file": "monster_voice_14.ogg",
+      "sources": [
+        "monster_neural_13.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.67,
+      "peak_dbfs": -1.51,
+      "sha256": "020ec68283d0472d515cfb370b42236a38673b693ad2e83306e21570c4f89a7a"
+    },
+    {
+      "file": "monster_voice_15.ogg",
+      "sources": [
+        "monster_neural_14.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 1.826,
+      "peak_dbfs": -1.51,
+      "sha256": "8337f1e7446e2e9922509a09bab6d94f5149618fc359c6c3832945df9b563913"
+    },
+    {
+      "file": "monster_voice_16.ogg",
+      "sources": [
+        "monster_neural_15.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.345,
+      "peak_dbfs": -1.51,
+      "sha256": "1d1a8fd2450075c195da0cac7381c53059f5e88e04510f40a8bb4378e02fa910"
+    },
+    {
+      "file": "monster_voice_17.ogg",
+      "sources": [
+        "monster_neural_16.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.722,
+      "peak_dbfs": -1.51,
+      "sha256": "14923b8a462f7ff92bda06f9155cd4b0a31efc08f1492935eb0f6601b519c078"
+    },
+    {
+      "file": "monster_voice_18.ogg",
+      "sources": [
+        "monster_neural_17.wav"
+      ],
+      "processing": "Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection",
+      "seconds": 2.187,
+      "peak_dbfs": -1.51,
+      "sha256": "a208fc2578485c99ec98dd1f7fd2819868c9213527e4bd6f33a4e24666d6a603"
     },
     {
       "file": "alarm_01.ogg",

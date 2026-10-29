@@ -22,6 +22,7 @@ var relay_solution: Array = [1, 3, 2]
 
 func begin_frame() -> void:
 	station.sectors.begin_frame()
+	station.drainage.begin_frame()
 	power_holders.clear()
 	operators.clear()
 	repairers.clear()
@@ -33,6 +34,9 @@ func interact(player: Node3D, object: Node3D) -> void:
 		return
 	if object.kind == "purifier":
 		station.sectors.interact_purifier(player)
+		return
+	if object.kind == "drain_pump":
+		station.drainage.interact_pump(player)
 		return
 	if (object.kind == "generator" and emergency == "generator") or (object.kind == "ventilation" and emergency == "ventilation"):
 		emergency_holders.append(player.peer_id)
@@ -61,6 +65,7 @@ func tick(delta: float) -> void:
 	if not result.is_empty():
 		return
 	station.sectors.tick(delta)
+	station.drainage.tick(delta)
 	seconds_left = maxf(0.0, seconds_left - delta)
 	var living: int = 0
 	var recoverable: int = 0
@@ -138,7 +143,7 @@ func sabotage(kind: String) -> bool:
 	return true
 
 func snapshot() -> Dictionary:
-	return {"fuel": fuel_loaded, "fuse": fuse_loaded, "generator": generator_on, "cassette": cassette_loaded, "repair": repair_progress, "transmit": transmit_progress, "time": seconds_left, "result": result, "emergency": emergency, "emergency_left": emergency_left, "emergency_repair": emergency_repair, "relays": relay_values, "relay_solution":relay_solution, "sectors":station.sectors.snapshot()}
+	return {"fuel": fuel_loaded, "fuse": fuse_loaded, "generator": generator_on, "cassette": cassette_loaded, "repair": repair_progress, "transmit": transmit_progress, "time": seconds_left, "result": result, "emergency": emergency, "emergency_left": emergency_left, "emergency_repair": emergency_repair, "relays": relay_values, "relay_solution":relay_solution, "sectors":station.sectors.snapshot(), "drainage":station.drainage.snapshot()}
 
 func apply_snapshot(state: Dictionary) -> void:
 	fuel_loaded = bool(state.fuel)
@@ -155,6 +160,7 @@ func apply_snapshot(state: Dictionary) -> void:
 	relay_values = state.relays.duplicate()
 	relay_solution = state.relay_solution.duplicate()
 	station.sectors.apply_snapshot(state.sectors)
+	station.drainage.apply_snapshot(state.drainage)
 
 func task_text() -> String:
 	if not emergency.is_empty():

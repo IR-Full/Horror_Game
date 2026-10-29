@@ -26,6 +26,7 @@ func randomize_round() -> void:
 	if circuit.count(1) == 0: _toggle(4)
 
 func is_unlocked(rule: String) -> bool:
+	if rule == "drainage": return station.drainage.drained
 	return (pressure_ready and purified) if rule == "sector_d" else (circuit_ready if rule == "circuit" else true)
 
 func handle_object(player: Node3D, object: Node3D) -> void:
@@ -107,18 +108,19 @@ func is_contaminated(at: Vector3) -> bool:
 	return not purified and at.x > 46 and at.x < 62 and at.z > -28 and at.z < -13
 
 func _update_access() -> void:
-	for id: String in ["door_sector_d", "filter_locker"]:
+	for id: String in ["door_sector_d", "filter_locker", "drain_reward"]:
 		if station.objects.has(id):
 			station.objects[id].locked = not is_unlocked(station.objects[id].gate_rule)
 	station._update_doors_navigation()
 
 func ready_to_transmit() -> bool:
-	return pressure_ready and purified and tuned
+	return pressure_ready and purified and tuned and station.drainage.drained
 
 func task_text() -> String:
 	if not pressure_ready: return "ВЫРОВНЯЙТЕ ДАВЛЕНИЕ B\nТри вентиля в котельной: %d / %d / %d.\nСхема — в диспетчерской B—04." % valves
 	if not circuit_ready: return "ВОССТАНОВИТЕ ПУЛЬТ C—01\nПогасите все лампы логической схемы.\nИнструкция — в чистой комнате C—03."
 	if not purified: return "ФИЛЬТРАЦИЯ C • %d%%\nКартридж — в шкафу C—04.\nВставьте в C—01 и удерживайте E." % int(purge_progress/6*100)
+	if not station.drainage.drained: return station.drainage.task_text()
 	if not tuned: return "ШЛЮЗ D ОТКРЫТ\nНастройте несущую в D: %d / %d / %d.\nЧастотный журнал — в чистой комнате C—03." % frequency
 	return ""
 

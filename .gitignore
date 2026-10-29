@@ -19,6 +19,8 @@ test-results/
 *.blend1
 *.blend2
 __pycache__/
+/tools/voice-venv/
+/tools/voice-models/
 .env
 .env.*
 !.env.example

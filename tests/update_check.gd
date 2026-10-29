@@ -32,14 +32,14 @@ func _run() -> void:
 	check(count == 6 and p.loaded_shells == 2,"easy has six spare shells and two loaded chambers")
 	var previous: Dictionary = NetworkManager.last_puzzles.duplicate(true)
 	check(w.objects.safe_note.description.contains(w.objects.fuse_safe.code),"safe clue matches the current randomized combination")
-	check(w.objects.battery_a.position.y > 1.1,"med-bay battery is on the table")
-	p.position = Vector3(7.8,.05,10)
+	check(w.objects.battery_a.position.y >= .02,"randomized battery rests on a reachable surface")
+	p.position = Vector3(w.objects.battery_a.position.x,.05,w.objects.battery_a.position.z+1.5)
 	p.net_position = p.position
 	var direction: Vector3 = (w.objects.battery_a.position-p.eye_position()).normalized()
 	p.aim = Vector2(atan2(-direction.x,-direction.z),asin(direction.y))
 	p.local_aim = p.aim
 	await get_tree().physics_frame
-	check(w.target_for(p) == w.objects.battery_a,"med-bay battery is reachable by an unobstructed interaction ray")
+	check(w.target_for(p) == w.objects.battery_a,"randomized battery is reachable by an unobstructed interaction ray")
 	for z: float in [-13.5,-50.5]:
 		var ray := PhysicsRayQueryParameters3D.create(Vector3(2,1.5,z),Vector3(4,1.5,z),1)
 		check(not w.get_world_3d().direct_space_state.intersect_ray(ray).is_empty(),"northern wall closes former vertical gap at "+str(z))

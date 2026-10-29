@@ -28,7 +28,10 @@ var clip_names: Dictionary = {}
 var visual_mode: String = ""
 var stunned_left: float = 0.0
 var lonely_time: float = 0.0
-var rage_clock: float = 7.0
+var rage_clock: float = 5.0
+var speech_clock: float = 8.0
+var speech_bag: Array[int] = []
+var last_speech_take: int = -1
 var gesture: String = ""
 var gesture_left: float = 0.0
 var sabotage_cooldown: float = 35.0
@@ -40,7 +43,7 @@ var stuck_position := Vector3.ZERO
 var front_shape: CollisionShape3D
 var fell_crawling: bool = false
 var recovery_left: float = 0.0
-var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vector3(-8, 0, 0), Vector3(0, 0, -22), Vector3(-45, 0, -32), Vector3(-54, 0, -43), Vector3(45, 0, -32), Vector3(54, 0, -43), Vector3(0, 0, -44), Vector3(0, 0, -84), Vector3(-7, 0, -8)]
+var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vector3(-8, 0, 0), Vector3(0, 0, -22), Vector3(-45, 0, -32), Vector3(-54, 0, -43), Vector3(45, 0, -32), Vector3(54, 0, -43), Vector3(0, 0, -44), Vector3(0, 0, -84), Vector3(-7, 0, -8),Vector3(0,0,35),Vector3(-12,0,46),Vector3(12,0,60)]
 var patrol_index: int = 0
 
 func _ready() -> void:
@@ -151,6 +154,7 @@ func _physics_process(delta: float) -> void:
 	state_time += delta
 	attack_clock -= delta
 	voice_clock -= delta
+	speech_clock -= delta
 	gesture_left = maxf(0, gesture_left - delta)
 	if state == State.STUNNED:
 		stunned_left = maxf(0, stunned_left - delta)
@@ -166,11 +170,16 @@ func _physics_process(delta: float) -> void:
 	lonely_time += delta
 	sabotage_cooldown -= delta
 	rage_clock -= delta
-	if state not in [State.DORMANT, State.CHASE, State.RETREAT] and rage_clock <= 0 and gesture_left <= 0:
-		rage_clock = randf_range(7, 13)
+	if state not in [State.DORMANT, State.CHASE, State.RETREAT] and rage_clock <= 0 and gesture_left <= 0 and voice_clock <= 0:
+		rage_clock = randf_range(6, 11)
 		gesture = "Roar" if randf() < .5 else "Bash"
 		gesture_left = 1.3
-		station.sound_event.rpc(("monster_voice" if randf()<.4 else "roar") if gesture == "Roar" else "smash", eye_position())
+		station.sound_event.rpc("roar" if gesture == "Roar" else "smash", eye_position())
+		voice_clock = 2.2
+	if state not in [State.DORMANT,State.RETREAT] and speech_clock <= 0 and gesture_left <= 0 and voice_clock <= 0:
+		speech_clock = randf_range(10,17) if state != State.CHASE else randf_range(8,12)
+		station.monster_speech.rpc(eye_position(),next_speech_take())
+		voice_clock = 7
 	# Follow a fresh audible lead before returning to unattended sabotage.
 	var fresh_noise: bool = state == State.INVESTIGATE and state_time < 3.0
 	if not fresh_noise and lonely_time >= float(station.rules.sabotage_delay) and sabotage_cooldown <= 0 and state in [State.PATROL, State.SEARCH, State.INVESTIGATE] and station.objectives.emergency.is_empty():
@@ -291,6 +300,19 @@ func _physics_process(delta: float) -> void:
 	net_position = position
 	net_rotation = rotation.y
 
+func next_speech_take() -> int:
+	var count: int = AudioManager.sounds.get("monster_voice",[]).size()
+	if count == 0: return -1
+	if speech_bag.is_empty():
+		speech_bag.assign(range(count))
+		speech_bag.shuffle()
+		if count > 1 and speech_bag.back() == last_speech_take:
+			var swap: int = speech_bag[0]
+			speech_bag[0] = speech_bag[-1]
+			speech_bag[-1] = swap
+	last_speech_take = speech_bag.pop_back()
+	return last_speech_take
+
 func change_state(next: int, destination: Vector3) -> void:
 	if next == State.CHASE and state != State.CHASE:
 		chase_started_at = station.elapsed
@@ -335,7 +357,7 @@ func _perceive() -> void:
 		if player.lamp_on and player.battery > 0.0 and distance > 2.2 and distance < 4.2 and player.look_direction().dot(to_monster) > 0.96:
 			var away: Vector3 = position + (position - player.position).normalized() * 4.0
 			away.x = clampf(away.x, -62, 62)
-			away.z = clampf(away.z, -104, 11)
+			away.z = clampf(away.z, -104, 65)
 			change_state(State.RETREAT, away)
 			return
 		if state != State.CHASE:

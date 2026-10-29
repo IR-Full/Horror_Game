@@ -71,6 +71,8 @@ func _client() -> void:
 	report.rpc_id(1, "movement")
 	if not await until(func(): return world.objectives.generator_on, 20.0): return
 	check(world.objects.fuse.taken and world.objects.fuel.taken, "item and generator state replicated")
+	check(world.last_speech_take == 5,"all participants receive the same host-selected monster phrase")
+	check(world.objects.fuel_cage.position in preload("res://scripts/world/loot_spawns.gd").CONTAINERS.fuel_cage,"host-selected loot container position replicates")
 	if not await until(func(): return world.objectives.emergency == "ventilation", 20.0): return
 	check(world.objectives.emergency_left > 110, "two-minute emergency countdown replicates")
 	if not await until(func(): return world.monster.state == world.monster.State.STUNNED): return
@@ -80,6 +82,8 @@ func _client() -> void:
 	if not await until(func(): return world.objectives.emergency.is_empty(), 12.0): return
 	if not await until(func(): return world.sectors.ready_to_transmit(), 30.0): return
 	check(not world.objects.door_sector_d.locked and world.sectors.circuit_ready, "all sector puzzles and bulkhead access replicate")
+	check(world.drainage.drained and not world.objects.drain_reward.locked,"drainage completion and emergency supplies replicate")
+	check(world.objects.archive_empty_10.opened,"empty cupboard door state replicates")
 	report.rpc_id(1,"sectors")
 	if not await until(func(): return not world.objectives.result.is_empty(), 25.0): return
 	if not check(world.objectives.result.begins_with("Победа"), "cooperative win replicated"): return
@@ -113,6 +117,7 @@ func _host() -> void:
 	if not await until(func(): return NetworkManager.in_match and GameManager.local_player() != null): return
 	var world: Node3D = GameManager.world
 	world.monster.set_physics_process(false)
+	world.monster_speech.rpc(world.monster.position,5)
 	var player: Node3D = GameManager.local_player()
 	if not await until(func(): return client_reports.size() == expected - 1): return
 	check(world.players.get_child_count() == expected, "MultiplayerSpawner created every player")
@@ -129,51 +134,55 @@ func _host() -> void:
 	await delay(0.1)
 	check(player.position.distance_to(origin) < 1.0, "input cannot teleport body")
 	# Server-side movement meets station collision, not client-reported positions.
-	place(player, Vector3(0, 0.1, 12.3), Vector3(0, 1.5, 20))
+	place(player, Vector3(8, 0.1, 12.3), Vector3(8, 1.5, 20))
 	Input.action_press("forward")
 	await delay(0.65)
 	Input.action_release("forward")
 	check(player.position.z < 12.7, "outer wall blocks movement")
-	place(player, Vector3(-7, .05, 9.7), world.objects.fuse_safe.position)
+	place(player, Vector3(world.objects.fuse_safe.position.x,.05,world.objects.fuse_safe.position.z+1.7), world.objects.fuse_safe.position)
 	await delay(.1)
 	world.unlock_safe("fuse_safe", "000")
 	check(world.objects.fuse.concealed, "wrong safe code keeps fuse inaccessible")
 	world.unlock_safe("fuse_safe", world.objects.fuse_safe.code)
 	await delay(.1)
-	if not await pickup(player, world.objects.fuse, Vector3(-7, .05, 9.7)): return
+	if not await pickup(player, world.objects.fuse, Vector3(world.objects.fuse_safe.position.x,.05,world.objects.fuse_safe.position.z+1.7)): return
 	before = player.inventory.size()
 	world.items.pickup(player, world.objects.fuse)
 	check(player.inventory.size() == before, "same item cannot be picked up twice")
-	place(player, Vector3(-10, .05, -18.4), world.objects.work_locker.position)
+	place(player, Vector3(world.objects.work_locker.position.x,.05,world.objects.work_locker.position.z+1.7), world.objects.work_locker.position)
 	await delay(.1)
 	world.interact_object(player, world.objects.work_locker)
 	await delay(.1)
-	if not await pickup(player, world.objects.service_key, Vector3(-10, .05, -18.4)): return
-	place(player, Vector3(-12, .05, 9.8), world.objects.fuel_cage.position)
+	if not await pickup(player, world.objects.service_key, Vector3(world.objects.work_locker.position.x,.05,world.objects.work_locker.position.z+1.7)): return
+	place(player, Vector3(world.objects.fuel_cage.position.x,.05,world.objects.fuel_cage.position.z+1.8), world.objects.fuel_cage.position)
 	await delay(.1)
 	world.interact_object(player, world.objects.fuel_cage)
 	await delay(.1)
-	if not await pickup(player, world.objects.fuel, Vector3(-12, .05, 9.8)): return
+	if not await pickup(player, world.objects.fuel, Vector3(world.objects.fuel_cage.position.x,.05,world.objects.fuel_cage.position.z+1.8)): return
 	place(player, Vector3(-10, 0.05, 2), world.objects.generator.position)
 	Input.action_press("interact")
 	if not await until(func(): return world.objectives.generator_on): return
 	Input.action_release("interact")
 	check(not "fuel" in player.inventory and not "fuse" in player.inventory, "generator consumes resources on host")
 	player.inventory.erase("service_key")
-	place(player, Vector3(-8, .05, -7.4), world.objects.residence_locker.position)
+	place(player, Vector3(world.objects.residence_locker.position.x,.05,world.objects.residence_locker.position.z+1.7), world.objects.residence_locker.position)
 	await delay(.1)
 	world.interact_object(player, world.objects.residence_locker)
 	await delay(.1)
-	if not await pickup(player, world.objects.key, Vector3(-8, .05, -7.4)): return
+	if not await pickup(player, world.objects.key, Vector3(world.objects.residence_locker.position.x,.05,world.objects.residence_locker.position.z+1.7)): return
 	place(player, Vector3(1.3, 0.05, 0), world.objects.door_9_0.position)
 	await delay(0.1)
 	world.interact_object(player, world.objects.door_9_0)
 	check(world.objects.door_9_0.opened and not world.objects.door_9_0.locked, "key unlocks archive")
-	place(player, Vector3(9, .05, 3.1), world.objects.archive_locker.position)
+	place(player, Vector3(world.objects.archive_locker.position.x,.05,world.objects.archive_locker.position.z+1.7), world.objects.archive_locker.position)
 	await delay(.1)
 	world.interact_object(player, world.objects.archive_locker)
 	await delay(.1)
-	if not await pickup(player, world.objects.cassette, Vector3(9, .05, 3.1)): return
+	if not await pickup(player, world.objects.cassette, Vector3(world.objects.archive_locker.position.x,.05,world.objects.archive_locker.position.z+1.7)): return
+	place(player,Vector3(10,.05,-.7),world.objects.archive_empty_10.position)
+	await delay(.1)
+	world.interact_object(player,world.objects.archive_empty_10)
+	check(world.objects.archive_empty_10.opened,"empty archive cupboard can be inspected during a network round")
 	for index: int in range(3):
 		var relay: Node3D = world.objects["relay_%d" % index]
 		place(player, relay.position + Vector3(0, -1.25, 1.8), relay.position)
@@ -288,11 +297,11 @@ func _solve_sectors(world: Node3D, player: Node3D) -> bool:
 	var moves: Array[int]=preload("res://tests/sector_check.gd").circuit_solution(world.sectors.circuit)
 	for i: int in moves: world.circuit_command(NetworkManager.round_id,i)
 	if not check(world.sectors.circuit_ready,"random circuit solved through validated command"): return false
-	place(player,Vector3(54,.05,-18.3),world.objects.filter_locker.position)
+	place(player,Vector3(world.objects.filter_locker.position.x,.05,world.objects.filter_locker.position.z+1.7),world.objects.filter_locker.position)
 	await delay(.1)
 	world.interact_object(player,world.objects.filter_locker)
 	await delay(.1)
-	if not await pickup(player,world.objects.air_filter,Vector3(54,.05,-18.3)): return false
+	if not await pickup(player,world.objects.air_filter,Vector3(world.objects.filter_locker.position.x,.05,world.objects.filter_locker.position.z+1.7)): return false
 	place(player,Vector3(39,.05,-40.2),world.objects.purifier.position)
 	Input.action_press("interact")
 	if not await until(func():return world.sectors.purified,9): return false
@@ -305,7 +314,17 @@ func _solve_sectors(world: Node3D, player: Node3D) -> bool:
 		place(player,tuner.position+Vector3(0,-1.2,1.7),tuner.position)
 		await delay(.07)
 		for turn: int in range(world.sectors.frequency_solution[i]):world.interact_object(player,tuner)
-	return check(world.sectors.ready_to_transmit(),"pressure, filtration and radio tuning unlock final transmission")
+	for index: int in world.drainage.order:
+		var switch: Node3D = world.objects["drain_switch_%d" % index]
+		place(player,Vector3(switch.position.x,.05,switch.position.z+1.7),switch.position)
+		await delay(.08)
+		world.interact_object(player,switch)
+	place(player,Vector3(3.5,.05,46),world.objects.drain_pump.position)
+	await delay(.1)
+	Input.action_press("interact")
+	if not await until(func(): return world.drainage.drained,10): return false
+	Input.action_release("interact")
+	return check(world.sectors.ready_to_transmit(),"pressure, filtration, radio and drainage unlock final transmission")
 
 @rpc("any_peer", "call_remote", "reliable")
 func report(phase: String) -> void:

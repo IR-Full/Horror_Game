@@ -270,5 +270,167 @@
     "text": "Выходите. Я же всего лишь хочу поиграть с вами.",
     "license": "Generated speech output; project text and processing",
     "sha256": "cd202a48ba3f5607f6c648b344877f346881b1facf7c97c59c98a36f5761cc23"
+  },
+  {
+    "file": "monster_neural_00.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Вы где? Я слышу, как вы дышите.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "4cfd8ec40c4aa451bce167e1ff862134fa8fbe1f81615c90f33d95e3c9829e71"
+  },
+  {
+    "file": "monster_neural_01.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Я вас найду. Каждого.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "0d9bf61c5759d2a9292545f9d5a2d2f5a5223fc1601b4469a2ae0e544cf9e5b5"
+  },
+  {
+    "file": "monster_neural_02.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Выходите. Я всего лишь хочу поиграть.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "a23c1d60e2b4b71624708a042a43d9242c740e1f4d7e06018ff58507f712fb8a"
+  },
+  {
+    "file": "monster_neural_03.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Тише. Не нужно кричать.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "48b6962a325fb5c570b86afb379061cdf0c23ddce4e890d7187e2e0f3086aa84"
+  },
+  {
+    "file": "monster_neural_04.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Дверь вам не поможет.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "f3547bbe86b2b8e92809cb562434edea39b6a1283d9a4c60318fea225d7d6bff"
+  },
+  {
+    "file": "monster_neural_05.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Я знаю, что ты здесь.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "3415c8f6ba654f150ba8edc30e6a7237476308c587a38c7597651de5c0e3ded9"
+  },
+  {
+    "file": "monster_neural_06.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Не беги. Ты только устанешь.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "0886134ed8e26d62ef8fbcb2bb8a688592d9923cc3373f8c5d6dac72d0c69a8b"
+  },
+  {
+    "file": "monster_neural_07.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Кто там шепчется? Поговори со мной.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "a5f1b051a5596743027337c9f910086d35f07396721367a84c4db865b54cc017"
+  },
+  {
+    "file": "monster_neural_08.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Погаси фонарь. Посмотри на меня.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "6a342bc9b92a90fa0cf9bea8861a4033cdeb29e7c0a90f23439f27fe1bfd99c0"
+  },
+  {
+    "file": "monster_neural_09.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Я помню твои шаги.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "6f94c892061e91e6bb347a96a5700f6b07fab09562d4b3794a683a1bba560fe5"
+  },
+  {
+    "file": "monster_neural_10.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Здесь никто вас не услышит.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "0d0e3c5485864b01aff31078a8e5106e4e04498bb4efd8cba3ffd5cb6322c95d"
+  },
+  {
+    "file": "monster_neural_11.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Ты оставил друга одного?",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "d9037c44f2fc63b11982edd1bc4c488b0dd56697f5760cda7180b5ada1c522a8"
+  },
+  {
+    "file": "monster_neural_12.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Ещё один звук. И я приду.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "046361e1d39dbac81bbbf66e6214555acfda10a65b89ee5e5dc15dc8c3c59629"
+  },
+  {
+    "file": "monster_neural_13.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Открой. Я уже рядом.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "7f96f70c70eb90a129a11a488b80fad6379c3bbf5042eacbb0925dcc9b7d2620"
+  },
+  {
+    "file": "monster_neural_14.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Мы ещё не закончили играть.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "fb5072809af9e74f44a5ec563d2309376248bafc8bd353556dcd3b36272e39c6"
+  },
+  {
+    "file": "monster_neural_15.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Я подожду. У меня много времени.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "366c591ace40b164e4087f7f3088281b983348a397c5faf398ca21730044ed8a"
+  },
+  {
+    "file": "monster_neural_16.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Не трогайте рубильник. Мне нравится темнота.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "770160f993979b9d649e721a63655b5c1b2a6e95e5c043ac2767ab7b15926e91"
+  },
+  {
+    "file": "monster_neural_17.wav",
+    "author": "Project text; Piper Dmitri neural voice",
+    "source": "https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/dmitri/medium/MODEL_CARD",
+    "text": "Слышишь? Это я иду за тобой.",
+    "license": "Neural speech output; voice dataset CC0; model repository MIT",
+    "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
+    "sha256": "563f16c4ae68d0be79718103f0d047d3fe6b276b2fbc869bd22acf51349067a6"
   }
 ]

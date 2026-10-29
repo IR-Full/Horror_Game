@@ -1,9 +1,10 @@
 extends RefCounted
-## Four physically connected sectors. Rectangles are also the walkable floor mask.
-const FLOORS := [Rect2(-15, -51, 30, 64), Rect2(-63, -52, 36, 40), Rect2(27, -52, 36, 40), Rect2(-21, -105, 42, 42), Rect2(-27, -34, 12, 4), Rect2(15, -34, 12, 4), Rect2(-3, -63, 6, 12)]
-const EXTENT := Rect2i(-64, -106, 129, 120)
+## Five physically connected sectors. Rectangles are also the walkable floor mask.
+const FLOORS := [Rect2(-15, -51, 30, 64), Rect2(-63, -52, 36, 40), Rect2(27, -52, 36, 40), Rect2(-21, -105, 42, 42), Rect2(-27, -34, 12, 4), Rect2(15, -34, 12, 4), Rect2(-3, -63, 6, 12),Rect2(-3,13,6,12),Rect2(-24,25,48,42)]
+const EXTENT := Rect2i(-64, -106, 129, 174)
 
 static func sector_at(p: Vector3) -> String:
+	if p.z >= 25: return "E • ДРЕНАЖНЫЙ КОМПЛЕКС"
 	if p.x < -26: return "B • КОТЕЛЬНАЯ"
 	if p.x > 26: return "C • ЛАБОРАТОРИИ"
 	if p.z < -62: return "D • УЗЕЛ СВЯЗИ"
@@ -25,6 +26,7 @@ static func build(s: Node3D) -> void:
 		s.block(Vector3(x, 1.6, -57), Vector3(.25, 3.2, 12), "465354")
 	_north(s)
 	_props_and_tasks(s)
+	preload("res://scripts/world/south_layout.gd").build(s)
 	s.sign_text("A • ЖИЛОЙ БЛОК\nB ← КОТЕЛЬНАЯ    ЛАБОРАТОРИИ → C\n↑ D • УЗЕЛ СВЯЗИ\nM — СХЕМА СТАНЦИИ", Vector3(-2.85, 2.0, -28), PI/2, 20)
 
 static func _wing(s: Node3D, side: float) -> void:

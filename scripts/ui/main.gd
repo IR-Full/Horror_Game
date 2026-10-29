@@ -90,6 +90,14 @@ func _ready() -> void:
 		var checker := Node.new()
 		checker.set_script(load("res://tests/voice_check.gd"))
 		add_child(checker)
+	if "--expansion-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/expansion_check.gd"))
+		add_child(checker)
+	if "--expansion-preview" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/expansion_preview.gd"))
+		add_child(checker)
 
 func _theme() -> Theme:
 	var theme := Theme.new()
@@ -195,7 +203,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.8  /  Голосовая связь", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.9  /  Голосовая связь", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -490,7 +498,7 @@ func open_map() -> void:
 	label_in(legend,"Удерживайте %s • отпустите, чтобы закрыть" % SettingsManager.key_label("map"),14)
 	for line: String in preload("res://scripts/ui/sector_map.gd").LEGEND:
 		label_in(legend,line,14,"a7c5ba")
-	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\nG: генератор • P: питание • T: передача\nC: пульт • F: фильтрация",13,"ddbb86")
+	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\nG: генератор • P: питание • T: передача\nC: пульт • F: фильтрация • W: насос E",13,"ddbb86")
 
 func _process(delta: float) -> void:
 	if is_instance_valid(microphone_meter):
@@ -548,6 +556,10 @@ func _process(delta: float) -> void:
 			hint.text = "[%s] " % SettingsManager.key_label("interact") + object.title.replace(" E", " " + SettingsManager.key_label("interact"))
 			if object.kind == "door":
 				hint.text = "[%s] " % SettingsManager.key_label("interact") + ("Закрыть дверь" if object.opened else "Открыть дверь")
+			elif object.kind in ["locker_container","safe","cage"]:
+				hint.text = "[%s] %s • %s" % [SettingsManager.key_label("interact"),"Закрыть" if object.opened else ("Заперто" if object.locked else "Открыть"),object.title]
+			elif object.kind == "drain_pump":
+				hint.text = "Удерживайте %s • дренаж E: %d%%" % [SettingsManager.key_label("interact"),int(world.drainage.progress/8*100)]
 	if player.role == "hunter" and world.monster.state not in [0, 6] and player.position.distance_to(world.monster.position) < 10.0:
 		hint.text += "\nВы слышите присутствие сущности…"
 

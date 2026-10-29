@@ -25,6 +25,9 @@ var materials: Dictionary = {}
 var navigation_blocks: Array[AABB] = []
 var atmosphere: Node3D
 var sectors: Node
+var drainage: Node
+var static_navigation_count: int = 0
+var last_speech_take: int = -1
 var base_navigation: Dictionary = {}
 const LAYOUT := preload("res://scripts/world/sector_layout.gd")
 
@@ -55,14 +58,23 @@ func _ready() -> void:
 	sectors.name = "SectorSystem"
 	sectors.station = self
 	add_child(sectors)
+	drainage = Node.new()
+	drainage.set_script(preload("res://scripts/world/drainage_system.gd"))
+	drainage.name = "DrainageSystem"
+	drainage.station = self
+	add_child(drainage)
 	_build_station()
 	atmosphere = Node3D.new()
 	atmosphere.set_script(preload("res://scripts/art/station_atmosphere.gd"))
 	add_child(atmosphere)
 	atmosphere.build(self)
 	_ground_loose_items.call_deferred()
-	_register_equipment_obstacles()
-	_build_navigation()
+	static_navigation_count = navigation_blocks.size()
+	# Only the authoritative host runs pathfinding. Building AStar on clients
+	# stalls packet polling during initial loot replication on the larger map.
+	if multiplayer.is_server():
+		_register_equipment_obstacles()
+		_build_navigation()
 	if "--no-batching" not in OS.get_cmdline_user_args(): _batch_architecture()
 	monster = MONSTER_SCENE.instantiate()
 	monster.name = "Monster"
@@ -94,21 +106,9 @@ func spawn_players() -> void:
 	if not multiplayer.is_server():
 		return
 	randomize_puzzles()
-	var ammo_positions: Array = get_meta("ammo_positions").duplicate()
-	ammo_positions.shuffle()
-	var ammo_count: int = int(rules.ammo)
-	var repeated: bool = NetworkManager.last_shell_positions.size() == ammo_count
-	for at: Vector3 in ammo_positions.slice(0,ammo_count):
-		if not at in NetworkManager.last_shell_positions: repeated = false
-	if repeated:
-		var swap: Vector3 = ammo_positions[0]
-		ammo_positions[0] = ammo_positions[6]
-		ammo_positions[6] = swap
-	NetworkManager.last_shell_positions = ammo_positions.slice(0, ammo_count)
-	for i: int in range(6):
-		objects["shell_%d" % i].taken = i >= ammo_count
-		objects["shell_%d" % i].position = ammo_positions[i]
-		objects["shell_%d" % i].refresh()
+	preload("res://scripts/world/loot_spawns.gd").apply(self)
+	_refresh_equipment_navigation()
+	_ground_loose_items.call_deferred()
 	var index: int = 0
 	for id: int in NetworkManager.members:
 		spawner.spawn({"id": id, "nickname": NetworkManager.members[id].name, "role": NetworkManager.role_id(id), "position": Vector3(-1.2 + (index % 2) * 2.0, 0.15, 10.5 - floori(index / 2.0) * 1.8)})
@@ -131,6 +131,7 @@ func randomize_puzzles() -> void:
 	sectors.randomize_round()
 	while sectors.circuit == previous.get("circuit",[]): sectors.randomize_round()
 	NetworkManager.last_puzzles.circuit = sectors.circuit.duplicate()
+	drainage.randomize_round()
 
 func _new_digits(base: int, previous: Array) -> Array:
 	var value: Array = [randi_range(0,base-1),randi_range(0,base-1),randi_range(0,base-1)]
@@ -158,6 +159,11 @@ func _register_equipment_obstacles() -> void:
 		var shape: BoxShape3D = object.collider.shape
 		var bounds: AABB = object.collider.global_transform*AABB(-shape.size*.5,shape.size)
 		navigation_blocks.append(bounds)
+
+func _refresh_equipment_navigation() -> void:
+	navigation_blocks.resize(static_navigation_count)
+	_register_equipment_obstacles()
+	_build_navigation()
 
 func remove_player(id: int) -> void:
 	var player := players.get_node_or_null(str(id))
@@ -258,7 +264,7 @@ func _build_station() -> void:
 	block(Vector3(0, 3.4, 0), Vector3(30, 0.2, 26), "202c30")
 	for x: float in [-15.0, 15.0]:
 		block(Vector3(x, 1.6, 0), Vector3(0.3, 3.2, 26), "465354")
-	block(Vector3(0, 1.6, 13), Vector3(30, 3.2, .3), "465354")
+	for x: float in [-9,9]: block(Vector3(x,1.6,13),Vector3(12,3.2,.3),"465354")
 	for x: float in [-9, 9]:
 		block(Vector3(x, 1.6, -13), Vector3(12, 3.2, .3), "465354")
 	for x: float in [-3.0, 3.0]:
@@ -311,14 +317,12 @@ func _build_station() -> void:
 		light.set_meta("standby", .45 if z == 6.0 else (.16 if z == -10 else .08))
 		add_child(light)
 		lights.append(light)
-	sign_text("ВЫХОД ЗАБЛОКИРОВАН", Vector3(0, 2.1, 12.8), PI, 32)
+	sign_text("↓ E • ДРЕНАЖНЫЙ КОМПЛЕКС", Vector3(0, 2.7, 12.8), PI, 24)
 	# Low-cost props, deliberately away from main routes and AI paths.
 	for x: float in [-12.0, -7.0]:
 		_prop_collision(Vector3(x, .8, 10.3), Vector3(2.4, 1.6, .8))
 	for z: float in [-10.5, -5.4]:
 		_prop_collision(Vector3(-11, .35, z), Vector3(3.2, .7, 1.2))
-	for x: float in [7.0, 10.0, 13.0]:
-		_prop_collision(Vector3(x, 1.1, -2.4), Vector3(.85, 2.2, .6))
 	_prop_collision(Vector3(11, .5, -10.3), Vector3(5.0, 1.0, .85))
 	add_object("fuse", "fuse", "Предохранитель", Vector3(-7, 1.8, 10.2))
 	add_object("fuel", "fuel", "Бензин", Vector3(-12, 1.95, 10.2))
@@ -446,8 +450,8 @@ func find_path(from: Vector3, to: Vector3, for_monster: bool = false) -> PackedV
 		for object: Node3D in objects.values():
 			if object.kind == "door" and not object.locked:
 				astar.set_point_solid(Vector2i(roundi(object.position.x), roundi(object.position.z)), false)
-	var start := _nearest_walkable(Vector2i(clampi(roundi(from.x), -63, 63), clampi(roundi(from.z), -105, 12)))
-	var goal := _nearest_walkable(Vector2i(clampi(roundi(to.x), -63, 63), clampi(roundi(to.z), -105, 12)))
+	var start := _nearest_walkable(Vector2i(clampi(roundi(from.x), -63, 63), clampi(roundi(from.z), -105, 66)))
+	var goal := _nearest_walkable(Vector2i(clampi(roundi(to.x), -63, 63), clampi(roundi(to.z), -105, 66)))
 	var path := PackedVector3Array()
 	if astar.is_point_solid(start) or astar.is_point_solid(goal):
 		_update_doors_navigation()
@@ -520,7 +524,7 @@ func _physics_process(delta: float) -> void:
 					_revive_target(player, target, delta)
 				elif target.get("object_id") != null:
 					revive_progress.erase(id)
-					if target.kind in ["generator", "transmitter", "power", "ventilation", "purifier"]:
+					if target.kind in ["generator", "transmitter", "power", "ventilation", "purifier", "drain_pump"]:
 						objectives.interact(player, target)
 					elif not bool(was_holding.get(id, false)):
 						interact_object(player, target)
@@ -623,10 +627,16 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		object.opened = not object.opened
 		object.refresh()
 		refresh_containers()
+		if object.opened:
+			var contents: bool = false
+			for item: Node3D in objects.values():
+				if item.container_id == object.object_id and not item.taken: contents = true; break
+			if not contents: tell(player.peer_id,"Шкаф осмотрен: пусто.")
 		sound_event.rpc("door", object.position)
 		sync_state()
 	elif object.kind == "note":
 		document_prompt.rpc_id(player.peer_id, object.title, object.description)
+	elif object.kind == "drain_switch": drainage.press(player,object)
 	elif object.kind in ["valve", "tuner", "circuit"]:
 		sectors.handle_object(player, object)
 	elif object.kind == "relay":
@@ -720,6 +730,12 @@ func make_noise(pos: Vector3, radius: float) -> void:
 @rpc("authority", "call_local", "unreliable", 2)
 func sound_event(kind: String, pos: Vector3) -> void:
 	AudioManager.play_at(kind, pos)
+
+@rpc("authority", "call_local", "reliable", 2)
+func monster_speech(pos: Vector3, take: int) -> void:
+	if take < 0 or take >= AudioManager.sounds.get("monster_voice",[]).size(): return
+	last_speech_take = take
+	AudioManager.play_at("monster_voice",pos,0,take)
 
 @rpc("authority", "call_local", "unreliable", 2)
 func player_step(at: Vector3, yaw: float, left: bool, bloody: bool, quiet: bool) -> void:

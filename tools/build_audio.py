@@ -13,7 +13,12 @@ SOURCE = ROOT/'assets'/'audio'/'sources'
 OUTPUT = ROOT/'assets'/'audio'/'clips'
 OUTPUT.mkdir(parents=True, exist_ok=True)
 RATE = 32000
+voice_only = '--voices-only' in sys.argv
 bank, metadata = {}, []
+if voice_only:
+    previous_bank = json.loads((OUTPUT.parent/'bank.json').read_text(encoding='utf-8'))
+    bank = {kind: paths for kind, paths in previous_bank['sounds'].items() if kind != 'monster_voice'}
+    metadata = [entry for entry in previous_bank['clips'] if not entry['file'].startswith('monster_voice_')]
 
 def read(name, trim=True):
     x, rate = sf.read(SOURCE/name, always_2d=True)
@@ -35,6 +40,7 @@ def layer(a,b,amount=.3):
     return result
 
 def emit(kind, x, sources, label):
+    if voice_only and kind != 'monster_voice': return
     x = x.astype(float)-np.mean(x)
     spectrum = np.fft.rfft(x)
     hz = np.fft.rfftfreq(len(x),1/RATE)
@@ -109,17 +115,13 @@ for take,index in enumerate(selected):
         emit('entity_step',pitch(x,.75),['sardin_concrete.wav'],'Heavy recorded contact')
         emit('step_gravel',layer(x,read('tiny_gravel.ogg')*.55),['sardin_concrete.wav','tiny_gravel.ogg'],'Natural shoe plus recorded gravel')
         emit('crawl_impact',layer(pitch(x,.78),read('bmac_lightclunk2.wav')*.2),['sardin_concrete.wav','bmac_lightclunk2.wav'],'Heavy recorded hand impact')
-# Locally synthesized Russian lines, baked to portable OGG; no runtime TTS.
-rng=np.random.default_rng(407)
-for file in sorted(SOURCE.glob('monster_line_*.wav')):
-    x=pitch(read(file.name),.72)
-    low=pitch(read(file.name),.69)
-    x=layer(x,low,.2)
-    x=np.tanh(x*2.4)*(1+.08*np.sin(np.arange(len(x))*2*np.pi*37/RATE))
-    x += rng.normal(0,.004,len(x))*np.minimum(1,np.abs(x)*8)
-    delayed=np.zeros(len(x)+int(.17*RATE));delayed[:len(x)]+=x
-    delayed[int(.17*RATE):]+=x*.1
-    emit('monster_voice',delayed,[file.name],'Local Russian SAPI synthesis: low pitch, breath distortion, flutter and short slapback')
+# Male neural speech with restrained processing; no ring modulation or octave doubling.
+for file in sorted(SOURCE.glob('monster_neural_*.wav')):
+    x=pitch(read(file.name),.94)
+    x=np.tanh(x*1.15)
+    delayed=np.zeros(len(x)+int(.075*RATE));delayed[:len(x)]+=x
+    delayed[int(.075*RATE):]+=x*.035
+    emit('monster_voice',delayed,[file.name],'Piper Dmitri male neural speech, gentle saturation, -1 semitone and quiet room reflection')
 emit('alarm',read('ez_alarm.ogg'),['ez_alarm.ogg'],'Mono, level matching; runtime loops a separate stream')
 if (SOURCE/'shotguncock.wav').exists(): emit('reload',read('shotguncock.wav'),['shotguncock.wav'],'Recorded shotgun mechanism')
 for file in sorted(SOURCE.glob('tabasco_*'))[:3]: emit('shotgun',read(file.name),[file.name],'Actual firearm recording, trim and normalize')

@@ -49,7 +49,8 @@ func _ready() -> void:
 		"note": box.size = Vector3(.3, .024, .36)
 		"valve": box.size = Vector3(.6, .6, .35)
 		"purifier": box.size = Vector3(1.5, 1.8, .8)
-		"circuit", "tuner": box.size = Vector3(.6, .9, .35)
+		"circuit", "tuner", "drain_switch": box.size = Vector3(.6, .9, .35)
+		"drain_pump": box.size = Vector3(1.5,1.8,.8)
 		"air_filter": box.size = Vector3(.18, .34, .18)
 	if kind == "door":
 		mesh = Node3D.new()
@@ -58,7 +59,7 @@ func _ready() -> void:
 		leaf.position.z = -1.09
 		mesh.add_child(leaf)
 	else:
-		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit"}.get(kind, kind)
+		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit"}.get(kind, kind)
 		mesh = _paper() if kind == "note" else ART.model(model_name)
 		if kind in ["generator", "transmitter", "power", "circuit", "tuner"]:
 			mesh.rotation.y = PI

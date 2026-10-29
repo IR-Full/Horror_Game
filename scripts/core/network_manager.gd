@@ -8,7 +8,7 @@ signal left_room
 
 const DEFAULT_PORT := 27840
 const MAX_PLAYERS := 4
-const PROTOCOL := 8
+const PROTOCOL := 9
 const RULES := preload("res://scripts/core/round_rules.gd")
 var difficulty: int = 1
 var last_puzzles: Dictionary = {}
@@ -29,6 +29,7 @@ var unload_notice: String = ""
 var unload_sent: bool = false
 var round_id: int = 0
 var last_shell_positions: Array = []
+var last_pump_order: Array = []
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_peer_connected)

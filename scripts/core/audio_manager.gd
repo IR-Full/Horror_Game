@@ -159,19 +159,19 @@ func play_local(kind: String) -> void:
 	player.finished.connect(player.queue_free)
 	player.play()
 
-func play_at(kind: String, position: Vector3, volume_offset: float = 0.0) -> void:
+func play_at(kind: String, position: Vector3, volume_offset: float = 0.0, take: int = -1) -> void:
 	if DisplayServer.get_name() == "headless": return
 	if not sounds.has(kind) or not is_instance_valid(GameManager.world):
 		return
 	var player := AudioStreamPlayer3D.new()
-	player.stream = stream_for(kind)
+	player.stream = sounds[kind][take] if take >= 0 and take < sounds[kind].size() else stream_for(kind)
 	player.bus = "Room"
 	player.pitch_scale = randf_range(.97,1.03) if kind in ["step","step_metal","step_gravel","growl","pain","hurt"] else 1.0
 	player.volume_db = -10.0
 	if kind in ["whisper", "entity_step", "breath", "scrape"]:
 		player.volume_db = -15.0
 	if kind in ["roar", "growl", "monster_voice"]:
-		player.volume_db = 3.0 if kind == "roar" else (1.0 if kind == "monster_voice" else 0.0)
+		player.volume_db = 3.0 if kind == "roar" else (4.0 if kind == "monster_voice" else 0.0)
 	if kind == "crawl_impact":
 		player.volume_db = -7.0
 	if kind in ["smash", "shotgun", "alarm"]:

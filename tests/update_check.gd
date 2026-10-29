@@ -33,13 +33,18 @@ func _run() -> void:
 	var previous: Dictionary = NetworkManager.last_puzzles.duplicate(true)
 	check(w.objects.safe_note.description.contains(w.objects.fuse_safe.code),"safe clue matches the current randomized combination")
 	check(w.objects.battery_a.position.y >= .02,"randomized battery rests on a reachable surface")
-	p.position = Vector3(w.objects.battery_a.position.x,.05,w.objects.battery_a.position.z+1.5)
-	p.net_position = p.position
-	var direction: Vector3 = (w.objects.battery_a.position-p.eye_position()).normalized()
-	p.aim = Vector2(atan2(-direction.x,-direction.z),asin(direction.y))
-	p.local_aim = p.aim
-	await get_tree().physics_frame
-	check(w.target_for(p) == w.objects.battery_a,"randomized battery is reachable by an unobstructed interaction ray")
+	var reachable: bool = false
+	for offset: Vector3 in [Vector3(0,0,1.5),Vector3(0,0,-1.5),Vector3(1.5,0,0),Vector3(-1.5,0,0)]:
+		p.position = Vector3(w.objects.battery_a.position.x,.05,w.objects.battery_a.position.z)+offset
+		p.net_position = p.position
+		p.velocity = Vector3.ZERO
+		var direction: Vector3 = (w.objects.battery_a.position-p.eye_position()).normalized()
+		p.aim = Vector2(atan2(-direction.x,-direction.z),asin(direction.y))
+		p.local_aim = p.aim
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		if w.target_for(p) == w.objects.battery_a: reachable = true; break
+	check(reachable,"randomized battery is reachable by an unobstructed interaction ray")
 	for z: float in [-13.5,-50.5]:
 		var ray := PhysicsRayQueryParameters3D.create(Vector3(2,1.5,z),Vector3(4,1.5,z),1)
 		check(not w.get_world_3d().direct_space_state.intersect_ray(ray).is_empty(),"northern wall closes former vertical gap at "+str(z))

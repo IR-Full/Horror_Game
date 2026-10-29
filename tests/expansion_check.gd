@@ -14,6 +14,13 @@ func frames() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
+func reachable_from_floor(world: Node3D, actor: Node3D, item: Node3D) -> bool:
+	for offset: Vector3 in [Vector3(0,0,1.5),Vector3(0,0,-1.5),Vector3(1.5,0,0),Vector3(-1.5,0,0)]:
+		place(actor,Vector3(item.position.x,.05,item.position.z)+offset,item.position)
+		await frames()
+		if world.target_for(actor) == item: return true
+	return false
+
 func _run() -> void:
 	NetworkManager.host_room("Expansion QA",27959)
 	NetworkManager.start_round(true)
@@ -100,6 +107,15 @@ func _run() -> void:
 				await frames()
 				check(w.target_for(p) == item,"reachable contents at candidate "+id+" "+str(at))
 	var prior: Dictionary = {}
+	# Probe one curated slot at a time without another randomly placed pickup
+	# occupying the exact probe location. Solid furniture remains in place.
+	var hidden_pickups: Dictionary = {}
+	for object: Node3D in w.objects.values():
+		if object.object_id != "battery_a" and w.items.NAMES.has(object.kind):
+			hidden_pickups[object.object_id] = object.taken
+			object.taken = true
+			object.refresh()
+	await frames()
 	for at: Vector3 in LOOT.LOOSE+LOOT.AMMO:
 		var shape := SphereShape3D.new()
 		shape.radius = .22
@@ -108,6 +124,13 @@ func _run() -> void:
 		query.collision_mask = 1|4
 		query.transform.origin = Vector3(at.x,.65,at.z)
 		check(w.get_world_3d().direct_space_state.intersect_shape(query).is_empty(),"loose item slot avoids furniture and walls: "+str(at))
+		var probe_item: Node3D = w.objects.battery_a
+		probe_item.position = at
+		await w._ground_loose_items()
+		check(await reachable_from_floor(w,p,probe_item),"loose item has a real pickup approach: "+str(at))
+	for id: String in hidden_pickups:
+		w.objects[id].taken = hidden_pickups[id]
+		w.objects[id].refresh()
 	for attempt: int in range(12):
 		LOOT.apply(w)
 		var changed: bool = true

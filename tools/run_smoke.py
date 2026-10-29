@@ -26,6 +26,7 @@ def main():
     output = root / 'test-results' / f'{"depot-lan" if args.depot else ("voice-lan" if args.voice else "lan")}-{args.players}'
     output.mkdir(parents=True, exist_ok=True)
     jobs = []
+    failure = None
     try:
         for index in range(args.players):
             mode = 'host' if index == 0 else 'client'
@@ -54,22 +55,23 @@ def main():
                 raise RuntimeError('A Godot process failed')
             time.sleep(0.25)
     except (TimeoutError, RuntimeError, OSError) as error:
-        print(error)
-        return 1
+        failure = str(error)
     finally:
         for proc, log, _ in jobs:
             if proc.poll() is None:
                 proc.terminate()
                 proc.wait(timeout=10)
             log.close()
-    good = True
+    good = failure is None
+    if failure:
+        print(failure)
     for proc, _, path in jobs:
         content = path.read_text(encoding='utf-8', errors='replace')
         errors = [line for line in content.splitlines() if 'ERROR:' in line or 'TEST_FAIL' in line]
         passed = proc.returncode == 0 and 'TEST_PASS' in content and not errors
         good &= passed
-        print(f'{path.name}: {"PASS" if passed else "FAIL"}')
-        print('\n'.join(content.splitlines()[-12:]))
+        print(f'{path.name}: {"PASS" if passed else "FAIL"} (exit {proc.returncode})')
+        print('\n'.join(content.splitlines()[-12:] if passed else content.splitlines()[-100:]))
     return 0 if good else 1
 
 

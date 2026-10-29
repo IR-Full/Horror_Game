@@ -56,6 +56,16 @@ static func apply(station: Node3D) -> void:
 		used_ammo.append(at)
 		chosen[id] = at
 	NetworkManager.last_shell_positions = used_ammo.slice(0,int(station.rules.ammo))
+	var calm_boxes: Array = ["archive_empty_7","archive_empty_10","archive_empty_13","medical_empty_locker"]
+	for i: int in range(3):
+		var candidates: Array = calm_boxes.duplicate()
+		candidates.erase(previous.get("calm_%d" % i,""))
+		var box_id: String = candidates.pick_random()
+		calm_boxes.erase(box_id)
+		chosen["calm_%d" % i] = box_id
+		var item: Node3D = station.objects["calm_supply_%d" % i]
+		item.container_id = box_id
+		item.position = station.objects[box_id].to_global(Vector3(0,-.4,.1))
 	config.set_value("loot","positions",chosen)
 	config.set_value("loot","ammo",NetworkManager.last_shell_positions)
 	config.save(path)

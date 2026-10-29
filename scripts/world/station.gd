@@ -4,6 +4,9 @@ const MONSTER_SCENE := preload("res://scenes/monster.tscn")
 const OBJECT_SCRIPT := preload("res://scripts/world/interactable.gd")
 const ART := preload("res://scripts/art/art_factory.gd")
 var rules: Dictionary
+var map_id: int = 0
+var layout: Script
+var calm_zones: Array = [Vector3(9,0,8)]
 var light_clock: float = 0.0
 var walls_for_map: Array[Rect2] = []
 var players: Node3D
@@ -33,7 +36,12 @@ const LAYOUT := preload("res://scripts/world/sector_layout.gd")
 
 func _ready() -> void:
 	GameManager.world = self
+	map_id = NetworkManager.map_id
+	layout = NetworkManager.MAPS.layout(map_id)
 	rules = NetworkManager.RULES.profile(NetworkManager.difficulty)
+	if map_id == 1:
+		rules.chase_speed *= 1.08
+		rules.sabotage_delay *= .85
 	players = Node3D.new()
 	players.name = "Players"
 	add_child(players)
@@ -49,7 +57,7 @@ func _ready() -> void:
 	items.station = self
 	add_child(items)
 	objectives = Node.new()
-	objectives.set_script(preload("res://scripts/world/objective_system.gd"))
+	objectives.set_script(preload("res://scripts/world/vehicle_objective_system.gd") if map_id == 1 else preload("res://scripts/world/objective_system.gd"))
 	objectives.name = "ObjectiveSystem"
 	objectives.station = self
 	add_child(objectives)
@@ -68,6 +76,12 @@ func _ready() -> void:
 	atmosphere.set_script(preload("res://scripts/art/station_atmosphere.gd"))
 	add_child(atmosphere)
 	atmosphere.build(self)
+	if map_id == 0:
+		for i: int in range(3):
+			var kind: String = "sedative" if i < 2 else "thermos"
+			var item: Node3D = add_object("calm_supply_%d" % i,kind,items.NAMES[kind],Vector3(9,.4,8))
+			item.container_id = "medical_empty_locker"
+		sign_text("ПУНКТ ОТДЫХА • СВЕТ И ЧАЙ",Vector3(9,2.0,12.7),PI,20)
 	_ground_loose_items.call_deferred()
 	static_navigation_count = navigation_blocks.size()
 	# Only the authoritative host runs pathfinding. Building AStar on clients
@@ -105,8 +119,12 @@ func _create_player(data: Dictionary) -> Node:
 func spawn_players() -> void:
 	if not multiplayer.is_server():
 		return
-	randomize_puzzles()
-	preload("res://scripts/world/loot_spawns.gd").apply(self)
+	if map_id == 0:
+		randomize_puzzles()
+		preload("res://scripts/world/loot_spawns.gd").apply(self)
+	else:
+		objectives.randomize_round()
+		preload("res://scripts/world/depot_loot.gd").apply(self)
 	_refresh_equipment_navigation()
 	_ground_loose_items.call_deferred()
 	var index: int = 0
@@ -143,7 +161,7 @@ func _ground_loose_items() -> void:
 	if not multiplayer.is_server(): return
 	await get_tree().physics_frame
 	for object: Node3D in objects.values():
-		if object.kind not in ["battery","medkit","shell"] or not object.container_id.is_empty(): continue
+		if object.kind not in ["battery","medkit","shell","sedative","thermos"] or not object.container_id.is_empty(): continue
 		var bottom: float = INF
 		for part: Node3D in object.mesh.find_children("*","MeshInstance3D",true,false):
 			var bounds: AABB = part.global_transform*part.get_aabb()
@@ -258,6 +276,9 @@ func _build_station() -> void:
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	world_environment.environment = environment
 	add_child(world_environment)
+	if map_id == 1:
+		layout.build(self)
+		return
 	for x: float in [-9.0, 0.0, 9.0]:
 		for z: float in [-8.5, 0.0, 8.5]:
 			block(Vector3(x, -.2, z), Vector3(12 if x != 0 else 6, .4, 9 if z != 0 else 8), "313c3e")
@@ -384,7 +405,7 @@ func _batch_architecture() -> void:
 	var groups: Dictionary = {}
 	for part: Node in find_children("*","MeshInstance3D",true,false):
 		if not part.has_meta("architecture") or not part.visible: continue
-		var key: String = LAYOUT.sector_at(part.global_position)+str(part.material_override.get_rid())+str(part.cast_shadow)
+		var key: String = layout.sector_at(part.global_position)+str(part.material_override.get_rid())+str(part.cast_shadow)
 		if not groups.has(key): groups[key] = []
 		groups[key].append(part)
 	for group: Array in groups.values():
@@ -408,14 +429,14 @@ func _batch_architecture() -> void:
 		batch.set_meta("architecture_batch",true)
 
 func _build_navigation() -> void:
-	astar.region = LAYOUT.EXTENT
+	astar.region = layout.EXTENT
 	astar.cell_size = Vector2.ONE
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	astar.update()
 	for x: int in range(astar.region.position.x, astar.region.end.x):
 		for z: int in range(astar.region.position.y, astar.region.end.y):
 			var floor_found: bool = false
-			for floor_region: Rect2 in LAYOUT.FLOORS:
+			for floor_region: Rect2 in layout.FLOORS:
 				if floor_region.has_point(Vector2(x, z)): floor_found = true; break
 			var wall: bool = not floor_found
 			if floor_found:
@@ -524,7 +545,7 @@ func _physics_process(delta: float) -> void:
 					_revive_target(player, target, delta)
 				elif target.get("object_id") != null:
 					revive_progress.erase(id)
-					if target.kind in ["generator", "transmitter", "power", "ventilation", "purifier", "drain_pump"]:
+					if target.kind in ["generator", "transmitter", "power", "ventilation", "purifier", "drain_pump", "vehicle"]:
 						objectives.interact(player, target)
 					elif not bool(was_holding.get(id, false)):
 						interact_object(player, target)
@@ -593,7 +614,7 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		if object.locked:
 			if not object.gate_rule.is_empty():
 				if not sectors.is_unlocked(object.gate_rule):
-					tell(player.peer_id, "Шлюз D закрыт: нужны давление B и очистка воздуха C.")
+					tell(player.peer_id, "Выезд откроется при запуске готовой машины." if map_id == 1 else "Шлюз D закрыт: нужны давление B и очистка воздуха C.")
 					return
 				object.locked = false
 			elif not "key" in player.inventory:
@@ -615,13 +636,13 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sync_state()
 	elif object.kind in ["locker_container", "safe", "cage"]:
 		if not object.gate_rule.is_empty() and not sectors.is_unlocked(object.gate_rule):
-			tell(player.peer_id, "Хранилище заблокировано. Восстановите пульт C—01.")
+			tell(player.peer_id, "Хранилище заблокировано. Восстановите пусковой щит C." if map_id == 1 else "Хранилище заблокировано. Восстановите пульт C—01.")
 			return
 		if object.kind == "safe" and not object.opened:
 			container_prompt.rpc_id(player.peer_id, object.object_id)
 			return
 		if object.locked and not object.required_key in player.inventory:
-			tell(player.peer_id, "Заперто. Служебный ключ — в шкафчике мастерской, сектор 07.")
+			tell(player.peer_id, "Нужен ключ клетки из шкафчика охраны E." if map_id == 1 else "Заперто. Служебный ключ — в шкафчике мастерской, сектор 07.")
 			return
 		object.locked = false
 		object.opened = not object.opened
@@ -636,6 +657,7 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sync_state()
 	elif object.kind == "note":
 		document_prompt.rpc_id(player.peer_id, object.title, object.description)
+	elif object.kind == "depot_dial": objectives.turn_dial(player,object)
 	elif object.kind == "drain_switch": drainage.press(player,object)
 	elif object.kind in ["valve", "tuner", "circuit"]:
 		sectors.handle_object(player, object)
@@ -682,7 +704,7 @@ func unlock_safe(id: String, code: String) -> void:
 		refresh_containers()
 		sync_state()
 	else:
-		tell(sender, "Неверный код. Листок кладовщика — в медпункте.")
+		tell(sender, "Неверный код. Нужны накладная D и журнал охраны E." if map_id == 1 else "Неверный код. Листок кладовщика — в медпункте.")
 	make_noise(object.position, 10)
 
 @rpc("authority", "call_local", "reliable")
@@ -783,7 +805,7 @@ func sync_state() -> void:
 	var state: Dictionary = {}
 	for id: String in objects:
 		var object: Node3D = objects[id]
-		state[id] = [object.taken, object.opened, object.locked, object.position]
+		state[id] = [object.taken, object.opened, object.locked, object.position, object.container_id]
 	receive_state.rpc(objectives.snapshot(), state)
 
 @rpc("authority", "call_remote", "reliable")
@@ -795,5 +817,6 @@ func receive_state(goal: Dictionary, state: Dictionary) -> void:
 			objects[id].opened = bool(state[id][1])
 			objects[id].locked = bool(state[id][2])
 			objects[id].position = state[id][3]
+			objects[id].container_id = state[id][4]
 			objects[id].refresh()
 	refresh_containers()

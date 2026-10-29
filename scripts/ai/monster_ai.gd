@@ -47,6 +47,8 @@ var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vecto
 var patrol_index: int = 0
 
 func _ready() -> void:
+	if station.map_id == 1:
+		patrol_points = [Vector3(0,0,-9),Vector3(-45,0,-18),Vector3(-54,0,-57),Vector3(45,0,-18),Vector3(54,0,-57),Vector3(0,0,-85),Vector3(0,0,33),Vector3(-12,0,42),Vector3(12,0,62)]
 	sabotage_cooldown = float(station.rules.sabotage_delay)
 	body_shape = CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
@@ -63,7 +65,7 @@ func _ready() -> void:
 	front_shape.shape = front
 	front_shape.position = Vector3(0, 1.2, -.12)
 	add_child(front_shape)
-	mesh = preload("res://scripts/art/art_factory.gd").model("entity")
+	mesh = preload("res://scripts/art/art_factory.gd").model(NetworkManager.MAPS.monster_model(station.map_id))
 	add_child(mesh)
 	var found: Array[Node] = mesh.find_children("*", "AnimationPlayer", true, false)
 	if not found.is_empty():
@@ -183,7 +185,7 @@ func _physics_process(delta: float) -> void:
 	# Follow a fresh audible lead before returning to unattended sabotage.
 	var fresh_noise: bool = state == State.INVESTIGATE and state_time < 3.0
 	if not fresh_noise and lonely_time >= float(station.rules.sabotage_delay) and sabotage_cooldown <= 0 and state in [State.PATROL, State.SEARCH, State.INVESTIGATE] and station.objectives.emergency.is_empty():
-		sabotage_target = "generator" if station.objectives.generator_on and randf() < .5 else "ventilation"
+		sabotage_target = "generator" if station.map_id == 1 or (station.objectives.generator_on and randf() < .5) else "ventilation"
 		sabotage_striking = false
 		change_state(State.SABOTAGE, station.objects[sabotage_target].position + Vector3(0, 0, 1.7))
 	crawl_amount = move_toward(crawl_amount, 1.0 if state == State.CHASE else 0.0, delta / .65)
@@ -328,6 +330,7 @@ func hear_noise(pos: Vector3, radius: float) -> void:
 	if not bool(station.rules.monster) or state in [State.DORMANT, State.STUNNED]:
 		return
 	var range_multiplier: float = 1.2 if station.objectives.generator_on else 1.0
+	if station.map_id == 1: range_multiplier *= 1.3
 	if position.distance_to(pos) <= radius * range_multiplier:
 		last_known = pos
 		if state == State.CHASE:
@@ -354,7 +357,7 @@ func _perceive() -> void:
 		lonely_time = 0
 		target_id = player.peer_id
 		var to_monster: Vector3 = (position + Vector3.UP * 1.5 - player.eye_position()).normalized()
-		if player.lamp_on and player.battery > 0.0 and distance > 2.2 and distance < 4.2 and player.look_direction().dot(to_monster) > 0.96:
+		if player.lamp_on and player.battery > 0.0 and distance > 2.2 and distance < (3.2 if station.map_id == 1 else 4.2) and player.look_direction().dot(to_monster) > 0.96:
 			var away: Vector3 = position + (position - player.position).normalized() * 4.0
 			away.x = clampf(away.x, -62, 62)
 			away.z = clampf(away.z, -104, 65)

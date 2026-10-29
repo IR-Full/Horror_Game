@@ -135,11 +135,19 @@
     ],
     "hum": [
       "res://assets/audio/clips/hum_01.ogg"
+    ],
+    "player_breath_calm": [
+      "res://assets/audio/clips/player_breath_calm_01.ogg"
+    ],
+    "player_breath_heavy": [
+      "res://assets/audio/clips/player_breath_heavy_01.ogg"
     ]
   },
   "loops": [
     "motor",
-    "hum"
+    "hum",
+    "player_breath_calm",
+    "player_breath_heavy"
   ],
   "clips": [
     {
@@ -1040,6 +1048,28 @@
       "seconds": 1.485,
       "peak_dbfs": -1.51,
       "sha256": "637a104192297e94acaf950921f9416ebb0fc8b704471b5923cfd6469b2517ee"
+    },
+    {
+      "file": "player_breath_calm_01.ogg",
+      "sources": [
+        "sardin_breath_calm.wav"
+      ],
+      "processing": "Recorded human breathing; mono 32kHz, gentle RMS match and 150ms loop seam",
+      "duration": 11.85,
+      "peak_dbfs": -2.5,
+      "rms_dbfs": -22.2,
+      "sha256": "98110f4e3a0be627871708714eb75cb204422b340e0b1ad2d5473430024aaf09"
+    },
+    {
+      "file": "player_breath_heavy_01.ogg",
+      "sources": [
+        "sardin_breath_heavy.wav"
+      ],
+      "processing": "Recorded human breathing; mono 32kHz, gentle RMS match and 150ms loop seam",
+      "duration": 11.85,
+      "peak_dbfs": -2.5,
+      "rms_dbfs": -22.57,
+      "sha256": "4ecb407748a42d17e6def6a0cbe01026ceb913a7237802de2c76d4186ca2b436"
     }
   ]
 }

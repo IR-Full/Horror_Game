@@ -16,15 +16,19 @@ var generator_sound: AudioStreamPlayer3D
 func build(world: Node3D) -> void:
 	station = world
 	name = "Atmosphere"
-	_build_details()
+	if station.map_id == 0: _build_details()
+	else: _build_depot_details()
 	var dressing := Node3D.new()
 	dressing.set_script(preload("res://scripts/art/station_dressing.gd"))
 	add_child(dressing)
-	dressing.build(station)
+	if station.map_id == 0: dressing.build(station)
 	var blood := Node3D.new()
 	blood.set_script(preload("res://scripts/art/blood_traces.gd"))
 	add_child(blood)
-	blood.build()
+	if station.map_id == 0: blood.build()
+	else:
+		blood.name = "BloodTraces"
+		for at: Vector3 in [Vector3(1,.028,-14),Vector3(-49,.028,-44),Vector3(50,.028,-54),Vector3(-12,.028,-88),Vector3(7,.028,53)]: blood.add_child(preload("res://scripts/art/blood_traces.gd").make_pool(at,Vector2(.8,.5),at.x))
 	var footprints := Node3D.new()
 	footprints.set_script(preload("res://scripts/art/footprints.gd"))
 	add_child(footprints)
@@ -33,13 +37,19 @@ func build(world: Node3D) -> void:
 	if AudioManager.sounds.has("motor") and DisplayServer.get_name() != "headless":
 		generator_sound = AudioStreamPlayer3D.new()
 		generator_sound.stream = AudioManager.stream_for("motor")
-		generator_sound.position = Vector3(-10, .8, 0)
+		generator_sound.position = station.objects.generator.position if station.map_id == 1 else Vector3(-10,.8,0)
 		generator_sound.volume_db = -20
 		generator_sound.bus = "Ambience"
 		generator_sound.max_distance = 15
 		add_child(generator_sound)
 	SettingsManager.changed.connect(_quality_changed)
 	_quality_changed()
+
+func _build_depot_details() -> void:
+	apparition = ART.model(NetworkManager.MAPS.monster_model(station.map_id))
+	apparition.hide()
+	add_child(apparition)
+	station.sign_text("СМОТРИТЕЛЬ НЕ ОТПУСКАЕТ",Vector3(0,1.8,-104.7),0,28)
 
 func prop(kind: String, at: Vector3, yaw: float = 0.0) -> Node3D:
 	var model := ART.model(kind)
@@ -269,6 +279,7 @@ func _process(delta: float) -> void:
 	var stress: float = 0.0
 	if is_instance_valid(station.monster) and station.monster.state not in [0, 6] and station.objectives.result.is_empty():
 		stress = clampf(1.0 - player.position.distance_to(station.monster.position) / 10.0, 0, 1)
+	stress = maxf(stress,player.stress/100.0*.9)
 	overlay.set_shader_parameter("stress", stress)
 	overlay.set_shader_parameter("damage", maxf(damage_flash, .4 if player.health <= 0 else 0))
 	heartbeat_clock -= delta

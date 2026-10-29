@@ -27,6 +27,9 @@ func _draw() -> void:
 		draw_string(font,Vector2((size.x-width)*.5,48),text,HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("b5dccb"))
 	var center := Vector2(size.x-460,size.y-45)
 	bar(Vector2(28,size.y-24),180,actor.stamina/100.0,"ВЫНОСЛИВОСТЬ • %d%%" % int(actor.stamina),Color("bd9269") if actor.exhausted else Color("90b5a0"))
+	bar(Vector2(28,size.y-65),180,1-actor.stress/100.0,"РАССУДОК • %d%%" % int(100-actor.stress),Color("dc8c73") if actor.stress >= 70 else Color("9db8c9"))
+	if actor.calm_cooldown > 0: draw_string(font,Vector2(28,size.y-93),"Пауза после чая / средства: %d с" % ceili(actor.calm_cooldown),HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("91a89e"))
+	elif actor.stress >= 85: draw_string(font,Vector2(28,size.y-93),"Паника: отдышка может выдать вас",HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("dd927b"))
 	if actor.healing_progress > 0 or actor.rescue_progress > 0:
 		bar(Vector2(size.x*.5-135,size.y*.60),270,maxf(actor.healing_progress,actor.rescue_progress),"ПОДНЯТИЕ РАНЕНОГО • %d%%" % int(maxf(actor.healing_progress,actor.rescue_progress)*100),Color("a5dac5"))
 	if actor.role == "hunter":

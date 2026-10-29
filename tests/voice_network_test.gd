@@ -3,6 +3,7 @@ const TONES := preload("res://tests/voice_check.gd")
 var mode: String = ""
 var expected: int = 2
 var port: int = 27955
+var selected_map: int = 0
 var stage: int = -1
 var remaining: int = 0
 var send_clock: float = 0
@@ -19,6 +20,7 @@ func _ready() -> void:
 		if argument.begins_with("--voice-test="): mode = argument.get_slice("=",1)
 		if argument.begins_with("--players="): expected = int(argument.get_slice("=",1))
 		if argument.begins_with("--port="): port = int(argument.get_slice("=",1))
+		if argument.begins_with("--map-id="): selected_map = int(argument.get_slice("=",1))
 	VoiceManager.frame_received.connect(_received)
 	NetworkManager.left_room.connect(func():
 		if finished: get_tree().quit(0)
@@ -44,6 +46,7 @@ func _run() -> void:
 		check(NetworkManager.join_room("127.0.0.1","Voice client",port) == OK,"voice client connects")
 		return
 	check(NetworkManager.host_room("Voice host",port) == OK,"voice host connects")
+	NetworkManager.choose_map(selected_map)
 	if not await until(func(): return NetworkManager.members.size() == expected): return
 	begin_stage.rpc(0)
 	if not await until(func(): return ready_reports.size() == expected): return

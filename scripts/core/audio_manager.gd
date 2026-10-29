@@ -167,6 +167,7 @@ func play_at(kind: String, position: Vector3, volume_offset: float = 0.0, take: 
 	player.stream = sounds[kind][take] if take >= 0 and take < sounds[kind].size() else stream_for(kind)
 	player.bus = "Room"
 	player.pitch_scale = randf_range(.97,1.03) if kind in ["step","step_metal","step_gravel","growl","pain","hurt"] else 1.0
+	if GameManager.world.map_id == 1 and kind in ["monster_voice","roar","growl"]: player.pitch_scale *= .84
 	player.volume_db = -10.0
 	if kind in ["whisper", "entity_step", "breath", "scrape"]:
 		player.volume_db = -15.0

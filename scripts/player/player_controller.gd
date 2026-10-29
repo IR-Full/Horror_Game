@@ -58,6 +58,14 @@ var vent_time: float = 0.0
 var vent_destination := Vector3.ZERO
 var next_left_foot: bool = true
 var bloody_steps: int = 0
+var stress: float = 0
+var calm_cooldown: float = 0
+var motion_speed: float = 0
+var running_motion: bool = false
+var in_vehicle: bool = false
+var vehicle_seat: int = 0
+var condition: Node
+var motion: Node
 
 func _ready() -> void:
 	add_to_group("players")
@@ -69,7 +77,7 @@ func _ready() -> void:
 	collision.shape = shape
 	collision.position.y = 0.88
 	add_child(collision)
-	body_mesh = preload("res://scripts/art/art_factory.gd").model("avatar")
+	body_mesh = preload("res://scripts/art/art_factory.gd").model("avatar_rigged")
 	body_pivot = Node3D.new()
 	body_pivot.position.y = .9
 	add_child(body_pivot)
@@ -131,7 +139,7 @@ func _ready() -> void:
 	sync.name = "StateSync"
 	sync.replication_interval = 0.05
 	var config := SceneReplicationConfig.new()
-	for property: String in ["net_position", "net_yaw", "net_pitch", "health", "battery", "lamp_on", "crouched", "dead", "inventory", "down_time", "sos_cooldown", "loaded_shells", "reserve_shells", "reload_left", "stamina", "exhausted", "shot_cooldown", "sos_left", "healing_progress", "rescue_progress", "vent_time"]:
+	for property: String in ["net_position", "net_yaw", "net_pitch", "health", "battery", "lamp_on", "crouched", "dead", "inventory", "down_time", "sos_cooldown", "loaded_shells", "reserve_shells", "reload_left", "stamina", "exhausted", "shot_cooldown", "sos_left", "healing_progress", "rescue_progress", "vent_time", "stress", "calm_cooldown", "motion_speed", "running_motion", "in_vehicle", "vehicle_seat"]:
 		var path := NodePath(".:" + property)
 		config.add_property(path)
 		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -150,6 +158,14 @@ func _ready() -> void:
 		add_child(vent)
 	SettingsManager.changed.connect(_apply_quality)
 	_apply_quality()
+	condition = Node.new()
+	condition.set_script(preload("res://scripts/player/player_condition.gd"))
+	condition.actor = self
+	add_child(condition)
+	motion = Node.new()
+	motion.set_script(preload("res://scripts/player/player_motion.gd"))
+	motion.actor = self
+	add_child(motion)
 
 func _apply_quality() -> void:
 	lamp.shadow_enabled = SettingsManager.quality > 0 and is_local()
@@ -168,7 +184,7 @@ func capacity() -> int:
 	return 4
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not is_local() or not input_enabled or vent_time > 0:
+	if not is_local() or not input_enabled or vent_time > 0 or in_vehicle:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		local_aim.x = wrapf(local_aim.x - event.relative.x * SettingsManager.sensitivity, -PI, PI)
@@ -187,6 +203,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if is_local():
 		selected_slot = selected_slot % maxi(1, inventory.size())
+		if in_vehicle: local_aim = Vector2(PI,0)
 		rig.rotation = Vector3(local_aim.y, local_aim.x, 0.0)
 		send_clock -= delta
 		if send_clock <= 0.0 and NetworkManager.in_match:
@@ -205,21 +222,21 @@ func _physics_process(delta: float) -> void:
 		_server_tick(delta)
 	elif not multiplayer.is_server():
 		position = position.lerp(net_position, minf(1.0, delta * 18.0))
-	rig.position.y = lerpf(rig.position.y, 0.45 if health <= 0.0 else (1.0 if crouched else 1.55), delta * 12.0)
-	lamp.visible = lamp_on and battery > 0.0 and health > 0.0 and vent_time <= 0
-	body_collision.set_deferred("disabled",vent_time > 0)
-	body_pivot.visible = vent_time <= 0
+	rig.position.y = lerpf(rig.position.y,1.35 if in_vehicle else (0.45 if health <= 0.0 else (1.0 if crouched else 1.55)), delta * 12.0)
+	lamp.visible = lamp_on and battery > 0.0 and health > 0.0 and vent_time <= 0 and not in_vehicle
+	body_collision.set_deferred("disabled",vent_time > 0 or in_vehicle)
+	body_pivot.visible = vent_time <= 0 and not in_vehicle
 	if not is_local(): body_mesh.visible = vent_time <= 0
 	fall_amount = move_toward(fall_amount, 1.0 if health <= 0 else 0.0, delta / .85)
 	var eased: float = smoothstep(0, 1, fall_amount)
 	body_pivot.rotation = Vector3(-PI * .5 * eased, net_yaw, .08 * eased)
 	body_pivot.position.y = lerpf(.9, .32, eased)
-	body_collision.shape.height = lerpf(1.75, .65, eased)
+	body_collision.shape.height = lerpf(1.25 if crouched else 1.75, .65, eased)
 	body_collision.position.y = body_collision.shape.height * .5
 	blood_pool.visible = health <= 0
 	blood_pool.material_override.set_shader_parameter("spread", clampf(.12 + down_time / 120.0 * .88, .12, 1))
 	if is_local():
-		body_mesh.visible = health <= 0
+		body_mesh.visible = vent_time <= 0 and not in_vehicle
 		for child: Node in camera.get_children():
 			if child is Node3D:
 				child.visible = health > 0
@@ -231,9 +248,6 @@ func _physics_process(delta: float) -> void:
 			shotgun.position.z = -.34 + recoil * .12
 	if is_local():
 		view_time += delta
-		var moving: float = Input.get_vector("left", "right", "forward", "back").length() if input_enabled and health > 0 else 0.0
-		camera.position.y = sin(view_time * (11.0 if Input.is_action_pressed("sprint") and not exhausted and stamina > 0 else 7.0)) * .012 * moving
-		held_flashlight.rotation.z = -.12 + sin(view_time * 6.0) * .018 * moving
 		lamp.light_energy = 3.0 * (.6 + .4 * absf(sin(view_time * 19.0)) if battery < 15.0 else 1.0)
 
 func accept_input(direction: Vector2, look: Vector2, run: bool, duck: bool, use: bool) -> void:
@@ -248,6 +262,13 @@ func accept_input(direction: Vector2, look: Vector2, run: bool, duck: bool, use:
 
 func _server_tick(delta: float) -> void:
 	input_age += delta
+	condition.server_tick(delta)
+	if in_vehicle:
+		velocity = Vector3.ZERO
+		motion_speed = 0
+		running_motion = false
+		if is_local(): local_aim = Vector2(PI,0)
+		return
 	shot_cooldown = maxf(0,shot_cooldown-delta)
 	sos_left = maxf(0,sos_left-delta)
 	stamina_delay = maxf(0,stamina_delay-delta)
@@ -301,6 +322,8 @@ func _server_tick(delta: float) -> void:
 	velocity.y = velocity.y - 18.0 * delta if not is_on_floor() else -0.1
 	var previous_position: Vector3 = position
 	move_and_slide()
+	motion_speed = Vector2(position.x-previous_position.x,position.z-previous_position.z).length()/maxf(delta,.001)
+	running_motion = running
 	net_position = position
 	net_yaw = aim.x
 	net_pitch = aim.y
@@ -328,7 +351,7 @@ func apply_action(action: String, slot: int) -> void:
 			GameManager.world.sound_event.rpc("sos", position)
 			GameManager.world.announce.rpc("SOS! %s ранен. Осталось %d сек. до гибели." % [nickname, maxi(0, ceili(120 - down_time))])
 		return
-	if health <= 0 or action_cooldown > 0 or vent_time > 0:
+	if health <= 0 or action_cooldown > 0 or vent_time > 0 or in_vehicle:
 		return
 	action_cooldown = 0.18
 	match action:
@@ -389,6 +412,7 @@ func damage(amount: float) -> void:
 	if not multiplayer.is_server() or health <= 0.0 or invulnerable > 0.0:
 		return
 	health = maxf(0.0, health - amount)
+	stress = minf(100,stress+amount*.3)
 	invulnerable = 1.5
 	GameManager.world.sound_event.rpc("hurt", position)
 

@@ -7,6 +7,7 @@ func _run() -> void:
 	DisplayServer.window_set_size(Vector2i(1152,648))
 	await get_tree().create_timer(.8).timeout
 	NetworkManager.host_room("Performance QA",27952)
+	if "--perf-depot" in OS.get_cmdline_user_args(): NetworkManager.choose_map(1)
 	NetworkManager.start_round(true)
 	await get_tree().create_timer(.5).timeout
 	var player: Node3D = GameManager.local_player()
@@ -35,6 +36,7 @@ func _run() -> void:
 	var result: Dictionary = {"fps":120.0/seconds,"draw_calls":calls/120,"objects":objects/120,"quality":"high","scale":.75,"resolution":"1152x648","gpu":RenderingServer.get_video_adapter_name()}
 	var name: String = "plain" if "--no-batching" in OS.get_cmdline_user_args() else "batched"
 	if "--perf-south" in OS.get_cmdline_user_args(): name += "-south"
+	if "--perf-depot" in OS.get_cmdline_user_args(): name += "-depot"
 	FileAccess.open("res://test-results/perf-%s.json" % name,FileAccess.WRITE).store_string(JSON.stringify(result,"  "))
 	print("PERF_"+name.to_upper()+" "+JSON.stringify(result))
 	NetworkManager.leave()

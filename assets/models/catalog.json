@@ -166,5 +166,41 @@
   {
     "model": "air_filter",
     "triangles": 864
+  },
+  {
+    "model": "entity_depot",
+    "triangles": 23820
+  },
+  {
+    "model": "escape_car",
+    "triangles": 2988
+  },
+  {
+    "model": "car_battery",
+    "triangles": 336
+  },
+  {
+    "model": "spark_plugs",
+    "triangles": 480
+  },
+  {
+    "model": "drive_belt",
+    "triangles": 384
+  },
+  {
+    "model": "wheel",
+    "triangles": 120
+  },
+  {
+    "model": "sedative",
+    "triangles": 120
+  },
+  {
+    "model": "thermos",
+    "triangles": 120
+  },
+  {
+    "model": "avatar_rigged",
+    "triangles": 2352
   }
 ]

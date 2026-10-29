@@ -1,6 +1,6 @@
 extends Node
 ## Inventory mutations and pickups are called on the host only.
-const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "service_key": "Служебный ключ", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка", "shell": "Патрон 12 калибра", "air_filter":"Воздушный фильтр"}
+const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "service_key": "Служебный ключ", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка", "shell": "Патрон 12 калибра", "air_filter":"Воздушный фильтр", "car_battery":"Аккумулятор машины", "spark_plugs":"Свечи зажигания", "drive_belt":"Ремень привода", "wheel":"Запасное колесо", "car_key":"Ключ зажигания", "yard_key":"Ключ топливной клетки", "sedative":"Успокоительное", "thermos":"Термос с чаем"}
 var station: Node3D
 var next_drop: int = 0
 
@@ -62,8 +62,18 @@ func use(player: Node3D, slot: int) -> void:
 		"battery":
 			player.battery = minf(100.0, player.battery + 65.0)
 			player.inventory.remove_at(slot)
+		"sedative", "thermos":
+			if player.calm_cooldown > 0:
+				station.tell(player.peer_id,"Подождите %d сек. перед повторным применением." % ceili(player.calm_cooldown))
+				return
+			var tea: bool = player.inventory[slot] == "thermos"
+			player.stress = maxf(0,player.stress-(20.0 if tea else 35.0))
+			if tea: player.stamina = minf(100,player.stamina+20)
+			player.calm_cooldown = 20
+			player.inventory.remove_at(slot)
 		"medkit":
 			player.health = minf(100.0, player.health + (70.0 if player.is_medic() else 45.0))
+			player.stress = maxf(0,player.stress-8)
 			player.inventory.remove_at(slot)
 		_:
 			station.tell(player.peer_id, "Этот предмет используют через E у нужного устройства.")

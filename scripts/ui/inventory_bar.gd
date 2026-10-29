@@ -45,7 +45,7 @@ func _icon(kind: String, c: Vector2) -> void:
 			for i: int in range(5): draw_line(c+Vector2(-9+i*4,-14),c+Vector2(-9+i*4,14),metal,2)
 			draw_rect(Rect2(c-Vector2(15,18),Vector2(30,5)),Color("263634"))
 			draw_rect(Rect2(c+Vector2(-15,13),Vector2(30,5)),Color("263634"))
-		"key", "service_key":
+		"key", "service_key", "car_key", "yard_key":
 			draw_arc(c + Vector2(-9, -5), 7, 0, TAU, 18, cream, 3, true)
 			draw_line(c + Vector2(-2, -5), c + Vector2(16, 9), cream, 4, true)
 			draw_line(c + Vector2(9, 4), c + Vector2(5, 10), cream, 3, true)
@@ -62,7 +62,20 @@ func _icon(kind: String, c: Vector2) -> void:
 			draw_rect(Rect2(c - Vector2(21, 15), Vector2(42, 30)), metal)
 			draw_rect(Rect2(c - Vector2(3, 10), Vector2(6, 20)), Color("8b2924"))
 			draw_rect(Rect2(c - Vector2(10, 3), Vector2(20, 6)), Color("8b2924"))
-		"battery", "fuse":
+		"wheel", "drive_belt":
+			draw_arc(c,18,0,TAU,30,Color("71847e"),9 if kind == "wheel" else 3,true)
+			if kind == "wheel":
+				draw_circle(c,9,metal)
+				for i: int in range(5): draw_line(c,c+Vector2(8,0).rotated(i*TAU/5),cream,2)
+		"spark_plugs":
+			for i: int in range(4):
+				draw_line(c+Vector2(-15+i*10,-14),c+Vector2(-15+i*10,14),cream,5)
+				draw_line(c+Vector2(-15+i*10,6),c+Vector2(-15+i*10,17),metal,3)
+		"sedative", "thermos":
+			draw_rect(Rect2(c-Vector2(11,17),Vector2(22,34)),cream if kind == "sedative" else metal)
+			draw_rect(Rect2(c+Vector2(-9,-22),Vector2(18,6)),Color("394d49"))
+			if kind == "sedative": draw_rect(Rect2(c-Vector2(7,3),Vector2(14,6)),Color("934633"))
+		"battery", "fuse", "car_battery":
 			draw_rect(Rect2(c - Vector2(11, 17), Vector2(22, 34)), metal if kind == "fuse" else Color("967a3d"))
 			draw_rect(Rect2(c + Vector2(-7, -21), Vector2(14, 5)), cream)
 			draw_line(c + Vector2(-6, 0), c + Vector2(6, 0), cream, 3)

@@ -432,5 +432,21 @@
     "license": "Neural speech output; voice dataset CC0; model repository MIT",
     "model_sha256": "f073356ebc4bd0f80c5af58df2953a5988bd5bdab1eb38635ce960b071fbefcb",
     "sha256": "563f16c4ae68d0be79718103f0d047d3fe6b276b2fbc869bd22acf51349067a6"
+  },
+  {
+    "file": "sardin_breath_calm.wav",
+    "author": "Joseph SARDIN",
+    "source": "https://bigsoundbank.com/man-breathing-s2195.html",
+    "download_url": "https://bigsoundbank.com/UPLOAD/bwf-en/2195.wav",
+    "license": "CC0-1.0",
+    "sha256": "d077b2743eeeaa69f5f2f993ee16b4441d1cd32211774c22bc885c29150d2bb6"
+  },
+  {
+    "file": "sardin_breath_heavy.wav",
+    "author": "Joseph SARDIN",
+    "source": "https://bigsoundbank.com/breathless-man-s1103.html",
+    "download_url": "https://bigsoundbank.com/UPLOAD/bwf-en/1103.wav",
+    "license": "CC0-1.0",
+    "sha256": "ad2080e418bb13ebe79ddcde296cf122bf7f09cc30778cedca7c878545a82bf8"
   }
 ]

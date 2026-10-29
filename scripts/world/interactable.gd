@@ -25,7 +25,7 @@ var label: Label3D
 
 func _ready() -> void:
 	collision_layer = 4
-	if kind in ["battery", "shell", "medkit", "key", "service_key", "cassette", "fuse", "fuel", "air_filter", "note"]:
+	if kind in ["battery", "shell", "medkit", "key", "service_key", "cassette", "fuse", "fuel", "air_filter", "note", "car_battery", "spark_plugs", "drive_belt", "wheel", "car_key", "yard_key", "sedative", "thermos"]:
 		collision_layer = 16 # Ray-targetable supplies never block characters or vision.
 	collision_mask = 0
 	var box := BoxMesh.new()
@@ -49,9 +49,10 @@ func _ready() -> void:
 		"note": box.size = Vector3(.3, .024, .36)
 		"valve": box.size = Vector3(.6, .6, .35)
 		"purifier": box.size = Vector3(1.5, 1.8, .8)
-		"circuit", "tuner", "drain_switch": box.size = Vector3(.6, .9, .35)
+		"circuit", "tuner", "drain_switch", "depot_dial": box.size = Vector3(.6, .9, .35)
 		"drain_pump": box.size = Vector3(1.5,1.8,.8)
 		"air_filter": box.size = Vector3(.18, .34, .18)
+		"vehicle": box.size = Vector3(2.2,1.5,4.5)
 	if kind == "door":
 		mesh = Node3D.new()
 		mesh.position.z = 1.09
@@ -59,11 +60,12 @@ func _ready() -> void:
 		leaf.position.z = -1.09
 		mesh.add_child(leaf)
 	else:
-		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit"}.get(kind, kind)
+		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "car_key":"key", "yard_key":"key"}.get(kind, kind)
 		mesh = _paper() if kind == "note" else ART.model(model_name)
 		if kind in ["generator", "transmitter", "power", "circuit", "tuner"]:
 			mesh.rotation.y = PI
 	add_child(mesh)
+	if kind == "vehicle": mesh.position.y = -.8
 	if kind == "ventilation":
 		for y: float in [-.42, .42]:
 			var rotor: Node3D = ART.model("fan_blades")
@@ -110,7 +112,7 @@ func _ready() -> void:
 	label.modulate = Color("b9ccc2")
 	label.visibility_range_end = 3.2
 	add_child(label)
-	if kind in ["generator", "power", "transmitter", "ventilation"]:
+	if kind in ["generator", "power", "transmitter", "ventilation", "vehicle"]:
 		label.hide()
 	if kind == "door":
 		# The wall switch stays targetable while the actual door collision is open.
@@ -130,6 +132,11 @@ func _ready() -> void:
 		button_shape.shape = button_collision
 		switch.add_child(button_shape)
 		label.hide()
+	if kind == "vehicle":
+		var view := Node.new()
+		view.set_script(preload("res://scripts/art/vehicle_view.gd"))
+		view.vehicle = self
+		add_child(view)
 	refresh()
 
 func refresh() -> void:

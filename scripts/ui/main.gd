@@ -90,6 +90,19 @@ func _ready() -> void:
 		var checker := Node.new()
 		checker.set_script(load("res://tests/voice_check.gd"))
 		add_child(checker)
+	for argument: String in args:
+		if argument.begins_with("--depot-test="):
+			var checker := Node.new()
+			checker.set_script(load("res://tests/depot_network_test.gd"))
+			add_child(checker)
+	if "--depot-check" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/depot_check.gd"))
+		add_child(checker)
+	if "--depot-preview" in args:
+		var checker := Node.new()
+		checker.set_script(load("res://tests/depot_preview.gd"))
+		add_child(checker)
 	if "--expansion-check" in args:
 		var checker := Node.new()
 		checker.set_script(load("res://tests/expansion_check.gd"))
@@ -199,11 +212,12 @@ func _show_menu() -> void:
 	port_edit.value = port
 	port_edit.value_changed.connect(func(value: float): port = int(value))
 	port_row.add_child(port_edit)
+	button_in(column, "ОДИНОЧНАЯ ИГРА / ВЫБОР КАРТЫ", func(): NetworkManager.host_room(nickname, port))
 	button_in(column, "СОЗДАТЬ КОМНАТУ", func(): NetworkManager.host_room(nickname, port))
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.9  /  Голосовая связь", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.10  /  Голосовая связь", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -212,10 +226,24 @@ func _lobby_changed() -> void:
 		_show_lobby() if NetworkManager.active else _show_menu()
 
 func _show_lobby() -> void:
-	var column := _new_screen("lobby")
+	var outer := _new_screen("lobby")
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(900,590)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.add_child(scroll)
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(column)
 	column.add_theme_constant_override("separation",7)
 	label_in(column, "ЭКСПЕДИЦИЯ / ЛОББИ LAN", 28, "e6c18a")
 	var host: bool = multiplayer.is_server()
+	var map_choice := OptionButton.new()
+	for title: String in NetworkManager.MAPS.LABELS: map_choice.add_item(title)
+	map_choice.selected = NetworkManager.map_id
+	map_choice.disabled = not host
+	map_choice.item_selected.connect(func(index: int): NetworkManager.choose_map(index))
+	column.add_child(map_choice)
+	label_in(column,NetworkManager.MAPS.DESCRIPTIONS[NetworkManager.map_id],15,"a9c8b6")
 	var ips := PackedStringArray()
 	for ip: String in IP.get_local_addresses():
 		if ip.contains(".") and not ip.begins_with("127.") and not ip.begins_with("169.254."):
@@ -252,7 +280,7 @@ func _show_lobby() -> void:
 		var start := button_in(column, "НАЧАТЬ ЭКСПЕДИЦИЮ", func(): NetworkManager.start_round())
 		start.disabled = NetworkManager.members.size() < 2
 		if NetworkManager.members.size() == 1:
-			button_in(column, "Учебный запуск одному", func(): NetworkManager.start_round(true))
+			button_in(column, "Начать одному", func(): NetworkManager.start_round(true))
 	else:
 		label_in(column, "Ожидайте, пока хост начнёт экспедицию.", 17)
 	button_in(column,"Настройки звука",func(): _show_settings(false,1))
@@ -263,7 +291,7 @@ func _show_lobby() -> void:
 func _load_world() -> void:
 	displayed_result = false
 	var column := _new_screen("loading")
-	label_in(column, "ЗАГРУЗКА СТАНЦИИ…", 28, "e6c18a")
+	label_in(column, "ЗАГРУЗКА: "+NetworkManager.MAPS.LABELS[NetworkManager.map_id], 25, "e6c18a")
 	label_in(column, "Ожидаем готовности всех участников.", 18)
 	var world := preload("res://scenes/world.tscn").instantiate()
 	world.name = "World"
@@ -310,6 +338,7 @@ func _build_hud() -> void:
 	stats = label_in(hud, "", 17, "b8d0c5")
 	stats.position = Vector2(28, 22)
 	task = label_in(hud, "", 17, "e5c38e")
+	task.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	task.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	task.offset_left = -435
 	task.offset_top = 25
@@ -428,10 +457,10 @@ func open_safe(id: String) -> void:
 	GameManager.local_player().input_enabled = false
 	var column := _new_screen("safe", false)
 	label_in(column, "КОДОВЫЙ ЗАМОК", 27, "e6c18a")
-	label_in(column, "Три цифры. Подсказка — в медпункте.", 18)
+	label_in(column, "Четыре цифры. Накладная D + журнал охраны E." if GameManager.world.map_id == 1 else "Три цифры. Подсказка — в медпункте.", 18)
 	var entry := LineEdit.new()
-	entry.max_length = 3
-	entry.placeholder_text = "000"
+	entry.max_length = 4 if GameManager.world.map_id == 1 else 3
+	entry.placeholder_text = "0000" if GameManager.world.map_id == 1 else "000"
 	column.add_child(entry)
 	entry.grab_focus()
 	button_in(column, "Открыть", func(): GameManager.world.unlock_safe.rpc_id(1, id, entry.text); _resume())
@@ -494,11 +523,12 @@ func open_map() -> void:
 	var legend := VBoxContainer.new()
 	legend.add_theme_constant_override("separation",3)
 	row.add_child(legend)
-	label_in(legend,"ПЛАН РС–17",25,"e6c18a")
+	label_in(legend,"ПЛАН АВТОБАЗЫ" if GameManager.world.map_id == 1 else "ПЛАН РС–17",25,"e6c18a")
 	label_in(legend,"Удерживайте %s • отпустите, чтобы закрыть" % SettingsManager.key_label("map"),14)
-	for line: String in preload("res://scripts/ui/sector_map.gd").LEGEND:
+	for line: String in (preload("res://scripts/world/depot_layout.gd").LEGEND if GameManager.world.map_id == 1 else preload("res://scripts/ui/sector_map.gd").LEGEND):
 		label_in(legend,line,14,"a7c5ba")
-	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\nG: генератор • P: питание • T: передача\nC: пульт • F: фильтрация • W: насос E",13,"ddbb86")
+	var symbols: String = "V: машина • C: контакты L / N / PE\nG: аварийный топливный клапан" if GameManager.world.map_id == 1 else "G: генератор • P: питание • T: передача\nC: пульт • F: фильтрация • W: насос E"
+	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\n"+symbols,13,"ddbb86")
 
 func _process(delta: float) -> void:
 	if is_instance_valid(microphone_meter):
@@ -531,7 +561,7 @@ func _process(delta: float) -> void:
 		return
 	var seconds: int = int(goal.seconds_left)
 	stats.text = "%s / %s\nЗдоровье %d   •   Фонарь %d%%\n%02d:%02d  •  %d FPS" % [player.nickname, player.ROLE_NAMES.get(player.role, player.role), int(player.health), int(player.battery), seconds / 60, seconds % 60, Engine.get_frames_per_second()]
-	stats.text += "\n"+world.LAYOUT.sector_at(player.position)+" • "+SettingsManager.key_label("map")+": удерживать карту"
+	stats.text += "\n"+world.layout.sector_at(player.position)+" • "+SettingsManager.key_label("map")+": удерживать карту"
 	task.text = goal.task_text().replace(" E", " " + SettingsManager.key_label("interact"))
 	task.add_theme_color_override("font_color", Color("e47b65") if not goal.emergency.is_empty() else Color("e5c38e"))
 	if player.role == "hunter":
@@ -545,6 +575,9 @@ func _process(delta: float) -> void:
 	var query := PhysicsRayQueryParameters3D.create(origin, origin - player.camera.global_basis.z * 2.6, 23, [player.get_rid()])
 	var hit: Dictionary = world.get_world_3d().direct_space_state.intersect_ray(query)
 	hint.text = ""
+	if player.in_vehicle:
+		hint.text = "Команда покидает автобазу…"
+		return
 	if not hit.is_empty():
 		var object: Object = hit.collider
 		if object.has_meta("door_switch"):
@@ -565,7 +598,7 @@ func _process(delta: float) -> void:
 
 func _show_result(message: String) -> void:
 	var column := _new_screen("result", false)
-	label_in(column, "СИГНАЛ ПРИНЯТ" if message.begins_with("Победа") else "СВЯЗЬ ПОТЕРЯНА", 30, "e6c18a")
+	label_in(column, ("ВЫЕЗД ЗАВЕРШЁН" if GameManager.world.map_id == 1 else "СИГНАЛ ПРИНЯТ") if message.begins_with("Победа") else "ЭКСПЕДИЦИЯ ПОТЕРЯНА", 30, "e6c18a")
 	label_in(column, message, 18)
 	if multiplayer.is_server():
 		button_in(column, "Вернуться в лобби", func(): NetworkManager.return_to_lobby())

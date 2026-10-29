@@ -50,10 +50,12 @@ def main():
             raise RuntimeError(f'{name} failed')
 
     run(['--editor', '--import', '--quit'], 'import')
-    for name in ('art', 'sector', 'feature', 'update', 'voice', 'expansion'):
+    for name in ('art', 'sector', 'feature', 'update', 'voice', 'expansion', 'depot'):
         run(['--', f'--{name}-check'], name, name.upper() + '_PASS')
     subprocess.run([sys.executable, 'tools/run_smoke.py', '--players', '2'], cwd=ROOT, check=True)
     subprocess.run([sys.executable, 'tools/run_smoke.py', '--players', '2', '--voice', '--port', '27955'], cwd=ROOT, check=True)
+    subprocess.run([sys.executable, 'tools/run_smoke.py', '--players', '2', '--depot', '--port', '27973'], cwd=ROOT, check=True)
+    subprocess.run([sys.executable, 'tools/run_smoke.py', '--players', '2', '--voice', '--map-id', '1', '--port', '27975'], cwd=ROOT, check=True)
 
 
 if __name__ == '__main__':

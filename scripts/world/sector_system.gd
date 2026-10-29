@@ -26,6 +26,7 @@ func randomize_round() -> void:
 	if circuit.count(1) == 0: _toggle(4)
 
 func is_unlocked(rule: String) -> bool:
+	if station.map_id == 2: return station.objectives.is_unlocked(rule)
 	if station.map_id == 1:
 		return station.objectives.circuit_ready if rule == "depot_circuit" else (station.objectives.escape_time >= 0 if rule == "depot_exit" else true)
 	if rule == "drainage": return station.drainage.drained

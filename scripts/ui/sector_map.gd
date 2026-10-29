@@ -7,6 +7,9 @@ var clock: float = 0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if is_instance_valid(GameManager.world) and GameManager.world.map_id == 2:
+		rooms = GameManager.world.layout.map_rooms()
+		return
 	if is_instance_valid(GameManager.world) and GameManager.world.map_id == 1:
 		for i: int in range(5):
 			rooms.append([GameManager.world.layout.FLOORS[i],["A ГАРАЖ","B ТОПЛИВО","C РЕМОНТ","D СВАЛКА","E ОХРАНА"][i],Color("354b4c")])
@@ -49,8 +52,8 @@ func _draw() -> void:
 		if object.kind == "door":
 			var along := Vector2(0,5).rotated(-object.rotation.y)
 			draw_line(at-along,at+along,Color("d18469") if object.locked else (Color("5caf9d") if object.opened else Color("c5b37d")),2)
-		elif object.kind in ["generator","transmitter","power","purifier","circuit","drain_pump","drain_switch","vehicle","depot_dial"]:
-			draw_string(font,at+Vector2(-3,-2),{"generator":"G","transmitter":"T","power":"P","purifier":"F","circuit":"C","drain_pump":"W","drain_switch":"E","vehicle":"V","depot_dial":"C"}[object.kind],HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("f1cc78"))
+		elif object.kind in ["generator","transmitter","power","purifier","circuit","drain_pump","drain_switch","vehicle","depot_dial","hospital_station","hospital_control"]:
+			draw_string(font,at+Vector2(-3,-2),{"generator":"G","transmitter":"T","power":"P","purifier":"F","circuit":"C","drain_pump":"W","drain_switch":"E","vehicle":"V","depot_dial":"C","hospital_station":"H","hospital_control":"C"}[object.kind],HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("f1cc78"))
 		elif object.kind == "hatch": draw_circle(at,3,Color("aa94cc"))
 	for player: Node3D in world.players.get_children():
 		var at: Vector2 = point(Vector2(player.position.x,player.position.z))

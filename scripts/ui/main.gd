@@ -45,6 +45,14 @@ func _ready() -> void:
 	NetworkManager.match_started.connect(_show_game)
 	NetworkManager.left_room.connect(_clear_world)
 	_show_menu()
+	for flag: String in ["--hospital-check","--hospital-preview"]:
+		if flag in args:
+			var hospital_runner := Node.new()
+			hospital_runner.set_script(load("res://tests/hospital_check.gd" if flag=="--hospital-check" else "res://tests/hospital_preview.gd"))
+			add_child(hospital_runner)
+	for argument: String in args:
+		if argument.begins_with("--hospital-test="):
+			var hospital_runner := Node.new(); hospital_runner.set_script(load("res://tests/hospital_network_test.gd")); add_child(hospital_runner)
 	if test_mode:
 		var runner := Node.new()
 		runner.set_script(load("res://tests/network_test.gd"))
@@ -217,7 +225,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.10  /  Голосовая связь", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.11  /  Голосовая связь", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -457,10 +465,10 @@ func open_safe(id: String) -> void:
 	GameManager.local_player().input_enabled = false
 	var column := _new_screen("safe", false)
 	label_in(column, "КОДОВЫЙ ЗАМОК", 27, "e6c18a")
-	label_in(column, "Четыре цифры. Накладная D + журнал охраны E." if GameManager.world.map_id == 1 else "Три цифры. Подсказка — в медпункте.", 18)
+	label_in(column, NetworkManager.MAPS.safe_hint(GameManager.world.map_id), 18)
 	var entry := LineEdit.new()
-	entry.max_length = 4 if GameManager.world.map_id == 1 else 3
-	entry.placeholder_text = "0000" if GameManager.world.map_id == 1 else "000"
+	entry.max_length = 4 if GameManager.world.map_id != 0 else 3
+	entry.placeholder_text = "0000" if GameManager.world.map_id != 0 else "000"
 	column.add_child(entry)
 	entry.grab_focus()
 	button_in(column, "Открыть", func(): GameManager.world.unlock_safe.rpc_id(1, id, entry.text); _resume())
@@ -523,11 +531,12 @@ func open_map() -> void:
 	var legend := VBoxContainer.new()
 	legend.add_theme_constant_override("separation",3)
 	row.add_child(legend)
-	label_in(legend,"ПЛАН АВТОБАЗЫ" if GameManager.world.map_id == 1 else "ПЛАН РС–17",25,"e6c18a")
+	label_in(legend,NetworkManager.MAPS.plan_title(GameManager.world.map_id),25,"e6c18a")
 	label_in(legend,"Удерживайте %s • отпустите, чтобы закрыть" % SettingsManager.key_label("map"),14)
-	for line: String in (preload("res://scripts/world/depot_layout.gd").LEGEND if GameManager.world.map_id == 1 else preload("res://scripts/ui/sector_map.gd").LEGEND):
+	for line: String in (GameManager.world.layout.LEGEND if GameManager.world.map_id != 0 else preload("res://scripts/ui/sector_map.gd").LEGEND):
 		label_in(legend,line,14,"a7c5ba")
 	var symbols: String = "V: машина • C: контакты L / N / PE\nG: аварийный топливный клапан" if GameManager.world.map_id == 1 else "G: генератор • P: питание • T: передача\nC: пульт • F: фильтрация • W: насос E"
+	if GameManager.world.map_id == 2: symbols = "G: щит A • H: автоклав / анализатор / лифт\nC: вызовы коек / давление / реагенты"
 	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\n"+symbols,13,"ddbb86")
 
 func _process(delta: float) -> void:
@@ -598,7 +607,7 @@ func _process(delta: float) -> void:
 
 func _show_result(message: String) -> void:
 	var column := _new_screen("result", false)
-	label_in(column, ("ВЫЕЗД ЗАВЕРШЁН" if GameManager.world.map_id == 1 else "СИГНАЛ ПРИНЯТ") if message.begins_with("Победа") else "ЭКСПЕДИЦИЯ ПОТЕРЯНА", 30, "e6c18a")
+	label_in(column, NetworkManager.MAPS.victory_title(GameManager.world.map_id) if message.begins_with("Победа") else "ЭКСПЕДИЦИЯ ПОТЕРЯНА", 30, "e6c18a")
 	label_in(column, message, 18)
 	if multiplayer.is_server():
 		button_in(column, "Вернуться в лобби", func(): NetworkManager.return_to_lobby())

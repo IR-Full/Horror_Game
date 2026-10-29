@@ -1,6 +1,6 @@
 extends Node
 ## Inventory mutations and pickups are called on the host only.
-const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "service_key": "Служебный ключ", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка", "shell": "Патрон 12 калибра", "air_filter":"Воздушный фильтр", "car_battery":"Аккумулятор машины", "spark_plugs":"Свечи зажигания", "drive_belt":"Ремень привода", "wheel":"Запасное колесо", "car_key":"Ключ зажигания", "yard_key":"Ключ топливной клетки", "sedative":"Успокоительное", "thermos":"Термос с чаем"}
+const NAMES := {"fuse": "Предохранитель", "fuel": "Бензин", "key": "Ключ архива", "service_key": "Служебный ключ", "cassette": "Кассета", "battery": "Батарейка", "medkit": "Аптечка", "shell": "Патрон 12 калибра", "air_filter":"Воздушный фильтр", "car_battery":"Аккумулятор машины", "spark_plugs":"Свечи зажигания", "drive_belt":"Ремень привода", "wheel":"Запасное колесо", "car_key":"Ключ зажигания", "yard_key":"Ключ топливной клетки", "sedative":"Успокоительное", "thermos":"Термос с чаем", "hospital_key":"Ключ инструментального шкафа", "scalpel":"Окровавленный скальпель", "specimen_a":"Образец I • палаты", "specimen_b":"Образец II • операционная", "specimen_c":"Образец III • морг", "hospital_badge":"Допуск эвакуационного лифта"}
 var station: Node3D
 var next_drop: int = 0
 

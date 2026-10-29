@@ -8,6 +8,7 @@ func _run() -> void:
 	await get_tree().create_timer(.8).timeout
 	NetworkManager.host_room("Performance QA",27952)
 	if "--perf-depot" in OS.get_cmdline_user_args(): NetworkManager.choose_map(1)
+	if "--perf-hospital" in OS.get_cmdline_user_args(): NetworkManager.choose_map(2)
 	NetworkManager.start_round(true)
 	await get_tree().create_timer(.5).timeout
 	var player: Node3D = GameManager.local_player()
@@ -23,6 +24,9 @@ func _run() -> void:
 		player.position = Vector3(0,.05,30)
 		player.net_position = player.position
 		player.local_aim = Vector2(PI,0)
+	if "--perf-hospital" in OS.get_cmdline_user_args():
+		player.position=Vector3(28,.05,-19); player.net_position=player.position
+		player.local_aim=Vector2(0,-.1)
 	print("WINDOW_MODE_PASS" if mode == DisplayServer.window_get_mode() else "WINDOW_MODE_FAIL")
 	await get_tree().create_timer(4).timeout
 	var start: int = Time.get_ticks_usec()
@@ -37,6 +41,7 @@ func _run() -> void:
 	var name: String = "plain" if "--no-batching" in OS.get_cmdline_user_args() else "batched"
 	if "--perf-south" in OS.get_cmdline_user_args(): name += "-south"
 	if "--perf-depot" in OS.get_cmdline_user_args(): name += "-depot"
+	if "--perf-hospital" in OS.get_cmdline_user_args(): name += "-hospital"
 	FileAccess.open("res://test-results/perf-%s.json" % name,FileAccess.WRITE).store_string(JSON.stringify(result,"  "))
 	print("PERF_"+name.to_upper()+" "+JSON.stringify(result))
 	NetworkManager.leave()

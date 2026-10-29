@@ -8,11 +8,12 @@ signal left_room
 
 const DEFAULT_PORT := 27840
 const MAX_PLAYERS := 4
-const PROTOCOL := 10
+const PROTOCOL := 11
 const RULES := preload("res://scripts/core/round_rules.gd")
 var difficulty: int = 1
 var map_id: int = 0
 var last_depot_puzzles: Dictionary = {}
+var last_hospital_puzzles: Dictionary = {}
 const MAPS := preload("res://scripts/core/map_catalog.gd")
 var last_puzzles: Dictionary = {}
 const ROLES := ["technician", "medic", "hunter"]
@@ -167,7 +168,7 @@ func choose_difficulty(level: int) -> void:
 func _sync_lobby(roster: Dictionary, level: int, selected_map: int) -> void:
 	members = roster.duplicate(true)
 	difficulty = clampi(level, 0, 3)
-	map_id = clampi(selected_map,0,1)
+	map_id = clampi(selected_map,0,MAPS.LABELS.size()-1)
 	lobby_changed.emit()
 
 func choose_map(selected_map: int) -> void:
@@ -189,7 +190,7 @@ func start_round(practice: bool = false) -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _prepare_round(number: int, selected_map: int) -> void:
-	map_id = clampi(selected_map,0,1)
+	map_id = clampi(selected_map,0,MAPS.LABELS.size()-1)
 	round_id = number
 	loading = true
 	load_deadline = 20.0

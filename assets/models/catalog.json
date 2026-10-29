@@ -202,5 +202,45 @@
   {
     "model": "avatar_rigged",
     "triangles": 2352
+  },
+  {
+    "model": "operating_table",
+    "triangles": 11912
+  },
+  {
+    "model": "hospital_trolley",
+    "triangles": 10512
+  },
+  {
+    "model": "surgical_lamp",
+    "triangles": 3448
+  },
+  {
+    "model": "scalpel",
+    "triangles": 2068
+  },
+  {
+    "model": "specimen_a",
+    "triangles": 496
+  },
+  {
+    "model": "specimen_b",
+    "triangles": 684
+  },
+  {
+    "model": "specimen_c",
+    "triangles": 872
+  },
+  {
+    "model": "hospital_badge",
+    "triangles": 376
+  },
+  {
+    "model": "hospital_console",
+    "triangles": 1696
+  },
+  {
+    "model": "entity_doctor",
+    "triangles": 11924
   }
 ]

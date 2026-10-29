@@ -25,7 +25,7 @@ var label: Label3D
 
 func _ready() -> void:
 	collision_layer = 4
-	if kind in ["battery", "shell", "medkit", "key", "service_key", "cassette", "fuse", "fuel", "air_filter", "note", "car_battery", "spark_plugs", "drive_belt", "wheel", "car_key", "yard_key", "sedative", "thermos"]:
+	if kind in ["battery", "shell", "medkit", "key", "service_key", "cassette", "fuse", "fuel", "air_filter", "note", "car_battery", "spark_plugs", "drive_belt", "wheel", "car_key", "yard_key", "sedative", "thermos", "hospital_key", "scalpel", "specimen_a", "specimen_b", "specimen_c", "hospital_badge"]:
 		collision_layer = 16 # Ray-targetable supplies never block characters or vision.
 	collision_mask = 0
 	var box := BoxMesh.new()
@@ -49,7 +49,7 @@ func _ready() -> void:
 		"note": box.size = Vector3(.3, .024, .36)
 		"valve": box.size = Vector3(.6, .6, .35)
 		"purifier": box.size = Vector3(1.5, 1.8, .8)
-		"circuit", "tuner", "drain_switch", "depot_dial": box.size = Vector3(.6, .9, .35)
+		"circuit", "tuner", "drain_switch", "depot_dial", "hospital_control", "hospital_station": box.size = Vector3(.6, .9, .35)
 		"drain_pump": box.size = Vector3(1.5,1.8,.8)
 		"air_filter": box.size = Vector3(.18, .34, .18)
 		"vehicle": box.size = Vector3(2.2,1.5,4.5)
@@ -60,7 +60,7 @@ func _ready() -> void:
 		leaf.position.z = -1.09
 		mesh.add_child(leaf)
 	else:
-		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "car_key":"key", "yard_key":"key"}.get(kind, kind)
+		var model_name: String = {"service_key": "key", "note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "car_key":"key", "yard_key":"key", "hospital_key":"key", "hospital_control":"power", "hospital_station":"hospital_console"}.get(kind, kind)
 		mesh = _paper() if kind == "note" else ART.model(model_name)
 		if kind in ["generator", "transmitter", "power", "circuit", "tuner"]:
 			mesh.rotation.y = PI
@@ -159,6 +159,11 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(GameManager.world):
 		return
 	var goals: Node = GameManager.world.objectives
+	if kind == "hospital_control":
+		var index: int = int(object_id.get_slice("_",1))
+		if object_id.begins_with("pressure_"): title = "Давление %s: %d" % [["I","II","III"][index],goals.pressure[index]]
+		elif object_id.begins_with("mixture_"): title = "Реагент %s: %d" % [["A","B","C"][index],goals.mixture[index]]
+		label.text = title
 	if kind == "relay":
 		var index: int = int(object_id.trim_prefix("relay_"))
 		title = "Реле %s: %d • переключить" % [["A", "B", "C"][index], goals.relay_values[index]]

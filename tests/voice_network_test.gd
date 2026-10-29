@@ -94,7 +94,16 @@ func begin_stage(number: int) -> void:
 	if multiplayer.is_server():
 		reports.clear()
 		ready_reports.clear()
-		ready_reports[1] = stage
+	if number==1:
+		var deadline: int=Time.get_ticks_msec()+15000
+		while not is_instance_valid(GameManager.world) or GameManager.world.players.get_child_count()!=expected or GameManager.local_player()==null:
+			if Time.get_ticks_msec()>deadline:
+				check(false,"all player scenes must exist before match audio starts"); return
+			await get_tree().physics_frame
+		# Spawn packets use another channel; wait for each peer's heavy setup, not only begin_round.
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+	if multiplayer.is_server(): ready_reports[1] = stage
 	else: stage_ready.rpc_id(1,stage)
 
 @rpc("any_peer","call_remote","reliable")

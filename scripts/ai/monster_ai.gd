@@ -49,6 +49,8 @@ var patrol_index: int = 0
 func _ready() -> void:
 	if station.map_id == 1:
 		patrol_points = [Vector3(0,0,-9),Vector3(-45,0,-18),Vector3(-54,0,-57),Vector3(45,0,-18),Vector3(54,0,-57),Vector3(0,0,-85),Vector3(0,0,33),Vector3(-12,0,42),Vector3(12,0,62)]
+	if station.map_id == 2:
+		patrol_points = [Vector3(0,0,12),Vector3(0,0,-20),Vector3(-41,0,-20),Vector3(-54,0,-42),Vector3(41,0,-20),Vector3(54,0,-42),Vector3(0,0,-80),Vector3(-17,0,-85),Vector3(17,0,-85),Vector3(0,0,54)]
 	sabotage_cooldown = float(station.rules.sabotage_delay)
 	body_shape = CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
@@ -331,6 +333,7 @@ func hear_noise(pos: Vector3, radius: float) -> void:
 		return
 	var range_multiplier: float = 1.2 if station.objectives.generator_on else 1.0
 	if station.map_id == 1: range_multiplier *= 1.3
+	if station.map_id == 2: range_multiplier *= 1.15
 	if position.distance_to(pos) <= radius * range_multiplier:
 		last_known = pos
 		if state == State.CHASE:

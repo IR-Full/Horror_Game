@@ -40,12 +40,22 @@ func _icon(kind: String, c: Vector2) -> void:
 	var cream := Color("c6bb96")
 	var metal := Color("8bada4")
 	match kind:
+		"scalpel":
+			draw_line(c+Vector2(-14,15),c+Vector2(10,-10),metal,5,true)
+			draw_line(c+Vector2(10,-10),c+Vector2(17,-19),Color("8b2924"),3,true)
+		"specimen_a", "specimen_b", "specimen_c":
+			draw_rect(Rect2(c-Vector2(8,15),Vector2(16,32)),Color("8b2924"))
+			draw_rect(Rect2(c+Vector2(-10,-21),Vector2(20,6)),metal)
+			draw_string(ThemeDB.fallback_font,c+Vector2(-4,5),kind.right(1).to_upper(),HORIZONTAL_ALIGNMENT_LEFT,-1,14,cream)
+		"hospital_badge":
+			draw_rect(Rect2(c-Vector2(21,13),Vector2(42,26)),cream)
+			draw_line(c+Vector2(-18,-3),c+Vector2(18,-3),Color("8b2924"),5)
 		"air_filter":
 			draw_rect(Rect2(c-Vector2(13,18),Vector2(26,36)),cream)
 			for i: int in range(5): draw_line(c+Vector2(-9+i*4,-14),c+Vector2(-9+i*4,14),metal,2)
 			draw_rect(Rect2(c-Vector2(15,18),Vector2(30,5)),Color("263634"))
 			draw_rect(Rect2(c+Vector2(-15,13),Vector2(30,5)),Color("263634"))
-		"key", "service_key", "car_key", "yard_key":
+		"key", "service_key", "car_key", "yard_key", "hospital_key":
 			draw_arc(c + Vector2(-9, -5), 7, 0, TAU, 18, cream, 3, true)
 			draw_line(c + Vector2(-2, -5), c + Vector2(16, 9), cream, 4, true)
 			draw_line(c + Vector2(9, 4), c + Vector2(5, 10), cream, 3, true)

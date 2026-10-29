@@ -16,14 +16,16 @@ def main():
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--voice', action='store_true', help='Exercise voice relay with synthetic audio, without microphones')
     parser.add_argument('--depot', action='store_true', help='Exercise depot map, vehicle escape and map switching')
-    parser.add_argument('--map-id', type=int, choices=(0, 1), default=0, help='Map for voice tests')
+    parser.add_argument('--hospital', action='store_true', help='Exercise hospital puzzles, evacuation and map switching')
+    parser.add_argument('--map-id', type=int, choices=(0, 1, 2), default=0, help='Map for voice tests')
     args = parser.parse_args()
-    if args.voice and args.depot:
-        parser.error('--voice and --depot are separate scenarios')
+    if sum((args.voice, args.depot, args.hospital)) > 1:
+        parser.error('--voice, --depot and --hospital are separate scenarios')
     if not args.godot:
         parser.error('Set GODOT_BIN or pass --godot /path/to/Godot 4.7.2')
     root = Path(__file__).resolve().parents[1]
-    output = root / 'test-results' / f'{"depot-lan" if args.depot else ("voice-lan" if args.voice else "lan")}-{args.players}'
+    scenario = 'hospital' if args.hospital else ('depot' if args.depot else ('voice' if args.voice else ''))
+    output = root / 'test-results' / f'{scenario+"-" if scenario else ""}lan-{args.players}'
     output.mkdir(parents=True, exist_ok=True)
     jobs = []
     failure = None
@@ -40,7 +42,7 @@ def main():
             path = output / f'{mode}-{index}.log'
             log = path.open('w', encoding='utf-8')
             command = [args.godot, '--headless', '--path', str(root), '--',
-                       f'--{"depot-test" if args.depot else ("voice-test" if args.voice else "test")}={mode}', f'--players={args.players}', f'--port={args.port}',
+                       f'--{scenario+"-" if scenario else ""}test={mode}', f'--players={args.players}', f'--port={args.port}',
                        f'--test-user-dir={runtime}', f'--map-id={args.map_id}']
             if args.verbose:
                 command.insert(1, '--verbose')

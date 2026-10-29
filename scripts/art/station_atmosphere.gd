@@ -26,6 +26,9 @@ func build(world: Node3D) -> void:
 	blood.set_script(preload("res://scripts/art/blood_traces.gd"))
 	add_child(blood)
 	if station.map_id == 0: blood.build()
+	elif station.map_id == 2:
+		blood.name = "BloodTraces"
+		var hospital := Node3D.new(); hospital.name = "HospitalDressing"; hospital.set_script(preload("res://scripts/art/hospital_dressing.gd")); add_child(hospital); hospital.build(station,blood)
 	else:
 		blood.name = "BloodTraces"
 		for at: Vector3 in [Vector3(1,.028,-14),Vector3(-49,.028,-44),Vector3(50,.028,-54),Vector3(-12,.028,-88),Vector3(7,.028,53)]: blood.add_child(preload("res://scripts/art/blood_traces.gd").make_pool(at,Vector2(.8,.5),at.x))
@@ -37,7 +40,7 @@ func build(world: Node3D) -> void:
 	if AudioManager.sounds.has("motor") and DisplayServer.get_name() != "headless":
 		generator_sound = AudioStreamPlayer3D.new()
 		generator_sound.stream = AudioManager.stream_for("motor")
-		generator_sound.position = station.objects.generator.position if station.map_id == 1 else Vector3(-10,.8,0)
+		generator_sound.position = station.objects.generator.position if station.map_id != 0 else Vector3(-10,.8,0)
 		generator_sound.volume_db = -20
 		generator_sound.bus = "Ambience"
 		generator_sound.max_distance = 15
@@ -49,7 +52,7 @@ func _build_depot_details() -> void:
 	apparition = ART.model(NetworkManager.MAPS.monster_model(station.map_id))
 	apparition.hide()
 	add_child(apparition)
-	station.sign_text("СМОТРИТЕЛЬ НЕ ОТПУСКАЕТ",Vector3(0,1.8,-104.7),0,28)
+	if station.map_id == 1: station.sign_text("СМОТРИТЕЛЬ НЕ ОТПУСКАЕТ",Vector3(0,1.8,-104.7),0,28)
 
 func prop(kind: String, at: Vector3, yaw: float = 0.0) -> Node3D:
 	var model := ART.model(kind)

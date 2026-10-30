@@ -5,6 +5,7 @@ var expected: int = 2
 var test_port: int = 27941
 var failed: bool = false
 var client_reports: Dictionary = {}
+var movement_ready: bool = false
 
 func _ready() -> void:
 	name = "TestRunner"
@@ -48,6 +49,12 @@ func _client() -> void:
 	var world: Node3D = GameManager.world
 	var player: Node3D = GameManager.local_player()
 	if not await until(func(): return world.players.get_child_count() == expected): return
+	# Scene creation and initial replication use different channels. Do not spend
+	# the movement window while another process is still constructing its players.
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	report.rpc_id(1,"ready")
+	if not await until(func():return movement_ready):return
 	check(NetworkManager.difficulty == 2 and int(world.rules.ammo) == 2,"host difficulty and hard ammunition rules replicate")
 	check(player.role == NetworkManager.role_id(player.peer_id), "selected role exactly matches replicated character")
 	if player.role == "hunter":
@@ -55,10 +62,11 @@ func _client() -> void:
 	var start: Vector3 = player.position
 	Input.action_press("forward")
 	Input.action_press("sprint")
-	await delay(0.85)
+	var moved: bool=await until(func():return player.stamina<99 and player.position.distance_to(start)>.8,5)
 	Input.action_release("forward")
 	Input.action_release("sprint")
-	await delay(0.25)
+	if not moved:return
+	await delay(0.1)
 	check(player.stamina < 99,"sprint stamina is owned by host and replicated to client")
 	if not check(player.position.distance_to(start) > 0.8, "client input moves authoritative body and replicates back"): return
 	if player.role == "hunter":
@@ -119,7 +127,11 @@ func _host() -> void:
 	world.monster.set_physics_process(false)
 	world.monster_speech.rpc(world.monster.position,5)
 	var player: Node3D = GameManager.local_player()
-	if not await until(func(): return client_reports.size() == expected - 1): return
+	if not await until(func(): return client_reports.size()==expected-1 and client_reports.values().count("ready")==expected-1): return
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	begin_movement.rpc()
+	if not await until(func():return client_reports.values().count("movement")==expected-1):return
 	check(world.players.get_child_count() == expected, "MultiplayerSpawner created every player")
 	check(player.lamp_on, "client cannot change another player's flashlight")
 	var before: int = player.inventory.size()
@@ -330,6 +342,10 @@ func _solve_sectors(world: Node3D, player: Node3D) -> bool:
 func report(phase: String) -> void:
 	if multiplayer.is_server():
 		client_reports[multiplayer.get_remote_sender_id()] = phase
+
+@rpc("authority","call_remote","reliable")
+func begin_movement() -> void:
+	movement_ready=true
 
 @rpc("authority", "call_remote", "reliable")
 func drive_power(look: Vector2) -> void:

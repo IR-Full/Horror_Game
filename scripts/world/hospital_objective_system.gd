@@ -32,17 +32,16 @@ var hazard_clock: float = 3
 const SAMPLES := ["specimen_a","specimen_b","specimen_c"]
 
 func randomize_round() -> void:
+	if not multiplayer.is_server():return
+	var randoms:=preload("res://scripts/core/round_random.gd")
 	var history := ConfigFile.new()
 	var history_path: String = SettingsManager.save_path.get_base_dir().path_join("last_hospital_puzzles.cfg")
 	history.load(history_path)
 	var previous: Dictionary = NetworkManager.last_hospital_puzzles if not NetworkManager.last_hospital_puzzles.is_empty() else history.get_value("puzzles","solutions",{})
-	var safe: String = str(randi_range(1000,9999))
-	while safe == previous.get("safe",""): safe = str(randi_range(1000,9999))
-	var morgue: String = str(randi_range(1000,9999))
-	while morgue == previous.get("morgue","") or morgue == safe: morgue = str(randi_range(1000,9999))
+	var safe: String = randoms.code(4,str(previous.get("safe","")))
+	var morgue: String = randoms.code(4,str(previous.get("morgue","")),[safe])
 	station.objects.hospital_fuse_safe.code = safe; station.objects.morgue_safe.code = morgue
-	ward_solution = [0,1,2,3]; ward_solution.shuffle()
-	while ward_solution == previous.get("ward",[]): ward_solution.shuffle()
+	ward_solution = randoms.order(4,previous.get("ward",[]))
 	pressure_solution = _digits(6,previous.get("pressure",[])); mixture_solution = _digits(4,previous.get("mixture",[]))
 	station.objects.admission_note.description = "ПАВИЛЬОН 13. ЖУРНАЛ ПОСТУПЛЕНИЙ\nПервые две цифры сейфа электрощитовой A: "+safe.left(2)+". Продолжение у дежурного палат B.\nПредохранитель вставить в щит A03, удерживая E.\nЭто заброшенный комплекс: доктор не человек. Не отвечайте на его обход.\nПосле получения допуска соберите всех у лифта A."
 	station.objects.ward_note.description = "ДЕЖУРСТВО В ПАЛАТАХ\nПоследние две цифры сейфа A: "+safe.right(2)+".\nПри работающем питании нажмите вызовы коек в порядке: %d → %d → %d → %d. Ошибка поднимет тревогу.\nПосле проверки разблокируется шкаф образца I в B.\nКлюч инструментального шкафа C — в одном из медицинских шкафчиков больницы." % [ward_solution[0]+1,ward_solution[1]+1,ward_solution[2]+1,ward_solution[3]+1]
@@ -51,9 +50,7 @@ func randomize_round() -> void:
 	NetworkManager.last_hospital_puzzles = {"safe":safe,"morgue":morgue,"ward":ward_solution.duplicate(),"pressure":pressure_solution.duplicate(),"mixture":mixture_solution.duplicate()}
 	history.set_value("puzzles","solutions",NetworkManager.last_hospital_puzzles); history.save(history_path)
 func _digits(limit: int,previous: Array) -> Array:
-	var digits: Array = [randi_range(0,limit-1),randi_range(0,limit-1),randi_range(0,limit-1)]
-	while digits == previous or digits == [0,0,0]: digits = [randi_range(0,limit-1),randi_range(0,limit-1),randi_range(0,limit-1)]
-	return digits
+	return preload("res://scripts/core/round_random.gd").digits(limit,previous)
 func begin_frame() -> void: holders.clear()
 func is_unlocked(rule: String) -> bool:
 	match rule:

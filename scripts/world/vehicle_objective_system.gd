@@ -24,16 +24,17 @@ var engine_holder: int = 0
 var car_origin := Vector3(0,.8,23)
 
 func randomize_round() -> void:
-	var previous: Dictionary = NetworkManager.last_depot_puzzles
-	var code: String = str(randi_range(1000,9999))
-	while code == previous.get("safe",""): code = str(randi_range(1000,9999))
+	if not multiplayer.is_server():return
+	var randoms:=preload("res://scripts/core/round_random.gd")
+	var previous: Dictionary = randoms.history("depot_puzzles",NetworkManager.last_depot_puzzles)
+	var code: String = randoms.code(4,str(previous.get("safe","")))
 	station.objects.parts_safe.code = code
 	station.objects.depot_note_a.description = "ЗАКАЗ НА СВЕЧИ\nСейф ремонтного бокса C. Первые две цифры: "+code.left(2)+".\nВторую половину кода оставили в общежитии E.\nКлюч топливной клетки хранится в шкафчике охраны E."
 	station.objects.depot_note_b.description = "ЖУРНАЛ ДЕЖУРНОГО\nПоследние две цифры сейфа C: "+code.right(2)+".\nАккумулятор и бензин — в клетке B.\nКолесо — в шкафу склада шин B; ремень — в северном хранилище D.\nКлюч зажигания — в личном шкафчике общежития."
-	circuit_solution = [randi_range(0,5),randi_range(0,5),randi_range(0,5)]
-	while circuit_solution == previous.get("circuit",[]) or circuit_solution == [0,0,0]: circuit_solution = [randi_range(0,5),randi_range(0,5),randi_range(0,5)]
+	circuit_solution = randoms.digits(6,previous.get("circuit",[]))
 	station.objects.depot_wiring_note.description = "ПУСКОВОЙ ЩИТ\nКонтакты L / N / PE этой смены: %d / %d / %d.\nНа каждом регуляторе значения 0–5. Восстановленная цепь включает освещение и снимает замок хранилища D.\nФонарь не защищает от смотрителя вблизи." % circuit_solution
 	NetworkManager.last_depot_puzzles = {"safe":code,"circuit":circuit_solution.duplicate()}
+	randoms.remember("depot_puzzles",NetworkManager.last_depot_puzzles)
 
 func begin_frame() -> void:
 	holders.clear()

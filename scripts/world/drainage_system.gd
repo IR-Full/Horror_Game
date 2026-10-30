@@ -14,11 +14,13 @@ const BUTTONS := ["СОЛЬ", "ПЕПЕЛ", "ПЛОТЬ", "ТИШИНА"]
 const ROOMS := ["E—02", "E—03", "E—05", "E—06"]
 
 func randomize_round() -> void:
-	var previous: Array = NetworkManager.last_pump_order
-	order = [0,1,2,3]
-	order.shuffle()
-	while order == previous: order.shuffle()
+	if not multiplayer.is_server():return
+	var randoms:=preload("res://scripts/core/round_random.gd")
+	var previous: Array=NetworkManager.last_pump_order
+	if previous.is_empty():previous=randoms.history("pump_order").get("order",[])
+	order = randoms.order(4,previous)
 	NetworkManager.last_pump_order = order.duplicate()
+	randoms.remember("pump_order",{"order":order})
 	var lines := PackedStringArray()
 	for i: int in order: lines.append(BUTTONS[i]+" • "+ROOMS[i])
 	station.objects.drain_note.description = "ПУСКОВАЯ ЦЕПЬ ЭТОЙ СМЕНЫ\nПитание — генератор A.\nВключить контакторы строго по порядку:\n"+" → ".join(lines)+"\nОшибка сбрасывает цепь и поднимает шум.\nЗатем удерживать пуск насоса в E—04.\nЗатопленный зал опасен при включённом питании."

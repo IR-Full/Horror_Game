@@ -16,11 +16,13 @@ const LOOSE := [Vector3(8,.2,6),Vector3(5.3,.2,10.7),Vector3(-5,.2,-9),Vector3(6
 const AMMO := [Vector3(-6,.045,6),Vector3(11,.045,-6),Vector3(-6,.045,-18),Vector3(6,.045,-22),Vector3(6,.045,-33),Vector3(-6,.045,-42),Vector3(10,.045,-47),Vector3(-13,.045,-30),Vector3(-30,.045,-24),Vector3(-40,.045,-39),Vector3(30,.045,-44),Vector3(49,.045,-24),Vector3(-6,.045,35),Vector3(7,.045,61)]
 
 static func apply(station: Node3D) -> void:
+	if not station.multiplayer.is_server():return
+	var randoms:=preload("res://scripts/core/round_random.gd")
 	var config := ConfigFile.new()
 	var path: String = SettingsManager.save_path.get_base_dir().path_join("last_loot.cfg")
 	config.load(path)
 	var previous: Dictionary = config.get_value("loot","positions",{})
-	var previous_ammo: Array = config.get_value("loot","ammo",NetworkManager.last_shell_positions)
+	var previous_ammo: Array = config.get_value("loot","all_ammo",config.get_value("loot","ammo",NetworkManager.last_shell_positions))
 	var chosen: Dictionary = {}
 	for id: String in CONTAINERS:
 		var object: Node3D = station.objects[id]
@@ -32,24 +34,19 @@ static func apply(station: Node3D) -> void:
 		for item: Node3D in station.objects.values():
 			if item.container_id == id: item.position += displacement
 		chosen[id] = at
-	var occupied: Array = []
-	for id: String in ["battery_a","battery_b","medkit"]:
-		var candidates: Array = LOOSE.duplicate()
-		candidates.erase(previous.get(id,Vector3.INF))
-		for at: Vector3 in occupied: candidates.erase(at)
-		var at: Vector3 = candidates.pick_random()
+	var loose: Dictionary=randoms.assign(["battery_a","battery_b","medkit"],LOOSE,previous,{},true)
+	for id: String in loose:
+		var at: Vector3=loose[id]
 		station.objects[id].position = at
-		occupied.append(at)
 		chosen[id] = at
+	var old_ammo: Dictionary={};var ammo_ids: Array=[]
+	for i: int in range(previous_ammo.size()):old_ammo["shell_%d" % i]=previous_ammo[i]
+	for i: int in range(6):ammo_ids.append("shell_%d" % i)
+	var ammo_slots: Dictionary=randoms.assign(ammo_ids,AMMO,old_ammo,{},true)
 	var used_ammo: Array = []
 	for i: int in range(6):
 		var id: String = "shell_%d" % i
-		var candidates: Array = AMMO.duplicate()
-		for at: Vector3 in used_ammo: candidates.erase(at)
-		# Also prevent a location from the previous visible ammo layout recurring.
-		for at: Vector3 in previous_ammo: candidates.erase(at)
-		candidates.erase(previous.get(id,Vector3.INF))
-		var at: Vector3 = candidates.pick_random()
+		var at: Vector3 = ammo_slots[id]
 		station.objects[id].position = at
 		station.objects[id].taken = i >= int(station.rules.ammo)
 		station.objects[id].refresh()
@@ -57,16 +54,16 @@ static func apply(station: Node3D) -> void:
 		chosen[id] = at
 	NetworkManager.last_shell_positions = used_ammo.slice(0,int(station.rules.ammo))
 	var calm_boxes: Array = ["archive_empty_7","archive_empty_10","archive_empty_13","medical_empty_locker"]
+	var calm_ids: Array=["calm_0","calm_1","calm_2"]
+	var calm: Dictionary=randoms.assign(calm_ids,calm_boxes,previous,{"calm_0":"sedative","calm_1":"sedative","calm_2":"thermos"})
 	for i: int in range(3):
-		var candidates: Array = calm_boxes.duplicate()
-		candidates.erase(previous.get("calm_%d" % i,""))
-		var box_id: String = candidates.pick_random()
-		calm_boxes.erase(box_id)
+		var box_id: String = calm["calm_%d" % i]
 		chosen["calm_%d" % i] = box_id
 		var item: Node3D = station.objects["calm_supply_%d" % i]
 		item.container_id = box_id
 		item.position = station.objects[box_id].to_global(Vector3(0,-.4,.1))
 	config.set_value("loot","positions",chosen)
+	config.set_value("loot","all_ammo",used_ammo)
 	config.set_value("loot","ammo",NetworkManager.last_shell_positions)
 	config.save(path)
 	station.refresh_containers()

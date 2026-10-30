@@ -32,6 +32,7 @@ var sectors: Node
 var drainage: Node
 var static_navigation_count: int = 0
 var last_speech_take: int = -1
+var clues_ready: bool=false
 var base_navigation: Dictionary = {}
 const DEPOT := preload("res://scripts/world/depot_layout.gd")
 const LAYOUT := preload("res://scripts/world/sector_layout.gd")
@@ -135,6 +136,8 @@ func spawn_players() -> void:
 	else:
 		objectives.randomize_round()
 		preload("res://scripts/world/hospital_loot.gd").apply(self)
+	preload("res://scripts/world/loot_clues.gd").apply(self)
+	sync_clues()
 	_refresh_equipment_navigation()
 	_ground_loose_items.call_deferred()
 	var index: int = 0
@@ -144,9 +147,10 @@ func spawn_players() -> void:
 	sync_state()
 
 func randomize_puzzles() -> void:
-	var previous: Dictionary = NetworkManager.last_puzzles
-	var code: String = str(randi_range(100, 999))
-	while code == previous.get("safe", ""): code = str(randi_range(100, 999))
+	if not multiplayer.is_server():return
+	var randoms:=preload("res://scripts/core/round_random.gd")
+	var previous: Dictionary = randoms.history("station_puzzles",NetworkManager.last_puzzles)
+	var code: String = randoms.code(3,str(previous.get("safe","")))
 	objects.fuse_safe.code = code
 	objects.safe_note.description = "КОД СЕЙФА ЭТОЙ СМЕНЫ: %s\nПредохранитель — на складе A—01. Ключ от клетки — в шкафчике A—07." % code
 	objectives.relay_solution = _new_digits(4, previous.get("relays", []))
@@ -160,12 +164,10 @@ func randomize_puzzles() -> void:
 	while sectors.circuit == previous.get("circuit",[]): sectors.randomize_round()
 	NetworkManager.last_puzzles.circuit = sectors.circuit.duplicate()
 	drainage.randomize_round()
+	randoms.remember("station_puzzles",NetworkManager.last_puzzles)
 
 func _new_digits(base: int, previous: Array) -> Array:
-	var value: Array = [randi_range(0,base-1),randi_range(0,base-1),randi_range(0,base-1)]
-	while value == previous or value == [0,0,0]:
-		value = [randi_range(0,base-1),randi_range(0,base-1),randi_range(0,base-1)]
-	return value
+	return preload("res://scripts/core/round_random.gd").digits(base,previous)
 
 func _ground_loose_items() -> void:
 	if not multiplayer.is_server(): return
@@ -854,6 +856,24 @@ func sync_state() -> void:
 		var object: Node3D = objects[id]
 		state[id] = [object.taken, object.opened, object.locked, object.position, object.container_id]
 	receive_state.rpc(objectives.snapshot(), state)
+
+func sync_clues() -> void:
+	if not multiplayer.is_server():return
+	clues_ready=true
+	var notes: Dictionary={}
+	var codes: Dictionary={}
+	for id: String in objects:
+		if objects[id].kind=="note":notes[id]=objects[id].description
+		if not objects[id].code.is_empty():codes[id]=objects[id].code
+	receive_clues.rpc({"notes":notes,"codes":codes})
+
+@rpc("authority","call_remote","reliable")
+func receive_clues(manifest: Dictionary) -> void:
+	clues_ready=true
+	for id: String in manifest.notes:
+		if objects.has(id) and objects[id].kind=="note":objects[id].description=str(manifest.notes[id])
+	for id: String in manifest.codes:
+		if objects.has(id):objects[id].code=str(manifest.codes[id])
 
 @rpc("authority", "call_remote", "reliable")
 func receive_state(goal: Dictionary, state: Dictionary) -> void:

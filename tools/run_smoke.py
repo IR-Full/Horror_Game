@@ -18,14 +18,15 @@ def main():
     parser.add_argument('--depot', action='store_true', help='Exercise depot map, vehicle escape and map switching')
     parser.add_argument('--hospital', action='store_true', help='Exercise hospital puzzles, evacuation and map switching')
     parser.add_argument('--horror', action='store_true', help='Exercise recorded monster speech, prone collapse and persistent blood')
+    parser.add_argument('--random', action='store_true', help='Verify randomized solutions, clues and loot across all maps and round restarts')
     parser.add_argument('--map-id', type=int, choices=(0, 1, 2), default=0, help='Map for voice tests')
     args = parser.parse_args()
-    if sum((args.voice, args.depot, args.hospital, args.horror)) > 1:
-        parser.error('--voice, --depot, --hospital and --horror are separate scenarios')
+    if sum((args.voice, args.depot, args.hospital, args.horror, args.random)) > 1:
+        parser.error('--voice, --depot, --hospital, --horror and --random are separate scenarios')
     if not args.godot:
         parser.error('Set GODOT_BIN or pass --godot /path/to/Godot 4.7.2')
     root = Path(__file__).resolve().parents[1]
-    scenario = 'horror' if args.horror else ('hospital' if args.hospital else ('depot' if args.depot else ('voice' if args.voice else '')))
+    scenario = 'random' if args.random else 'horror' if args.horror else ('hospital' if args.hospital else ('depot' if args.depot else ('voice' if args.voice else '')))
     output = root / 'test-results' / f'{scenario+"-" if scenario else ""}lan-{args.players}'
     output.mkdir(parents=True, exist_ok=True)
     jobs = []

@@ -9,6 +9,8 @@ const CONTAINERS := {
 }
 const AMMO := [Vector3(-5,.045,8),Vector3(5,.045,-10),Vector3(-31,.045,-22),Vector3(-58,.045,-45),Vector3(31,.045,-45),Vector3(58,.045,-18),Vector3(-7,.045,-78),Vector3(7,.045,-92),Vector3(-14,.045,45.5),Vector3(12,.045,65),Vector3(0,.045,-41),Vector3(0,.045,33),Vector3(0,.045,-59),Vector3(0,.045,-66)]
 static func apply(s: Node3D) -> void:
+	if not s.multiplayer.is_server():return
+	var randoms:=preload("res://scripts/core/round_random.gd")
 	var cfg := ConfigFile.new()
 	var path: String = SettingsManager.save_path.get_base_dir().path_join("last_depot_loot.cfg")
 	cfg.load(path)
@@ -23,28 +25,27 @@ static func apply(s: Node3D) -> void:
 		for item: Node3D in s.objects.values():
 			if item.container_id == id: item.position += delta
 		chosen[id] = at
-	var slots: Array = range(12)
-	var kinds: Array = ["battery","battery","battery","medkit","medkit","sedative","sedative","sedative","sedative","thermos","thermos"]
-	for i: int in range(kinds.size()):
-		var candidates: Array = slots.duplicate()
-		candidates.erase(previous.get("supply_%d" % i,-1))
-		var slot: int = candidates.pick_random()
-		slots.erase(slot)
-		chosen["supply_%d" % i] = slot
-		var box_id: String = "depot_spare_%d" % slot
-		var item: Node3D = s.objects["depot_supply_%d" % i]
-		item.container_id = box_id
-		item.position = s.objects[box_id].position+Vector3(0,-.4,.1)
-	var previous_ammo: Array = cfg.get_value("loot","ammo",[])
-	var ammo: Array = []
+	var supply_ids: Array=[];var kinds: Dictionary={}
+	for i: int in range(11):
+		var id: String="supply_%d" % i;supply_ids.append(id);kinds[id]=s.objects["depot_supply_%d" % i].kind
+	var assignments: Dictionary=randoms.assign(supply_ids,range(12),previous,kinds)
+	for i: int in range(11):
+		var slot: int=assignments["supply_%d" % i];chosen["supply_%d" % i]=slot
+		var item: Node3D=s.objects["depot_supply_%d" % i]
+		item.container_id="depot_spare_%d" % slot
+		item.position=s.objects[item.container_id].position+Vector3(0,-.4,.1)
+	var previous_ammo: Array = cfg.get_value("loot","all_ammo",cfg.get_value("loot","ammo",[]))
+	var old_ammo: Dictionary={};var ammo_ids: Array=[]
+	for i: int in range(previous_ammo.size()):old_ammo["shell_%d" % i]=previous_ammo[i]
+	for i: int in range(6):ammo_ids.append("shell_%d" % i)
+	var assignments_ammo: Dictionary=randoms.assign(ammo_ids,AMMO,old_ammo,{},true)
+	var ammo: Array=[]
 	for i: int in range(6):
-		var candidates: Array = AMMO.duplicate()
-		for at: Vector3 in previous_ammo+ammo: candidates.erase(at)
-		var at: Vector3 = candidates.pick_random()
-		ammo.append(at)
-		s.objects["shell_%d" % i].position = at
-		s.objects["shell_%d" % i].taken = i >= int(s.rules.ammo)
+		var at: Vector3=assignments_ammo["shell_%d" % i];ammo.append(at)
+		s.objects["shell_%d" % i].position=at
+		s.objects["shell_%d" % i].taken=i>=int(s.rules.ammo)
 		s.objects["shell_%d" % i].refresh()
+	cfg.set_value("loot","all_ammo",ammo)
 	cfg.set_value("loot","positions",chosen)
 	cfg.set_value("loot","ammo",ammo.slice(0,int(s.rules.ammo)))
 	cfg.save(path)

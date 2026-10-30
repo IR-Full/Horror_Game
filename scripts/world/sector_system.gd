@@ -128,11 +128,13 @@ func task_text() -> String:
 	return ""
 
 func snapshot() -> Dictionary:
-	return {"valves":valves, "frequency":frequency, "circuit":circuit, "pressure":pressure_ready, "circuit_ready":circuit_ready, "filter":filter_loaded, "purge":purge_progress, "purified":purified, "tuned":tuned}
+	return {"valves":valves, "frequency":frequency, "valve_solution":valve_solution, "frequency_solution":frequency_solution, "circuit":circuit, "pressure":pressure_ready, "circuit_ready":circuit_ready, "filter":filter_loaded, "purge":purge_progress, "purified":purified, "tuned":tuned}
 
 func apply_snapshot(data: Dictionary) -> void:
 	valves = data.valves.duplicate()
 	frequency = data.frequency.duplicate()
+	valve_solution=data.valve_solution.duplicate()
+	frequency_solution=data.frequency_solution.duplicate()
 	circuit = data.circuit.duplicate()
 	pressure_ready = data.pressure
 	circuit_ready = data.circuit_ready

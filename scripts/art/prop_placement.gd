@@ -2,7 +2,7 @@ extends RefCounted
 ## Place visible geometry on supports without moving interaction anchors.
 const FLOOR_PROPS: Array[String]=["desk","shelf","cot","chair","crate","radio_rack","barrel","boiler","operating_table","hospital_trolley","surgical_lamp","escape_car"]
 const FLOOR_EQUIPMENT: Array[String]=["generator","transmitter","ventilation","purifier","drain_pump","hospital_station"]
-const STANDING_CONTROLS: Array[String]=["circuit","tuner","drain_switch","depot_dial","hospital_control","valve"]
+const STANDING_CONTROLS: Array[String]=["circuit","tuner","drain_switch","depot_dial","hospital_control","valve","forest_control","forest_station"]
 
 static func bounds(root: Node3D) -> AABB:
 	var result:=AABB();var first: bool=true
@@ -44,5 +44,5 @@ static func settle(world: Node3D) -> void:
 			var height: float=maxf(.1,box.position.y)
 			world.block(Vector3(object.position.x,height*.5,object.position.z+.06),Vector3(.11,height,.11),"293e40",false)
 			world.block(Vector3(object.position.x,.035,object.position.z+.06),Vector3(.42,.07,.35),"293e40",false)
-	for rect: Rect2 in world.layout.FLOORS:
+	for rect: Rect2 in (world.layout.ROOFS if world.map_id==3 else world.layout.FLOORS):
 		for i: int in range(1,int(rect.size.y/8)+1): world.block(Vector3(rect.get_center().x,3.24,rect.position.y+i*8-.3),Vector3(rect.size.x,.12,.12),"293e40",false)

@@ -47,6 +47,13 @@ func _ready() -> void:
 	NetworkManager.match_started.connect(_show_game)
 	NetworkManager.left_room.connect(_clear_world)
 	_show_menu()
+	if "--forest-check" in args:
+		var forest_runner:=Node.new();forest_runner.set_script(load("res://tests/forest_check.gd"));add_child(forest_runner)
+	if "--forest-preview" in args:
+		var forest_runner:=Node.new();forest_runner.set_script(load("res://tests/forest_preview.gd"));add_child(forest_runner)
+	for argument: String in args:
+		if argument.begins_with("--forest-test="):
+			var forest_runner:=Node.new();forest_runner.set_script(load("res://tests/forest_network_test.gd"));add_child(forest_runner)
 	if "--random-check" in args:
 		var random_runner:=Node.new();random_runner.set_script(load("res://tests/random_check.gd"));add_child(random_runner)
 	for argument: String in args:
@@ -245,7 +252,7 @@ func _show_menu() -> void:
 	button_in(column, "ПОДКЛЮЧИТЬСЯ ПО IP", func(): NetworkManager.join_room(address, nickname, port))
 	button_in(column, "Настройки", func(): _show_settings(false))
 	button_in(column, "Выход", func(): get_tree().quit())
-	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.14  /  Голосовая связь", 14, "77938f")
+	label_in(column, "LAN • 2–4 игрока  /  Прототип 0.15  /  Голосовая связь", 14, "77938f")
 	_make_message_label()
 
 func _lobby_changed() -> void:
@@ -568,6 +575,7 @@ func open_map() -> void:
 		label_in(legend,line,14,"a7c5ba")
 	var symbols: String = "V: машина • C: контакты L / N / PE\nG: аварийный топливный клапан" if GameManager.world.map_id == 1 else "G: генератор • P: питание • T: передача\nC: пульт • F: фильтрация • W: насос E"
 	if GameManager.world.map_id == 2: symbols = "G: щит A • H: автоклав / анализатор / лифт\nC: вызовы коек / давление / реагенты"
+	if GameManager.world.map_id==3:symbols="G: дизель A • W: лебёдка B • V: дрезина E\nC: захваты / давление / стрелки"
 	label_in(legend,"Золотой: вы • зелёный: напарники\nКрасный: раненый / SOS\nДвери: зелёная открыта, красная заперта\n"+symbols,13,"ddbb86")
 
 func _process(delta: float) -> void:
@@ -618,7 +626,7 @@ func _process(delta: float) -> void:
 	var hit: Dictionary = world.get_world_3d().direct_space_state.intersect_ray(query)
 	hint.text = ""
 	if player.in_vehicle:
-		hint.text = "Команда покидает автобазу…"
+		hint.text = "Дрезина уходит из Чёрного бора…" if world.map_id==3 else "Команда покидает автобазу…"
 		return
 	if not hit.is_empty():
 		var object: Object = hit.collider

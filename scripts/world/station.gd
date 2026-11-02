@@ -45,6 +45,9 @@ func _ready() -> void:
 	if map_id == 1:
 		rules.chase_speed *= 1.08
 		rules.sabotage_delay *= .85
+	if map_id == 3:
+		rules.ambient *= .55
+		rules.sabotage_delay *= .85
 	if map_id == 2:
 		rules.ambient *= .35
 		rules.lighting *= .75
@@ -133,9 +136,12 @@ func spawn_players() -> void:
 	elif map_id == 1:
 		objectives.randomize_round()
 		preload("res://scripts/world/depot_loot.gd").apply(self)
-	else:
+	elif map_id == 2:
 		objectives.randomize_round()
 		preload("res://scripts/world/hospital_loot.gd").apply(self)
+	else:
+		objectives.randomize_round()
+		preload("res://scripts/world/forest_loot.gd").apply(self)
 	preload("res://scripts/world/loot_clues.gd").apply(self)
 	sync_clues()
 	_refresh_equipment_navigation()
@@ -427,6 +433,8 @@ func apply_quality() -> void:
 	environment.fog_enabled = true
 	environment.fog_light_color = Color("0a1312") if map_id==2 else Color("091014")
 	environment.fog_density = [.005, .009, .013][SettingsManager.quality]
+	if map_id==3:
+		environment.fog_light_color=Color("060d0b");environment.fog_density=.022
 	# Compatibility supports depth fog; volumetric fog/SSR require Forward+.
 	environment.volumetric_fog_enabled = false
 	environment.ssr_enabled = false
@@ -582,7 +590,7 @@ func _physics_process(delta: float) -> void:
 					_revive_target(player, target, delta)
 				elif target.get("object_id") != null:
 					revive_progress.erase(id)
-					if target.kind in ["generator", "transmitter", "power", "ventilation", "purifier", "drain_pump", "vehicle", "hospital_station"]:
+					if target.kind in ["generator", "transmitter", "power", "ventilation", "purifier", "drain_pump", "vehicle", "hospital_station", "forest_station", "forest_cart"]:
 						objectives.interact(player, target)
 					elif not bool(was_holding.get(id, false)):
 						interact_object(player, target)
@@ -617,7 +625,7 @@ func _run_horror_event() -> void:
 	var kind: int = randi_range(0, 2)
 	var at := Vector3(0, 0, -9)
 	var candidates: Array[Vector3] = [Vector3(0, 0, -9), Vector3(0, 0, -3), Vector3(0, 0, 5), Vector3(-7, 0, 0), Vector3(7, 0, -8), Vector3(-7, 0, -8)]
-	if map_id==2:
+	if map_id in [2,3]:
 		candidates = [Vector3(0,0,-80),Vector3(0,0,-55),Vector3(0,0,-20),Vector3(0,0,4),Vector3(0,0,36)]
 		for room: Array in layout.map_rooms(): candidates.append(Vector3(room[0].get_center().x,0,room[0].get_center().y))
 	candidates.shuffle()
@@ -654,6 +662,9 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		if object.locked:
 			if not object.gate_rule.is_empty():
 				if not sectors.is_unlocked(object.gate_rule):
+					if map_id==3:
+						tell(player.peer_id,"Шлагбаум откроется при запуске подготовленной дрезины.")
+						return
 					tell(player.peer_id, "Выезд откроется при запуске готовой машины." if map_id == 1 else "Шлюз D закрыт: нужны давление B и очистка воздуха C.")
 					return
 				object.locked = false
@@ -676,12 +687,18 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sync_state()
 	elif object.kind in ["locker_container", "safe", "cage"]:
 		if not object.gate_rule.is_empty() and not sectors.is_unlocked(object.gate_rule):
+			if map_id==3:
+				tell(player.peer_id,"Хранилище закрыто: завершите лебёдку B или насос D по журналам.")
+				return
 			tell(player.peer_id, "Хранилище заблокировано: завершите проверку отделения по журналам." if map_id == 2 else ("Хранилище заблокировано. Восстановите пусковой щит C." if map_id == 1 else "Хранилище заблокировано. Восстановите пульт C—01."))
 			return
 		if object.kind == "safe" and not object.opened:
 			container_prompt.rpc_id(player.peer_id, object.object_id)
 			return
 		if object.locked and not object.required_key in player.inventory:
+			if map_id==3:
+				tell(player.peer_id,"Нужен служебный ключ из одного из шкафчиков лесобазы.")
+				return
 			tell(player.peer_id, "Ключ инструментального шкафа — в одном из медицинских шкафчиков больницы." if map_id == 2 else ("Нужен ключ клетки из шкафчика охраны E." if map_id == 1 else "Заперто. Служебный ключ — в шкафчике мастерской, сектор 07."))
 			return
 		object.locked = false
@@ -697,7 +714,7 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sync_state()
 	elif object.kind == "note":
 		document_prompt.rpc_id(player.peer_id, object.title, object.description)
-	elif object.kind == "hospital_control": objectives.control(player,object)
+	elif object.kind in ["hospital_control","forest_control"]: objectives.control(player,object)
 	elif object.kind == "depot_dial": objectives.turn_dial(player,object)
 	elif object.kind == "drain_switch": drainage.press(player,object)
 	elif object.kind in ["valve", "tuner", "circuit"]:
@@ -808,6 +825,10 @@ func player_step(at: Vector3, yaw: float, left: bool, bloody: bool, quiet: bool)
 	var kind: String = "step"
 	if (absf(at.x)>15 and absf(at.x)<27) or (at.z < -51 and at.z > -63): kind = "step_metal"
 	elif at.x < -27: kind = "step_gravel"
+	if map_id == 3:
+		kind="step_gravel"
+		for roof: Rect2 in layout.ROOFS:
+			if roof.has_point(Vector2(at.x,at.z)):kind="step";break
 	if map_id == 2: kind = "step_metal" if at.x>18 and at.z>-51 and at.z<11 else "step"
 	AudioManager.play_at(kind, at, -6.0 if quiet else 0.0)
 	atmosphere.get_node("Footprints").stamp(at+Vector3.UP*.034, yaw, left, bloody)

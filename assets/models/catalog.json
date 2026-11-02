@@ -305,5 +305,33 @@
     "model": "specimen_c",
     "triangles": 1334,
     "detail_version": 13
+  },
+  {
+    "model": "forest_pine",
+    "triangles": 3084
+  },
+  {
+    "model": "forest_snag",
+    "triangles": 176
+  },
+  {
+    "model": "forest_logs",
+    "triangles": 1188
+  },
+  {
+    "model": "forest_saw",
+    "triangles": 4580
+  },
+  {
+    "model": "forest_winch",
+    "triangles": 708
+  },
+  {
+    "model": "forest_cart",
+    "triangles": 1984
+  },
+  {
+    "model": "entity_forester",
+    "triangles": 6388
   }
 ]

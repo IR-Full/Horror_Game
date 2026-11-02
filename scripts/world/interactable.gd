@@ -49,9 +49,11 @@ func _ready() -> void:
 		"note": box.size = Vector3(.3, .024, .36)
 		"valve": box.size = Vector3(.6, .6, .35)
 		"purifier": box.size = Vector3(1.5, 1.8, .8)
-		"circuit", "tuner", "drain_switch", "depot_dial", "hospital_control", "hospital_station": box.size = Vector3(.6, .9, .35)
+		"circuit", "tuner", "drain_switch", "depot_dial", "hospital_control", "hospital_station", "forest_control", "forest_station": box.size = Vector3(.6, .9, .35)
 		"drain_pump": box.size = Vector3(1.5,1.8,.8)
 		"air_filter": box.size = Vector3(.18, .34, .18)
+		"forest_barrier": box.size = Vector3(2.3,1.5,5.5)
+		"forest_cart": box.size = Vector3(2.1,1.6,3.5)
 		"vehicle": box.size = Vector3(2.2,1.5,4.5)
 	if kind == "door":
 		mesh = Node3D.new()
@@ -60,7 +62,7 @@ func _ready() -> void:
 		leaf.position.z = -1.09
 		mesh.add_child(leaf)
 	else:
-		var model_name: String = {"note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "hospital_control":"power", "hospital_station":"hospital_console"}.get(kind, kind)
+		var model_name: String = {"note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "hospital_control":"power", "hospital_station":"hospital_console", "forest_control":"power", "forest_station":"power", "forest_cart":"forest_cart", "forest_barrier":"forest_logs"}.get(kind, kind)
 		mesh = _paper() if kind == "note" else ART.model(model_name)
 		if kind in ["generator", "transmitter", "power", "circuit", "tuner"]:
 			mesh.rotation.y = PI
@@ -80,7 +82,8 @@ func _ready() -> void:
 			var support_shape:=CollisionShape3D.new();var shelf_shape:=BoxShape3D.new()
 			shelf_shape.size=Vector3(1.08,.03,.7) if kind=="cage" else (Vector3(.7,.02,.5) if kind=="safe" else Vector3(.82,.035,.55))
 			support_shape.shape=shelf_shape;support.add_child(support_shape);support.position.y=y;add_child(support)
-	if kind == "vehicle": mesh.position.y = -.8
+	if kind in ["vehicle","forest_cart"]: mesh.position.y = -.8
+	if kind=="forest_barrier":mesh.position.y=-.75
 	if kind == "ventilation":
 		for y: float in [-.42, .42]:
 			var rotor: Node3D = ART.model("fan_blades")
@@ -184,6 +187,10 @@ func _process(delta: float) -> void:
 		if object_id.begins_with("pressure_"): title = "Давление %s: %d" % [["I","II","III"][index],goals.pressure[index]]
 		elif object_id.begins_with("mixture_"): title = "Реагент %s: %d" % [["A","B","C"][index],goals.mixture[index]]
 		label.text = title
+	if kind=="forest_control":
+		var index: int=int(object_id.get_slice("_",1))
+		if object_id.begins_with("pump_"):label.text="Давление %s: %d" % [["I","II","III"][index],goals.pressure[index]]
+		elif object_id.begins_with("signal_"):label.text="Стрелка %s: %d" % [["A","B","C"][index],goals.rail_values[index]]
 	if kind == "relay":
 		var index: int = int(object_id.trim_prefix("relay_"))
 		title = "Реле %s: %d • переключить" % [["A", "B", "C"][index], goals.relay_values[index]]

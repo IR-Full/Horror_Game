@@ -3,7 +3,8 @@ extends RefCounted
 const DESKS := [
 	{"safe_note":[Vector3(7,1.08,8)],"relay_note":[Vector3(12,1.08,-35.6),Vector3(7,1.08,-28.2)],"pressure_note":[Vector3(-36,1.08,-17)],"circuit_note":[Vector3(33,1.08,-17)],"frequency_note":[Vector3(33,1.08,-17)],"drain_note":[Vector3(-13,1.08,29)]},
 	{"depot_note_a":[Vector3(-17,1.08,-98)],"depot_note_b":[Vector3(-14,1.08,42)],"depot_wiring_note":[Vector3(54,1.08,-22)]},
-	{"admission_note":[Vector3(-18,1.08,28)],"ward_note":[Vector3(-53,1.08,-44)],"surgery_note":[Vector3(52,1.08,5)],"laboratory_note":[Vector3(18,1.08,-98)]}]
+	{"admission_note":[Vector3(-18,1.08,28)],"ward_note":[Vector3(-53,1.08,-44)],"surgery_note":[Vector3(52,1.08,5)],"laboratory_note":[Vector3(18,1.08,-98)]},
+	{"forest_office_note":[Vector3(-16,1.08,27)],"forest_winch_note":[Vector3(-46,1.08,-12)],"forest_pump_note":[Vector3(-46,1.08,-80)],"forest_signal_note":[Vector3(20,1.08,-86)],"forest_barracks_note":[Vector3(42,1.08,48)]}]
 const OFFSETS := [Vector3(-.72,0,-.18),Vector3(0,0,-.18),Vector3(.72,0,-.18),Vector3(-.72,0,.18),Vector3(0,0,.18),Vector3(.72,0,.18)]
 
 static func candidates(map_id: int,id: String) -> Array:

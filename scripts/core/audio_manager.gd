@@ -140,6 +140,13 @@ func _make_sound(kind: String) -> AudioStreamWAV:
 func set_ambience(enabled: bool) -> void:
 	if not is_instance_valid(ambience):
 		return
+	if enabled:
+		var forest: bool=is_instance_valid(GameManager.world) and GameManager.world.map_id==3
+		var next: AudioStream=load("res://assets/audio/clips/forest_wind.wav") if forest else stream_for("hum")
+		if next and ambience.stream!=next:
+			ambience.stop();ambience.stream=next
+			if next is AudioStreamWAV:
+				next.loop_mode=AudioStreamWAV.LOOP_FORWARD;next.loop_end=int(next.get_length()*next.mix_rate)
 	if enabled and not ambience.playing:
 		ambience.play()
 		music.play()

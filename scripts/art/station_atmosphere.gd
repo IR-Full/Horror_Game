@@ -26,6 +26,9 @@ func build(world: Node3D) -> void:
 	blood.set_script(preload("res://scripts/art/blood_traces.gd"))
 	add_child(blood)
 	if station.map_id == 0: blood.build()
+	elif station.map_id==3:
+		blood.name="BloodTraces"
+		var forest:=Node3D.new();forest.set_script(preload("res://scripts/art/forest_dressing.gd"));add_child(forest);forest.build(station,blood)
 	elif station.map_id == 2:
 		blood.name = "BloodTraces"
 		var hospital := Node3D.new(); hospital.name = "HospitalDressing"; hospital.set_script(preload("res://scripts/art/hospital_dressing.gd")); add_child(hospital); hospital.build(station,blood)

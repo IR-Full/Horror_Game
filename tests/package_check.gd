@@ -2,7 +2,7 @@ extends SceneTree
 ## Run as an external script against an exported PCK, not the source directory.
 func _initialize() -> void:
 	var failures: int = 0
-	for path: String in ["res://scripts/core/round_random.gd","res://scripts/world/loot_clues.gd","res://scripts/player/equipment_view.gd","res://scripts/art/prop_placement.gd","res://assets/textures/props_materials_generated.png","res://assets/textures/props_detail_normal.png","res://assets/textures/props_detail_orm.png"]:
+	for path: String in ["res://scripts/world/forest_layout.gd","res://scripts/world/forest_objective_system.gd","res://scripts/world/forest_loot.gd","res://scripts/art/forest_dressing.gd","res://assets/shaders/forest_ground.gdshader","res://assets/shaders/forest_timber.gdshader","res://assets/audio/clips/forest_wind.wav","res://scripts/core/round_random.gd","res://scripts/world/loot_clues.gd","res://scripts/player/equipment_view.gd","res://scripts/art/prop_placement.gd","res://assets/textures/props_materials_generated.png","res://assets/textures/props_detail_normal.png","res://assets/textures/props_detail_orm.png"]:
 		if not ResourceLoader.exists(path):
 			push_error("PACKAGE_FAIL missing detailed prop resource "+path)
 			failures+=1

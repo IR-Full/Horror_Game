@@ -38,8 +38,8 @@ func run() -> void:
 	else:check(NetworkManager.join_room("127.0.0.1","Random client",port)==OK,"client connects")
 	if mode=="host" and not await until(func():return NetworkManager.members.size()==expected):return
 	var last_round: int=-1;var history: Dictionary={}
-	for epoch: int in range(4):
-		var map_id: int=[0,1,2,0][epoch]
+	for epoch: int in range(5):
+		var map_id: int=[0,1,2,3,0][epoch]
 		if mode=="host":
 			NetworkManager.choose_map(map_id);NetworkManager.choose_difficulty(3);NetworkManager.start_round()
 		if not await until(func():return NetworkManager.in_match and NetworkManager.round_id!=last_round and GameManager.local_player()!=null and GameManager.world.clues_ready):return
@@ -55,7 +55,7 @@ func run() -> void:
 			history[map_id]=current
 			fixture.rpc(epoch,current)
 			if not await until(func():return everyone(epoch)):return
-			if epoch<3:
+			if epoch<4:
 				NetworkManager.return_to_lobby()
 				if not await until(func():return not NetworkManager.in_match and not NetworkManager.unloading):return
 		else:
@@ -67,7 +67,7 @@ func run() -> void:
 			LOOT[map_id].apply(w);CLUES.apply(w)
 			check(inspect(w)==before,"client cannot reroll loot or solutions")
 			report.rpc_id(1,epoch)
-			if epoch<3 and not await until(func():return not NetworkManager.in_match and not NetworkManager.unloading):return
+			if epoch<4 and not await until(func():return not NetworkManager.in_match and not NetworkManager.unloading):return
 	if mode=="host":
 		finish.rpc();await get_tree().create_timer(.5).timeout
 		NetworkManager.leave(false)

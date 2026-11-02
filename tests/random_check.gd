@@ -1,12 +1,13 @@
 extends Node
 const RANDOM:=preload("res://scripts/core/round_random.gd")
 const CLUES:=preload("res://scripts/world/loot_clues.gd")
-const LOOT: Array=[preload("res://scripts/world/loot_spawns.gd"),preload("res://scripts/world/depot_loot.gd"),preload("res://scripts/world/hospital_loot.gd")]
+const LOOT: Array=[preload("res://scripts/world/loot_spawns.gd"),preload("res://scripts/world/depot_loot.gd"),preload("res://scripts/world/hospital_loot.gd"),preload("res://scripts/world/forest_loot.gd")]
 var failures: int=0
 func _ready() -> void:run.call_deferred()
 func check(ok: bool,label: String) -> void:
 	if not ok:failures+=1;push_error("RANDOM_FAIL "+label)
 func puzzle_state(w: Node3D) -> Dictionary:
+	if w.map_id==3:return {"safe":w.objects.forest_safe.code,"battery":w.objects.battery_safe.code,"logs":w.objectives.log_solution.duplicate(),"pressure":w.objectives.pressure_solution.duplicate(),"signal":w.objectives.signal_solution.duplicate()}
 	if w.map_id==0:return {"safe":w.objects.fuse_safe.code,"relays":w.objectives.relay_solution.duplicate(),"valves":w.sectors.valve_solution.duplicate(),"frequency":w.sectors.frequency_solution.duplicate(),"circuit":w.sectors.circuit.duplicate(),"pump":w.drainage.order.duplicate()}
 	if w.map_id==1:return {"safe":w.objects.parts_safe.code,"circuit":w.objectives.circuit_solution.duplicate()}
 	return {"safe":w.objects.hospital_fuse_safe.code,"morgue":w.objects.morgue_safe.code,"ward":w.objectives.ward_solution.duplicate(),"pressure":w.objectives.pressure_solution.duplicate(),"mixture":w.objectives.mixture_solution.duplicate()}
@@ -43,6 +44,10 @@ func regenerate(w: Node3D) -> void:
 	LOOT[w.map_id].apply(w);CLUES.apply(w);w.sync_clues()
 	await w._ground_loose_items()
 func valid_clues(w: Node3D) -> bool:
+	if w.map_id==3:
+		var order: PackedStringArray=[]
+		for i: int in w.objectives.log_solution:order.append(str(i+1))
+		return w.objects.forest_office_note.description.contains(w.objects.forest_safe.code.left(2)) and w.objects.forest_barracks_note.description.contains(w.objects.forest_safe.code.right(2)) and w.objects.forest_pump_note.description.contains(w.objects.battery_safe.code) and w.objects.forest_pump_note.description.contains("%d / %d / %d" % w.objectives.pressure_solution) and w.objects.forest_signal_note.description.contains("%d / %d / %d" % w.objectives.signal_solution) and w.objects.forest_winch_note.description.contains(" → ".join(order))
 	if w.map_id==0:
 		if not w.objects.safe_note.description.contains(w.objects.fuse_safe.code):return false
 		if preload("res://tests/sector_check.gd").circuit_solution(w.sectors.circuit).is_empty():return false
@@ -73,7 +78,7 @@ func run() -> void:
 			for old: String in previous:
 				if kinds[id]==kinds[old]:check(selected[id]!=previous[old],"same type cannot reuse a previous slot")
 		previous=selected
-	for map_id: int in range(3):
+	for map_id: int in range(4):
 		NetworkManager.host_room("Random QA",28001);NetworkManager.choose_map(map_id);NetworkManager.choose_difficulty(0);NetworkManager.start_round(true)
 		await get_tree().create_timer(.4).timeout
 		var w: Node3D=GameManager.world;var p: Node3D=GameManager.local_player();p.input_enabled=false;p.set_physics_process(false);w.monster.set_physics_process(false)

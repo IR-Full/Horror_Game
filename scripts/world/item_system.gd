@@ -58,6 +58,8 @@ func drop_all(player: Node3D) -> void:
 func use(player: Node3D, slot: int) -> void:
 	if slot < 0 or slot >= player.inventory.size():
 		return
+	if station.map_id==4 and player.inventory[slot]=="air_filter":
+		station.objectives.use_filter(player);return
 	match player.inventory[slot]:
 		"battery":
 			player.battery = minf(100.0, player.battery + 65.0)

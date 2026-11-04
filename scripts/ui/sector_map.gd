@@ -7,7 +7,7 @@ var clock: float = 0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if is_instance_valid(GameManager.world) and GameManager.world.map_id in [2,3]:
+	if is_instance_valid(GameManager.world) and GameManager.world.map_id in [2,3,4]:
 		rooms = GameManager.world.layout.map_rooms()
 		return
 	if is_instance_valid(GameManager.world) and GameManager.world.map_id == 1:

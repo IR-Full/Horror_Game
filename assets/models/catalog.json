@@ -333,5 +333,13 @@
   {
     "model": "entity_forester",
     "triangles": 6388
+  },
+  {
+    "model": "mine_lift",
+    "triangles": 1224
+  },
+  {
+    "model": "entity_miner",
+    "triangles": 4040
   }
 ]

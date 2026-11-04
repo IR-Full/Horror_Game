@@ -58,7 +58,7 @@ var patrol_points: Array[Vector3] = [Vector3(0, 0, -10), Vector3(0, 0, 7), Vecto
 var patrol_index: int = 0
 
 func _ready() -> void:
-	if station.map_id == 3:
+	if station.map_id in [3,4]:
 		patrol_points=[Vector3(0,0,-20),Vector3(-36,0,-18),Vector3(41,0,-10),Vector3(-46,0,-69),Vector3(0,0,-74),Vector3(40,0,30),Vector3(0,0,35),Vector3(0,0,-91)]
 	if station.map_id == 1:
 		patrol_points = [Vector3(0,0,-9),Vector3(-45,0,-18),Vector3(-54,0,-57),Vector3(45,0,-18),Vector3(54,0,-57),Vector3(0,0,-85),Vector3(0,0,33),Vector3(-12,0,42),Vector3(12,0,62)]
@@ -352,7 +352,7 @@ func hear_noise(pos: Vector3, radius: float) -> void:
 	var range_multiplier: float = 1.2 if station.objectives.generator_on else 1.0
 	if station.map_id == 1: range_multiplier *= 1.3
 	if station.map_id == 2: range_multiplier *= 1.15
-	if station.map_id == 3: range_multiplier *= 1.4
+	if station.map_id in [3,4]: range_multiplier *= 1.4
 	if position.distance_to(pos) <= radius * range_multiplier:
 		last_known = pos
 		if state == State.CHASE:
@@ -379,7 +379,7 @@ func _perceive() -> void:
 		lonely_time = 0
 		target_id = player.peer_id
 		var to_monster: Vector3 = (position + Vector3.UP * 1.5 - player.eye_position()).normalized()
-		if station.map_id!=3 and player.lamp_on and player.battery > 0.0 and distance > 2.2 and distance < (3.2 if station.map_id == 1 else 4.2) and player.look_direction().dot(to_monster) > 0.96:
+		if station.map_id not in [3,4] and player.lamp_on and player.battery > 0.0 and distance > 2.2 and distance < (3.2 if station.map_id == 1 else 4.2) and player.look_direction().dot(to_monster) > 0.96:
 			var away: Vector3 = position + (position - player.position).normalized() * 4.0
 			away.x = clampf(away.x, -62, 62)
 			away.z = clampf(away.z, -104, 65)

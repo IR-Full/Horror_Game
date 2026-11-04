@@ -44,5 +44,5 @@ static func settle(world: Node3D) -> void:
 			var height: float=maxf(.1,box.position.y)
 			world.block(Vector3(object.position.x,height*.5,object.position.z+.06),Vector3(.11,height,.11),"293e40",false)
 			world.block(Vector3(object.position.x,.035,object.position.z+.06),Vector3(.42,.07,.35),"293e40",false)
-	for rect: Rect2 in (world.layout.ROOFS if world.map_id==3 else world.layout.FLOORS):
+	for rect: Rect2 in (world.layout.ROOFS if world.map_id in [3,4] else world.layout.FLOORS):
 		for i: int in range(1,int(rect.size.y/8)+1): world.block(Vector3(rect.get_center().x,3.24,rect.position.y+i*8-.3),Vector3(rect.size.x,.12,.12),"293e40",false)

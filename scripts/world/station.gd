@@ -45,7 +45,7 @@ func _ready() -> void:
 	if map_id == 1:
 		rules.chase_speed *= 1.08
 		rules.sabotage_delay *= .85
-	if map_id == 3:
+	if map_id in [3,4]:
 		rules.ambient *= .55
 		rules.sabotage_delay *= .85
 	if map_id == 2:
@@ -141,7 +141,7 @@ func spawn_players() -> void:
 		preload("res://scripts/world/hospital_loot.gd").apply(self)
 	else:
 		objectives.randomize_round()
-		preload("res://scripts/world/forest_loot.gd").apply(self)
+		(preload("res://scripts/world/mine_loot.gd") if map_id==4 else preload("res://scripts/world/forest_loot.gd")).apply(self)
 	preload("res://scripts/world/loot_clues.gd").apply(self)
 	sync_clues()
 	_refresh_equipment_navigation()
@@ -433,7 +433,7 @@ func apply_quality() -> void:
 	environment.fog_enabled = true
 	environment.fog_light_color = Color("0a1312") if map_id==2 else Color("091014")
 	environment.fog_density = [.005, .009, .013][SettingsManager.quality]
-	if map_id==3:
+	if map_id in [3,4]:
 		environment.fog_light_color=Color("060d0b");environment.fog_density=.022
 	# Compatibility supports depth fog; volumetric fog/SSR require Forward+.
 	environment.volumetric_fog_enabled = false
@@ -625,7 +625,7 @@ func _run_horror_event() -> void:
 	var kind: int = randi_range(0, 2)
 	var at := Vector3(0, 0, -9)
 	var candidates: Array[Vector3] = [Vector3(0, 0, -9), Vector3(0, 0, -3), Vector3(0, 0, 5), Vector3(-7, 0, 0), Vector3(7, 0, -8), Vector3(-7, 0, -8)]
-	if map_id in [2,3]:
+	if map_id in [2,3,4]:
 		candidates = [Vector3(0,0,-80),Vector3(0,0,-55),Vector3(0,0,-20),Vector3(0,0,4),Vector3(0,0,36)]
 		for room: Array in layout.map_rooms(): candidates.append(Vector3(room[0].get_center().x,0,room[0].get_center().y))
 	candidates.shuffle()
@@ -662,7 +662,7 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		if object.locked:
 			if not object.gate_rule.is_empty():
 				if not sectors.is_unlocked(object.gate_rule):
-					if map_id==3:
+					if map_id in [3,4]:
 						tell(player.peer_id,"Шлагбаум откроется при запуске подготовленной дрезины.")
 						return
 					tell(player.peer_id, "Выезд откроется при запуске готовой машины." if map_id == 1 else "Шлюз D закрыт: нужны давление B и очистка воздуха C.")
@@ -687,7 +687,7 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 		sync_state()
 	elif object.kind in ["locker_container", "safe", "cage"]:
 		if not object.gate_rule.is_empty() and not sectors.is_unlocked(object.gate_rule):
-			if map_id==3:
+			if map_id in [3,4]:
 				tell(player.peer_id,"Хранилище закрыто: завершите лебёдку B или насос D по журналам.")
 				return
 			tell(player.peer_id, "Хранилище заблокировано: завершите проверку отделения по журналам." if map_id == 2 else ("Хранилище заблокировано. Восстановите пусковой щит C." if map_id == 1 else "Хранилище заблокировано. Восстановите пульт C—01."))
@@ -696,7 +696,7 @@ func interact_object(player: Node3D, object: Node3D) -> void:
 			container_prompt.rpc_id(player.peer_id, object.object_id)
 			return
 		if object.locked and not object.required_key in player.inventory:
-			if map_id==3:
+			if map_id in [3,4]:
 				tell(player.peer_id,"Нужен служебный ключ из одного из шкафчиков лесобазы.")
 				return
 			tell(player.peer_id, "Ключ инструментального шкафа — в одном из медицинских шкафчиков больницы." if map_id == 2 else ("Нужен ключ клетки из шкафчика охраны E." if map_id == 1 else "Заперто. Служебный ключ — в шкафчике мастерской, сектор 07."))
@@ -825,7 +825,7 @@ func player_step(at: Vector3, yaw: float, left: bool, bloody: bool, quiet: bool)
 	var kind: String = "step"
 	if (absf(at.x)>15 and absf(at.x)<27) or (at.z < -51 and at.z > -63): kind = "step_metal"
 	elif at.x < -27: kind = "step_gravel"
-	if map_id == 3:
+	if map_id in [3,4]:
 		kind="step_gravel"
 		for roof: Rect2 in layout.ROOFS:
 			if roof.has_point(Vector2(at.x,at.z)):kind="step";break

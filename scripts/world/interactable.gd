@@ -63,6 +63,7 @@ func _ready() -> void:
 		mesh.add_child(leaf)
 	else:
 		var model_name: String = {"note": "cassette", "relay": "power", "hatch": "vent_grate", "ventilation": "vent_unit", "locker_container": "locker_shell", "circuit":"power", "tuner":"power", "purifier":"vent_unit", "drain_switch":"power", "drain_pump":"vent_unit", "depot_dial":"power", "vehicle":"escape_car", "hospital_control":"power", "hospital_station":"hospital_console", "forest_control":"power", "forest_station":"power", "forest_cart":"forest_cart", "forest_barrier":"forest_logs"}.get(kind, kind)
+		if kind=="forest_cart" and NetworkManager.map_id==4:model_name="mine_lift"
 		mesh = _paper() if kind == "note" else ART.model(model_name)
 		if kind in ["generator", "transmitter", "power", "circuit", "tuner"]:
 			mesh.rotation.y = PI
@@ -190,7 +191,7 @@ func _process(delta: float) -> void:
 	if kind=="forest_control":
 		var index: int=int(object_id.get_slice("_",1))
 		if object_id.begins_with("pump_"):label.text="Давление %s: %d" % [["I","II","III"][index],goals.pressure[index]]
-		elif object_id.begins_with("signal_"):label.text="Стрелка %s: %d" % [["A","B","C"][index],goals.rail_values[index]]
+		elif object_id.begins_with("signal_"):label.text=("Контактор %s: %d" if NetworkManager.map_id==4 else "Стрелка %s: %d") % [["A","B","C"][index],goals.rail_values[index]]
 	if kind == "relay":
 		var index: int = int(object_id.trim_prefix("relay_"))
 		title = "Реле %s: %d • переключить" % [["A", "B", "C"][index], goals.relay_values[index]]

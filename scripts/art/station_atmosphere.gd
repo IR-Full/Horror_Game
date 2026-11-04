@@ -29,6 +29,9 @@ func build(world: Node3D) -> void:
 	elif station.map_id==3:
 		blood.name="BloodTraces"
 		var forest:=Node3D.new();forest.set_script(preload("res://scripts/art/forest_dressing.gd"));add_child(forest);forest.build(station,blood)
+	elif station.map_id==4:
+		blood.name="BloodTraces"
+		for at: Vector3 in [Vector3(0,.028,-46),Vector3(-46,.028,-80),Vector3(40,.028,-30)]:blood.add_child(preload("res://scripts/art/blood_traces.gd").make_pool(at,Vector2(1.2,.7),at.z))
 	elif station.map_id == 2:
 		blood.name = "BloodTraces"
 		var hospital := Node3D.new(); hospital.name = "HospitalDressing"; hospital.set_script(preload("res://scripts/art/hospital_dressing.gd")); add_child(hospital); hospital.build(station,blood)
